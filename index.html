@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>E-RM Klinik Pribadi</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <nav class="navbar">
+    <div class="nav-container">
+      <div class="brand" onclick="switchSection('landing')">
+        <img src="axalogo.png" alt="Logo" class="logo-img" onerror="this.style.display='none'">
+        <span>E-RM <span class="text-accent">Klinik</span></span>
+      </div>
+      <ul class="nav-links">
+        <li><a href="#" onclick="switchSection('landing')"><i class="fa-solid fa-house"></i> Home</a></li>
+        <li><a href="#" onclick="switchSection('form-section')"><i class="fa-solid fa-notes-medical"></i> Input SOAP</a></li>
+        <li><a href="#" onclick="switchSection('dashboard-section')"><i class="fa-solid fa-chart-line"></i> Dashboard</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main class="main-content">
+
+    <section id="landing" class="active-section">
+      <div class="hero-card">
+        <h1>Sistem Rekam Medis Elektronik Modern</h1>
+        <p>Integrasi pencatatan rekam medis terstruktur berbasis SOAP untuk meningkatkan efisiensi diagnosis dan perawatan klinis harian Anda.</p>
+        <div class="hero-actions">
+          <button class="btn btn-primary" onclick="switchSection('form-section')">
+            <i class="fa-solid fa-pen-to-square"></i> Mulai Catat SOAP
+          </button>
+          <button class="btn btn-secondary" onclick="switchSection('dashboard-section')">
+            <i class="fa-solid fa-database"></i> Buka Dashboard
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section id="form-section" class="hidden-section">
+      <div class="glass-card">
+        <h2><i class="fa-solid fa-file-medical text-accent"></i> Input Rekam Medis Baru</h2>
+        <form id="soapForm">
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="noRm">No. Rekam Medis (RM)</label>
+              <input type="text" id="noRm" name="noRm" placeholder="Contoh: RM-001" required>
+            </div>
+            <div class="form-group">
+              <label for="nik">NIK Pasien</label>
+              <input type="text" id="nik" name="nik" placeholder="16 Digit Nomor Induk Kependudukan" required>
+            </div>
+            <div class="form-group">
+              <label for="namaLengkap">Nama Lengkap</label>
+              <input type="text" id="namaLengkap" name="namaLengkap" placeholder="Nama Lengkap Pasien" required>
+            </div>
+            <div class="form-group">
+              <label for="usia">Usia (Tahun)</label>
+              <input type="number" id="usia" name="usia" placeholder="Contoh: 25" required>
+            </div>
+            <div class="form-group">
+              <label for="jenisKelamin">Jenis Kelamin</label>
+              <select id="jenisKelamin" name="jenisKelamin" required>
+                <option value="" disabled selected>Pilih Jenis Kelamin</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="elemenGigi">Elemen Gigi / Lokasi Spesifik</label>
+              <input type="text" id="elemenGigi" name="elemenGigi" placeholder="Contoh: Gigi 36, Regio Kanan Atas, dsb.">
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label for="alamat">Alamat Lengkap</label>
+            <textarea id="alamat" name="alamat" rows="2" placeholder="Alamat tinggal pasien saat ini" required></textarea>
+          </div>
+
+          <h3 class="section-title"><i class="fa-solid fa-stethoscope"></i> Catatan Klinis SOAP</h3>
+          <div class="form-grid-soap">
+            <div class="form-group">
+              <label for="subjective"><span class="badge badge-s">S</span> Subjective (Keluhan Utama / Anamnesis)</label>
+              <textarea id="subjective" name="subjective" rows="4" placeholder="Keluhan utama pasien, riwayat penyakit sekarang dan masa lalu..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="objective"><span class="badge badge-o">O</span> Objective (Pemeriksaan Klinis & Radiografi)</label>
+              <textarea id="objective" name="objective" rows="4" placeholder="Hasil pemeriksaan ekstraoral, intraoral, tes vitalitas, palpasi, perkusi, interpretasi rontgen..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="assessment"><span class="badge badge-a">A</span> Assessment (Diagnosis & Klasifikasi)</label>
+              <textarea id="assessment" name="assessment" rows="4" placeholder="Diagnosis kerja, diagnosis banding, klasifikasi penyakit (misal: pulpitis ireversibel, ICDAS)..." required></textarea>
+            </div>
+            <div class="form-group">
+              <label for="plan"><span class="badge badge-p">P</span> Plan (Rencana Perawatan & Tindakan)</label>
+              <textarea id="plan" name="plan" rows="4" placeholder="Rencana perawatan, tindakan pembedahan/restorasi, resep obat, instruksi kontrol..." required></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-submit" id="submitBtn">
+            <span id="btnText"><i class="fa-solid fa-paper-plane"></i> Simpan Rekam Medis</span>
+            <span id="btnSpinner" class="spinner hidden"></span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section id="dashboard-section" class="hidden-section">
+      <div class="glass-card table-card">
+        <div class="dashboard-header">
+          <h2><i class="fa-solid fa-table text-accent"></i> Dashboard Admin E-RM</h2>
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="searchBar" placeholder="Cari berdasarkan Nama atau No RM...">
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table id="ermTable">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>No RM</th>
+                <th>Nama Pasien</th>
+                <th>Usia/JK</th>
+                <th>Elemen</th>
+                <th>S (Subjective)</th>
+                <th>O (Objective)</th>
+                <th>A (Assessment)</th>
+                <th>P (Plan)</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody">
+              <tr>
+                <td colspan="9" class="text-center text-muted">Memuat database rekam medis...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+</body>
+</html>
