@@ -115,12 +115,21 @@
         .modal.active { display: flex; }
         .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; }
         
-        /* Cuma Muncul Saat Print */
+        /* CUMA MUNCUL SAAT DI CETAK / PRINT */
         #printArea { display: none; }
         @media print {
-            body * { visibility: hidden; }
-            #printArea, #printArea * { visibility: visible; }
-            #printArea { display: block; position: absolute; left: 0; top: 0; width: 100%; font-family: 'Times New Roman', Times, serif; color: black; padding: 20px; }
+            /* Sembunyikan elemen UI website secara mutlak */
+            body { background: white !important; color: black; margin: 0; padding: 0; }
+            .blob, nav, main, .modal, #toast { display: none !important; }
+            
+            /* Tampilkan area SKS */
+            #printArea { 
+                display: block !important; 
+                position: relative; 
+                width: 100%; 
+                font-family: 'Times New Roman', Times, serif; 
+                padding: 20px; 
+            }
             .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 30px; }
             .kop-surat img { height: 70px; margin-bottom: 5px; }
             .sks-title { text-align: center; text-decoration: underline; font-weight: bold; font-size: 14pt; margin-bottom: 20px;}
@@ -136,7 +145,7 @@
         #toast.error { background: #ef4444; }
 
         @media(max-width: 768px) {
-            .nav-links span { display: none; } /* Hanya tampilkan icon di HP */
+            .nav-links span { display: none; } 
             .form-container { padding: 20px; }
             .btn { width: 100%; }
         }
@@ -206,20 +215,40 @@
 
                     <!-- 2. Riwayat Penyakit & Alergi -->
                     <h3 class="module-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penyakit & Alergi Pasien</h3>
-                    <div style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem;">
-                            <input type="checkbox" id="chkTidakAdaRiwayat" checked style="width: 18px; height: 18px;">
-                            Tidak Ada Riwayat Penyakit / Alergi
-                        </label>
+                    <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                         
-                        <div id="riwayatContainer" style="display: none; margin-top: 15px;">
-                            <div id="riwayatList">
-                                <div class="input-group" style="margin-bottom: 10px;">
-                                    <input type="text" class="riwayat-input" placeholder="Sebutkan alergi atau penyakit (Contoh: Alergi Amoxicillin, Asma)">
+                        <!-- Blok Riwayat Penyakit -->
+                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-viruses"></i> A. Riwayat Penyakit Pasien</h4>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
+                            <input type="checkbox" id="chkTidakAdaPenyakit" checked style="width: 18px; height: 18px;">
+                            Tidak Ada Riwayat Penyakit
+                        </label>
+                        <div id="penyakitContainer" style="display: none; margin-bottom: 25px;">
+                            <div id="penyakitList">
+                                <div class="input-group" style="margin-bottom: 10px; flex-direction: row; gap: 10px;">
+                                    <input type="text" class="penyakit-input" placeholder="Contoh: Hipertensi, Diabetes, Asma..." style="flex:1;">
                                 </div>
                             </div>
-                            <button type="button" class="btn btn-outline" onclick="tambahRiwayat()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Riwayat Lain</button>
+                            <button type="button" class="btn btn-outline" onclick="tambahPenyakit()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Penyakit</button>
                         </div>
+
+                        <hr style="border-top: 1px dashed var(--glass-border); margin: 20px 0;">
+
+                        <!-- Blok Riwayat Alergi -->
+                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-hand-dots"></i> B. Riwayat Alergi Pasien</h4>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
+                            <input type="checkbox" id="chkTidakAdaAlergi" checked style="width: 18px; height: 18px;">
+                            Tidak Ada Riwayat Alergi
+                        </label>
+                        <div id="alergiContainer" style="display: none;">
+                            <div id="alergiList">
+                                <div class="input-group" style="margin-bottom: 10px; flex-direction: row; gap: 10px;">
+                                    <input type="text" class="alergi-input" placeholder="Contoh: Alergi Amoxicillin, Alergi Makanan Laut..." style="flex:1;">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline" onclick="tambahAlergi()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Alergi</button>
+                        </div>
+
                     </div>
 
                     <!-- 3. Pemeriksaan Fisik Terpadu -->
@@ -256,14 +285,26 @@
                     <!-- 4. Data Klinis & SOAP -->
                     <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</h3>
                     <div class="input-group" style="margin-bottom: 20px;">
-                        <label>Elemen Gigi / Regio</label>
-                        <input type="text" name="elemenGigi" placeholder="Contoh: Gigi 46..." required>
+                        <label>Elemen Gigi / Regio Odontogram</label>
+                        <input type="text" name="elemenGigi" placeholder="Contoh: Gigi 46, Regio Kanan Bawah..." required>
                     </div>
 
-                    <div class="soap-section"><label><span class="soap-badge bg-s">S</span> Subjective (Anamnesis)</label><textarea name="subjective" rows="2" required></textarea></div>
-                    <div class="soap-section"><label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis)</label><textarea name="objective" rows="2" required></textarea></div>
-                    <div class="soap-section"><label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis/ICDAS)</label><textarea name="assessment" rows="2" required></textarea></div>
-                    <div class="soap-section"><label><span class="soap-badge bg-p">P</span> Plan (Tindakan)</label><textarea name="plan" rows="2" required></textarea></div>
+                    <div class="soap-section">
+                        <label><span class="soap-badge bg-s">S</span> Subjective (Anamnesis)</label>
+                        <textarea name="subjective" rows="3" placeholder="Keluhan utama pasien, durasi rasa sakit, faktor pemicu, riwayat perjalanan penyakit..." required></textarea>
+                    </div>
+                    <div class="soap-section">
+                        <label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis)</label>
+                        <textarea name="objective" rows="3" placeholder="Hasil pemeriksaan ekstraoral & intraoral, tes vitalitas (dingin/panas/perkusi/palpasi), mobilitas, temuan radiografi..." required></textarea>
+                    </div>
+                    <div class="soap-section">
+                        <label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis/ICDAS)</label>
+                        <textarea name="assessment" rows="2" placeholder="Diagnosis utama (kerja), diagnosis banding, klasifikasi penyakit medis (contoh: Pulpitis Ireversibel Simtomatik)..." required></textarea>
+                    </div>
+                    <div class="soap-section">
+                        <label><span class="soap-badge bg-p">P</span> Plan (Tindakan)</label>
+                        <textarea name="plan" rows="3" placeholder="Rencana perawatan konservasi/endodontik, tindakan pembedahan/restorasi, resep edukasi, instruksi rujukan..." required></textarea>
+                    </div>
 
                     <!-- 5. E-Resep Obat -->
                     <h3 class="module-title"><i class="fa-solid fa-pills"></i> Resep Obat Dokter</h3>
@@ -372,6 +413,7 @@
         </div>
         <div class="sks-signature">
             <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
+            <br><br>
             <p><strong>( ______________________ )</strong><br>SIP: .......................................</p>
         </div>
     </div>
@@ -382,7 +424,7 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS VERSI 2.0 ANDA DISINI
+        // MASUKKAN URL DEPLOYMENT GAS VERSI 3.0 ANDA DISINI (PASTIKAN SUDAH NEW DEPLOYMENT)
         const API_URL = "https://script.google.com/macros/s/AKfycbyZHWbU0e1oif7SlDWyZdCDRs_4_kQu_hREtK08l_c2VTj72kJD9K88lqgGAkjBzXtn/exec"; 
         
         let allPatientsData = [];
@@ -401,24 +443,36 @@
 
         document.getElementById('tanggalPelayanan').valueAsDate = new Date();
 
-        // 2. Logika Toggle Riwayat & Alergi
-        const chkTidakAdaRiwayat = document.getElementById('chkTidakAdaRiwayat');
-        const riwayatContainer = document.getElementById('riwayatContainer');
-        chkTidakAdaRiwayat.addEventListener('change', function() {
-            riwayatContainer.style.display = this.checked ? 'none' : 'block';
+        // 2. Logika Toggle Riwayat Penyakit & Alergi
+        const chkTidakAdaPenyakit = document.getElementById('chkTidakAdaPenyakit');
+        const penyakitContainer = document.getElementById('penyakitContainer');
+        chkTidakAdaPenyakit.addEventListener('change', function() {
+            penyakitContainer.style.display = this.checked ? 'none' : 'block';
         });
 
-        function tambahRiwayat() {
-            const list = document.getElementById('riwayatList');
+        function tambahPenyakit() {
+            const list = document.getElementById('penyakitList');
             const div = document.createElement('div');
             div.className = 'input-group';
-            div.style.marginBottom = '10px';
-            div.style.flexDirection = 'row';
-            div.style.gap = '10px';
-            div.innerHTML = `
-                <input type="text" class="riwayat-input" placeholder="Sebutkan alergi/penyakit tambahan..." style="flex:1;">
-                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
-            `;
+            div.style.marginBottom = '10px'; div.style.flexDirection = 'row'; div.style.gap = '10px';
+            div.innerHTML = `<input type="text" class="penyakit-input" placeholder="Contoh penyakit lainnya..." style="flex:1;">
+                             <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>`;
+            list.appendChild(div);
+        }
+
+        const chkTidakAdaAlergi = document.getElementById('chkTidakAdaAlergi');
+        const alergiContainer = document.getElementById('alergiContainer');
+        chkTidakAdaAlergi.addEventListener('change', function() {
+            alergiContainer.style.display = this.checked ? 'none' : 'block';
+        });
+
+        function tambahAlergi() {
+            const list = document.getElementById('alergiList');
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.style.marginBottom = '10px'; div.style.flexDirection = 'row'; div.style.gap = '10px';
+            div.innerHTML = `<input type="text" class="alergi-input" placeholder="Contoh alergi lainnya..." style="flex:1;">
+                             <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>`;
             list.appendChild(div);
         }
 
@@ -463,13 +517,22 @@
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            // Ekstraksi Riwayat Dinamis
-            let riwayatFinal = "Tidak Ada";
-            if(!chkTidakAdaRiwayat.checked) {
-                const inputs = document.querySelectorAll('.riwayat-input');
+            // Ekstraksi Penyakit
+            let strPenyakit = "Tidak Ada";
+            if(!chkTidakAdaPenyakit.checked) {
+                const inputs = document.querySelectorAll('.penyakit-input');
                 let values = [];
                 inputs.forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
-                if(values.length > 0) riwayatFinal = values.join("; ");
+                if(values.length > 0) strPenyakit = values.join("; ");
+            }
+
+            // Ekstraksi Alergi
+            let strAlergi = "Tidak Ada";
+            if(!chkTidakAdaAlergi.checked) {
+                const inputs = document.querySelectorAll('.alergi-input');
+                let values = [];
+                inputs.forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
+                if(values.length > 0) strAlergi = values.join("; ");
             }
 
             // Ekstraksi Resep Dinamis ke JSON Array
@@ -495,7 +558,8 @@
             const dataObj = Object.fromEntries(formData.entries());
             
             // Masukkan data ekstra ke objek
-            dataObj.riwayatAlergi = riwayatFinal;
+            dataObj.riwayatPenyakit = strPenyakit;
+            dataObj.riwayatAlergi = strAlergi;
             dataObj.resepObat = JSON.stringify(resepArray);
 
             // UI Loading
@@ -513,10 +577,14 @@
                 });
 
                 showToast("Rekam Medis Komprehensif Berhasil Disimpan!", "success");
+                
+                // Reset Form and States
                 e.target.reset();
                 document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
-                document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); // Reset tabel resep
-                chkTidakAdaRiwayat.checked = true; document.getElementById('riwayatContainer').style.display = 'none'; // Reset riwayat
+                document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); 
+                
+                chkTidakAdaPenyakit.checked = true; penyakitContainer.style.display = 'none'; 
+                chkTidakAdaAlergi.checked = true; alergiContainer.style.display = 'none';
                 
                 setTimeout(() => navTo('dashboard'), 1500);
 
@@ -552,7 +620,6 @@
             dataArray.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 
-                // Menyiapkan object untuk dipanggil oleh fungsi modal SKS (mengakali string quotes di HTML inline)
                 const safeItem = encodeURIComponent(JSON.stringify(item));
 
                 tr.innerHTML = `
@@ -564,7 +631,8 @@
                     <td>
                         <strong>${item['Nama Lengkap'] || '-'}</strong><br>
                         <small>Usia: ${item['Usia'] || '-'} Thn (${item['Jenis Kelamin']})</small><br>
-                        <small style="color:#ef4444;">Riwayat: ${item['Riwayat Penyakit & Alergi'] || 'Tidak Ada'}</small>
+                        <small style="color:#ef4444;">Penyakit: ${item['Riwayat Penyakit'] || 'Tidak Ada'}</small><br>
+                        <small style="color:#ef4444;">Alergi: ${item['Riwayat Alergi'] || 'Tidak Ada'}</small>
                     </td>
                     <td>
                         <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
@@ -605,7 +673,6 @@
             return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
-        // Converter angka ke huruf (simple 1-10 untuk hari)
         function angkaKeTeks(angka) {
             const teks = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh"];
             return teks[angka] || angka.toString();
@@ -615,10 +682,10 @@
             if(!tempPasienSks) return;
 
             // Injeksi data ke dalam Hidden Area Print
-            document.getElementById('printNama').innerText = tempPasienSks['Nama Lengkap'];
-            document.getElementById('printUsia').innerText = tempPasienSks['Usia'];
-            document.getElementById('printJk').innerText = tempPasienSks['Jenis Kelamin'];
-            document.getElementById('printAlamat').innerText = tempPasienSks['Alamat'];
+            document.getElementById('printNama').innerText = tempPasienSks['Nama Lengkap'] || "-";
+            document.getElementById('printUsia').innerText = tempPasienSks['Usia'] || "-";
+            document.getElementById('printJk').innerText = tempPasienSks['Jenis Kelamin'] || "-";
+            document.getElementById('printAlamat').innerText = tempPasienSks['Alamat'] || "-";
             
             const jmlHari = parseInt(document.getElementById('sksHari').value) || 1;
             document.getElementById('printHari').innerText = jmlHari;
@@ -627,16 +694,15 @@
             document.getElementById('printMulai').innerText = formatTanggal(document.getElementById('sksMulai').value);
             document.getElementById('printSelesai').innerText = formatTanggal(document.getElementById('sksSelesai').value);
             
-            // Tanggal Surat di bawah TTD (Tanggal hari ini)
             document.getElementById('printTglSurat').innerText = "Kendari, " + formatTanggal(new Date());
 
-            // Tutup Modal dan Trigger Dialog Print OS
+            // Tutup Modal terlebih dahulu agar dialog cetak tidak menangkap latar gelap modal
             document.getElementById('modalSks').classList.remove('active');
             
-            // Berikan jeda sejenak agar modal tertutup sempurna sebelum PDF renderer browser muncul
+            // Beri jeda 300ms agar DOM sempat melakukan re-render menghilangkan UI web
             setTimeout(() => {
                 window.print();
-            }, 500);
+            }, 300);
         }
 
         // Toast Notif
