@@ -5,413 +5,322 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistem E-RM | Klinik Pribadi</title>
 
-    <!-- ==========================================
-         FAVICON & META TAGS UNTUK LINK PREVIEW
-         ========================================== -->
-    <!-- Ikon Tab Browser (Favicon) -->
+    <!-- Meta Tags -->
     <link rel="icon" type="image/png" href="axalogo.png">
     <link rel="apple-touch-icon" href="axalogo.png">
-
-    <!-- Meta Deskripsi Standar -->
-    <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis pasien berbasis SOAP yang modern, cepat, dan terintegrasi.">
-
-    <!-- Open Graph / Facebook / WhatsApp / Telegram Preview -->
+    <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis pasien terintegrasi.">
     <meta property="og:type" content="website">
     <meta property="og:title" content="Sistem E-RM | Klinik Pribadi">
-    <meta property="og:description" content="Manajemen pencatatan klinis pasien berbasis SOAP untuk efisiensi praktik harian Anda.">
+    <meta property="og:description" content="Manajemen pencatatan klinis pasien berbasis SOAP.">
     <meta property="og:image" content="axalogo.png">
-    <!-- Catatan: Untuk hasil terbaik di beberapa platform sosmed, ganti "axalogo.png" dengan URL absolut gambar Anda saat sudah di-deploy ke Vercel (misal: https://webanda.vercel.app/axalogo.png) -->
-
-    <!-- Twitter Card Preview -->
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Sistem E-RM | Klinik Pribadi">
-    <meta name="twitter:description" content="Manajemen pencatatan klinis pasien berbasis SOAP untuk efisiensi praktik harian Anda.">
+    <meta name="twitter:description" content="Manajemen pencatatan klinis pasien berbasis SOAP.">
     <meta name="twitter:image" content="axalogo.png">
 
-    <!-- ========================================== -->
-
-    <!-- Google Fonts -->
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
         /* ==================================================================
-           CSS MURNI VANILLA - GLASSMORPHISM UI
+           UI GLASSMORPHISM & MOBILE RESPONSIVE UPGRADE
            ================================================================== */
         :root {
-            --glass-bg: rgba(255, 255, 255, 0.4);
-            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-bg: rgba(255, 255, 255, 0.55);
+            --glass-border: rgba(255, 255, 255, 0.6);
             --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
-            
-            --primary: #0284c7;
-            --primary-hover: #0369a1;
-            --text-dark: #1e293b;
-            --text-light: #64748b;
-            --success: #10b981;
-            --danger: #ef4444;
-            --background-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #f1f5f9 100%);
+            --primary: #0284c7; --primary-hover: #0369a1;
+            --text-dark: #1e293b; --text-light: #64748b;
+            --success: #10b981; --danger: #ef4444;
+            --bg-gradient: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 50%, #f1f5f9 100%);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: var(--bg-gradient); color: var(--text-dark); min-height: 100vh; background-attachment: fixed; position: relative; overflow-x: hidden; }
 
-        body {
-            background: var(--background-gradient);
-            color: var(--text-dark);
-            min-height: 100vh;
-            background-attachment: fixed;
-            position: relative;
-            overflow-x: hidden;
-        }
+        /* Background Animasi */
+        .blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.6; }
+        .blob-1 { top: -10vw; left: -10vw; width: 40vw; height: 40vw; background: #38bdf8; }
+        .blob-2 { bottom: -10vw; right: -10vw; width: 50vw; height: 50vw; background: #818cf8; }
 
-        /* Latar Belakang Abstrak */
-        .blob {
-            position: absolute;
-            border-radius: 50%;
-            filter: blur(80px);
-            z-index: -1;
-            opacity: 0.6;
-        }
-        .blob-1 { top: -100px; left: -100px; width: 400px; height: 400px; background: #38bdf8; }
-        .blob-2 { bottom: -100px; right: -100px; width: 500px; height: 500px; background: #818cf8; }
+        .glass { background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 16px; box-shadow: var(--glass-shadow); }
 
-        /* Komponen Glassmorphism */
-        .glass {
-            background: var(--glass-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: var(--glass-shadow);
-        }
-
-        /* Navigasi */
-        nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 15px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-        }
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            cursor: pointer;
-        }
+        /* Navbar */
+        nav { position: sticky; top: 0; z-index: 100; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
+        .brand { display: flex; align-items: center; gap: 12px; font-size: 1.5rem; font-weight: 700; color: var(--primary); cursor: pointer; }
         .brand img { height: 40px; }
-        .nav-links {
-            display: flex;
-            gap: 20px;
-        }
-        .nav-btn {
-            background: none;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-        }
-        .nav-btn:hover, .nav-btn.active {
-            background: var(--glass-bg);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            color: var(--primary);
-        }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: var(--text-dark); cursor: pointer; padding: 8px 14px; border-radius: 8px; transition: all 0.3s; }
+        .nav-btn:hover, .nav-btn.active { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: var(--primary); }
 
-        /* Tata Letak Utama */
-        main { padding: 40px 5%; max-width: 1400px; margin: auto; }
-        .section { display: none; animation: fadeIn 0.5s ease-in-out; }
+        main { padding: 30px 5%; max-width: 1400px; margin: auto; }
+        .section { display: none; animation: fadeIn 0.4s ease-in-out; }
         .section.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Halaman Beranda */
-        #landing { text-align: center; padding: 80px 20px; }
-        #landing .glass { padding: 60px 40px; max-width: 800px; margin: auto; }
-        #landing h1 { font-size: 2.8rem; margin-bottom: 20px; color: var(--text-dark); }
-        #landing p { font-size: 1.1rem; color: var(--text-light); margin-bottom: 40px; line-height: 1.6; }
-        .btn {
-            padding: 14px 28px;
-            border-radius: 12px;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.3); }
+        /* Buttons & Inputs */
+        .btn { padding: 12px 24px; border-radius: 10px; border: none; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25); }
         .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-danger { background: var(--danger); color: white; padding: 8px 12px; font-size: 0.8rem; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 8px 16px;}
         
-        /* Formulir SOAP */
-        .form-container { padding: 40px; }
-        .form-header { margin-bottom: 30px; border-bottom: 2px solid var(--glass-border); padding-bottom: 15px; }
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .form-container { padding: 30px; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 25px; }
+        .form-grid-small { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
         
-        .input-group { display: flex; flex-direction: column; gap: 8px; }
-        label { font-weight: 600; font-size: 0.9rem; color: var(--text-dark); }
-        
-        input, select, textarea {
-            width: 100%;
-            padding: 14px;
-            background: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            border-radius: 10px;
-            font-size: 1rem;
-            color: var(--text-dark);
-            outline: none;
-            transition: all 0.3s;
-        }
-        input:focus, select:focus, textarea:focus {
-            background: rgba(255, 255, 255, 0.8);
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.1);
-        }
+        .input-group { display: flex; flex-direction: column; gap: 6px; }
+        label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
+        input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
+        input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
 
-        /* Penyesuaian Antarmuka Kalender */
-        input[type="date"] {
-            position: relative;
-            cursor: pointer;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator {
-            background: transparent;
-            bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto;
-        }
+        /* Kalender UI */
+        input[type="date"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
         .date-wrapper { position: relative; }
-        .date-wrapper::after {
-            content: "\f133";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            position: absolute;
-            right: 14px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary);
-            pointer-events: none;
-            font-size: 1.2rem;
-            background: rgba(255, 255, 255, 0.5);
-            padding: 4px 8px;
-            border-radius: 6px;
-            backdrop-filter: blur(4px);
-        }
+        .date-wrapper::after { content: "\f133"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none; }
 
-        /* Bagian SOAP Spesifik */
-        .soap-section {
-            background: rgba(255, 255, 255, 0.3);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 1px solid var(--glass-border);
-        }
-        .soap-badge {
-            display: inline-block; width: 30px; height: 30px; line-height: 30px;
-            text-align: center; border-radius: 8px; color: white; font-weight: bold; margin-right: 10px;
-        }
+        /* Modul Spesifik */
+        .module-title { font-size: 1.1rem; color: var(--text-dark); margin: 30px 0 15px 0; border-bottom: 2px solid var(--glass-border); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        .soap-section { background: rgba(255, 255, 255, 0.4); padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border); }
+        .soap-badge { display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 6px; color: white; font-weight: bold; margin-right: 8px; font-size: 0.85rem;}
         .bg-s { background: #f59e0b; } .bg-o { background: #3b82f6; } .bg-a { background: #ef4444; } .bg-p { background: #10b981; }
 
-        .btn-submit { width: 100%; justify-content: center; padding: 16px; font-size: 1.1rem; margin-top: 20px; }
-
+        /* Tabel e-Resep Custom */
+        .table-responsive { overflow-x: auto; border-radius: 8px; -webkit-overflow-scrolling: touch; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.3);}
+        .resep-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        .resep-table th { background: #e2e8f0; color: #475569; padding: 12px; font-size: 0.85rem; text-align: left; }
+        .resep-table td { padding: 8px; border-bottom: 1px solid #cbd5e1; }
+        .resep-table input, .resep-table select { padding: 8px; font-size: 0.85rem; background: #fff; border: 1px solid #cbd5e1; }
+        
         /* Dasbor Admin */
-        .dashboard-container { padding: 30px; }
-        .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 15px;}
-        .search-box { position: relative; width: 100%; max-width: 400px; }
+        .dashboard-container { padding: 25px; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;}
+        .search-box { position: relative; width: 100%; max-width: 350px; }
         .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
-        .search-box input { padding-left: 45px; background: rgba(255, 255, 255, 0.7); }
+        .search-box input { padding-left: 45px; }
 
-        .table-responsive { overflow-x: auto; border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        th, td { padding: 15px; text-align: left; border-bottom: 1px solid var(--glass-border); }
-        th { background: rgba(255, 255, 255, 0.4); font-weight: 600; color: var(--text-dark); white-space: nowrap;}
-        td { background: rgba(255, 255, 255, 0.2); font-size: 0.9rem; vertical-align: top; }
-        tr:hover td { background: rgba(255, 255, 255, 0.5); }
-        .td-soap p { margin-bottom: 5px; border-bottom: 1px dashed rgba(0,0,0,0.1); padding-bottom: 5px; }
+        .dash-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
+        .dash-table th, .dash-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .dash-table th { background: rgba(255, 255, 255, 0.5); font-weight: 600; white-space: nowrap;}
+        .dash-table td { background: rgba(255, 255, 255, 0.2); font-size: 0.85rem; vertical-align: top; }
+        .dash-table tr:hover td { background: rgba(255, 255, 255, 0.6); }
 
-        /* Indikator Pemuatan (Spinner) */
-        .spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white;
-            border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none;
-        }
+        .spinner { border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        .loader-center { text-align: center; padding: 40px; color: var(--text-light); }
-
-        /* Pemberitahuan (Toast) */
-        #toast {
-            position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; border-radius: 12px;
-            color: white; font-weight: 500; display: flex; align-items: center; gap: 10px;
-            transform: translateX(150%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            z-index: 1000; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-        #toast.show { transform: translateX(0); }
-        #toast.success { background: rgba(16, 185, 129, 0.9); backdrop-filter: blur(10px); }
-        #toast.error { background: rgba(239, 68, 68, 0.9); backdrop-filter: blur(10px); }
+        /* SKS Print Modal & Print Styles */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; }
         
-        /* Responsivitas Mobile */
+        /* Cuma Muncul Saat Print */
+        #printArea { display: none; }
+        @media print {
+            body * { visibility: hidden; }
+            #printArea, #printArea * { visibility: visible; }
+            #printArea { display: block; position: absolute; left: 0; top: 0; width: 100%; font-family: 'Times New Roman', Times, serif; color: black; padding: 20px; }
+            .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 30px; }
+            .kop-surat img { height: 70px; margin-bottom: 5px; }
+            .sks-title { text-align: center; text-decoration: underline; font-weight: bold; font-size: 14pt; margin-bottom: 20px;}
+            .sks-body { font-size: 12pt; line-height: 1.8; }
+            .sks-signature { margin-top: 50px; text-align: right; }
+            .sks-signature p { margin-bottom: 60px; }
+        }
+
+        /* Notifikasi */
+        #toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; border-radius: 12px; color: white; font-weight: 500; display: flex; align-items: center; gap: 10px; transform: translateX(150%); transition: transform 0.4s; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        #toast.show { transform: translateX(0); }
+        #toast.success { background: #10b981; }
+        #toast.error { background: #ef4444; }
+
         @media(max-width: 768px) {
-            .nav-links { display: none; }
-            .btn { width: 100%; justify-content: center; }
-            #landing h1 { font-size: 2rem; }
+            .nav-links span { display: none; } /* Hanya tampilkan icon di HP */
+            .form-container { padding: 20px; }
+            .btn { width: 100%; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Animasi Latar Belakang -->
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
 
-    <!-- Navigasi -->
     <nav>
         <div class="brand" onclick="navTo('landing')">
-            <!-- Menambahkan penanganan ketiadaan gambar untuk pratinjau yang bersih -->
             <img src="axalogo.png" alt="Logo" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fa-solid fa-tooth\'></i>')">
             <span>Klinik<span style="color:var(--text-dark)">Care</span></span>
         </div>
         <div class="nav-links">
-            <button class="nav-btn active" onclick="navTo('landing')" id="btn-landing"><i class="fa-solid fa-house"></i> Beranda</button>
-            <button class="nav-btn" onclick="navTo('form-section')" id="btn-form-section"><i class="fa-solid fa-notes-medical"></i> Input E-RM</button>
-            <button class="nav-btn" onclick="navTo('dashboard')" id="btn-dashboard"><i class="fa-solid fa-chart-line"></i> Dasbor</button>
+            <button class="nav-btn active" onclick="navTo('landing')" id="btn-landing"><i class="fa-solid fa-house"></i> <span>Beranda</span></button>
+            <button class="nav-btn" onclick="navTo('form-section')" id="btn-form-section"><i class="fa-solid fa-notes-medical"></i> <span>Input E-RM</span></button>
+            <button class="nav-btn" onclick="navTo('dashboard')" id="btn-dashboard"><i class="fa-solid fa-chart-line"></i> <span>Dasbor</span></button>
         </div>
     </nav>
 
     <main>
-        <!-- 1. BAGIAN BERANDA -->
+        <!-- BERANDA -->
         <section id="landing" class="section active">
-            <div class="glass">
-                <h1>Rekam Medis Elektronik Terintegrasi</h1>
-                <p>Manajemen pencatatan klinis pasien berbasis SOAP (Subjective, Objective, Assessment, Plan). Didesain khusus untuk efisiensi praktik dokter dengan antarmuka yang modern, cepat, dan aman.</p>
+            <div class="glass" style="text-align: center; padding: 60px 20px; max-width: 800px; margin: auto; margin-top: 5vh;">
+                <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Sistem E-RM Terpadu</h1>
+                <p style="color: var(--text-light); margin-bottom: 30px; line-height: 1.6;">Solusi cerdas rekam medis digital berbasis SOAP, lengkap dengan e-Resep dan penerbitan Surat Keterangan Sakit otomatis.</p>
                 <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
                     <button class="btn btn-primary" onclick="navTo('form-section')"><i class="fa-solid fa-plus"></i> Pasien Baru</button>
-                    <button class="btn" style="background: var(--glass-bg); border: 1px solid var(--glass-border);" onclick="navTo('dashboard')"><i class="fa-solid fa-folder-open"></i> Buka Arsip</button>
+                    <button class="btn" style="background: white; border: 1px solid var(--glass-border);" onclick="navTo('dashboard')"><i class="fa-solid fa-folder-open"></i> Buka Arsip</button>
                 </div>
             </div>
         </section>
 
-        <!-- 2. BAGIAN FORMULIR SOAP -->
+        <!-- FORMULIR INPUT E-RM -->
         <section id="form-section" class="section">
             <div class="glass form-container">
-                <div class="form-header">
-                    <h2><i class="fa-solid fa-file-medical" style="color:var(--primary)"></i> Formulir Rekam Medis (SOAP)</h2>
-                </div>
+                <h2 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-file-medical"></i> Formulir Rekam Medis</h2>
                 
                 <form id="ermForm">
-                    <h3 style="margin-bottom:15px; color:var(--text-light);"><i class="fa-solid fa-id-card"></i> Demografi Pasien</h3>
+                    
+                    <!-- 1. Demografi -->
+                    <h3 class="module-title"><i class="fa-solid fa-id-card"></i> Demografi Pasien</h3>
                     <div class="form-grid">
                         <div class="input-group date-wrapper">
-                            <label for="tanggalPelayanan">Tanggal Pelayanan</label>
+                            <label>Tanggal Pelayanan</label>
                             <input type="date" id="tanggalPelayanan" name="tanggalPelayanan" required>
                         </div>
+                        <div class="input-group"><label>No RM</label><input type="text" name="noRm" placeholder="Contoh: RM-001" required></div>
+                        <div class="input-group"><label>NIK Pasien</label><input type="number" name="nik" placeholder="16 Digit NIK" required></div>
+                        <div class="input-group"><label>Nama Lengkap</label><input type="text" name="namaLengkap" placeholder="Nama sesuai KTP" required></div>
+                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" name="usia" placeholder="35" required></div>
                         <div class="input-group">
-                            <label for="noRm">No Rekam Medis (RM)</label>
-                            <input type="text" id="noRm" name="noRm" placeholder="Contoh: RM-2023-001" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="nik">NIK Pasien</label>
-                            <input type="number" id="nik" name="nik" placeholder="16 Digit NIK" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="namaLengkap">Nama Lengkap</label>
-                            <input type="text" id="namaLengkap" name="namaLengkap" placeholder="Nama lengkap sesuai KTP" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="usia">Usia (Tahun)</label>
-                            <input type="number" id="usia" name="usia" placeholder="Contoh: 35" required>
-                        </div>
-                        <div class="input-group">
-                            <label for="jenisKelamin">Jenis Kelamin</label>
-                            <select id="jenisKelamin" name="jenisKelamin" required>
-                                <option value="" disabled selected>Pilih Jenis Kelamin</option>
+                            <label>Jenis Kelamin</label>
+                            <select name="jenisKelamin" required>
+                                <option value="" disabled selected>- Pilih -</option>
                                 <option value="Laki-laki">Laki-laki</option>
                                 <option value="Perempuan">Perempuan</option>
                             </select>
                         </div>
                     </div>
-                    
-                    <div class="input-group" style="margin-bottom: 30px;">
-                        <label for="alamat">Alamat Domisili</label>
-                        <textarea id="alamat" name="alamat" rows="2" placeholder="Alamat lengkap..." required></textarea>
-                    </div>
-
-                    <h3 style="margin-bottom:15px; color:var(--text-light);"><i class="fa-solid fa-tooth"></i> Data Klinis & SOAP</h3>
                     <div class="input-group" style="margin-bottom: 20px;">
-                        <label for="elemenGigi">Elemen Gigi / Regio Odontogram</label>
-                        <input type="text" id="elemenGigi" name="elemenGigi" placeholder="Contoh: Gigi 46, Regio Kanan Bawah..." required>
+                        <label>Alamat Domisili</label>
+                        <textarea name="alamat" rows="2" placeholder="Alamat lengkap..." required></textarea>
                     </div>
 
-                    <div class="soap-section">
-                        <label for="subjective" style="display:flex; align-items:center;"><span class="soap-badge bg-s">S</span> Subjective (Anamnesis)</label>
-                        <textarea id="subjective" name="subjective" rows="3" placeholder="Keluhan utama, riwayat penyakit, rasa sakit..." required style="margin-top:10px;"></textarea>
-                    </div>
-                    <div class="soap-section">
-                        <label for="objective" style="display:flex; align-items:center;"><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan)</label>
-                        <textarea id="objective" name="objective" rows="3" placeholder="Pemeriksaan ekstra/intraoral, tes vitalitas (dingin/panas/perkusi), radiografi..." required style="margin-top:10px;"></textarea>
-                    </div>
-                    <div class="soap-section">
-                        <label for="assessment" style="display:flex; align-items:center;"><span class="soap-badge bg-a">A</span> Assessment (Diagnosis)</label>
-                        <textarea id="assessment" name="assessment" rows="2" placeholder="Diagnosis utama, klasifikasi medis..." required style="margin-top:10px;"></textarea>
-                    </div>
-                    <div class="soap-section">
-                        <label for="plan" style="display:flex; align-items:center;"><span class="soap-badge bg-p">P</span> Plan (Perawatan & Tindakan)</label>
-                        <textarea id="plan" name="plan" rows="3" placeholder="Rencana perawatan, tindakan medis yang dilakukan, medikasi..." required style="margin-top:10px;"></textarea>
+                    <!-- 2. Riwayat Penyakit & Alergi -->
+                    <h3 class="module-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penyakit & Alergi Pasien</h3>
+                    <div style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem;">
+                            <input type="checkbox" id="chkTidakAdaRiwayat" checked style="width: 18px; height: 18px;">
+                            Tidak Ada Riwayat Penyakit / Alergi
+                        </label>
+                        
+                        <div id="riwayatContainer" style="display: none; margin-top: 15px;">
+                            <div id="riwayatList">
+                                <div class="input-group" style="margin-bottom: 10px;">
+                                    <input type="text" class="riwayat-input" placeholder="Sebutkan alergi atau penyakit (Contoh: Alergi Amoxicillin, Asma)">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline" onclick="tambahRiwayat()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Riwayat Lain</button>
+                        </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-submit" id="submitBtn">
-                        <span id="btnText"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan Rekam Medis</span>
+                    <!-- 3. Pemeriksaan Fisik Terpadu -->
+                    <h3 class="module-title"><i class="fa-solid fa-stethoscope"></i> Pemeriksaan Fisik</h3>
+                    <div class="form-grid-small">
+                        <div class="input-group">
+                            <label>1. Kesadaran</label>
+                            <select name="kesadaran">
+                                <option value="Compos Mentis" selected>Compos Mentis</option>
+                                <option value="Apatis">Apatis</option>
+                                <option value="Somnolen">Somnolen</option>
+                                <option value="Sopor">Sopor</option>
+                                <option value="Koma">Koma</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>2. Sistole (mmHg)</label><input type="number" name="sistole" placeholder="120"></div>
+                        <div class="input-group"><label>3. Diastole (mmHg)</label><input type="number" name="diastole" placeholder="80"></div>
+                        <div class="input-group"><label>4. Berat Badan (kg)</label><input type="number" step="0.1" name="beratBadan" placeholder="65.5"></div>
+                        <div class="input-group"><label>5. Tinggi Badan (cm)</label><input type="number" name="tinggiBadan" placeholder="165"></div>
+                        <div class="input-group">
+                            <label>Cara Ukur TB</label>
+                            <select name="caraUkurTb">
+                                <option value="Berdiri" selected>Berdiri</option>
+                                <option value="Terlentang">Terlentang</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>6. Lingkar Perut (cm)</label><input type="number" name="lingkarPerut" placeholder="80"></div>
+                        <div class="input-group"><label>7. Detak Nadi (x/mnt)</label><input type="number" name="nadi" placeholder="80"></div>
+                        <div class="input-group"><label>8. Nafas (x/mnt)</label><input type="number" name="nafas" placeholder="20"></div>
+                        <div class="input-group"><label>9. Suhu (°C)</label><input type="number" step="0.1" name="suhu" placeholder="36.5"></div>
+                        <div class="input-group"><label>10. Saturasi (%)</label><input type="number" name="saturasi" placeholder="98"></div>
+                    </div>
+
+                    <!-- 4. Data Klinis & SOAP -->
+                    <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</h3>
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label>Elemen Gigi / Regio</label>
+                        <input type="text" name="elemenGigi" placeholder="Contoh: Gigi 46..." required>
+                    </div>
+
+                    <div class="soap-section"><label><span class="soap-badge bg-s">S</span> Subjective (Anamnesis)</label><textarea name="subjective" rows="2" required></textarea></div>
+                    <div class="soap-section"><label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis)</label><textarea name="objective" rows="2" required></textarea></div>
+                    <div class="soap-section"><label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis/ICDAS)</label><textarea name="assessment" rows="2" required></textarea></div>
+                    <div class="soap-section"><label><span class="soap-badge bg-p">P</span> Plan (Tindakan)</label><textarea name="plan" rows="2" required></textarea></div>
+
+                    <!-- 5. E-Resep Obat -->
+                    <h3 class="module-title"><i class="fa-solid fa-pills"></i> Resep Obat Dokter</h3>
+                    <div class="table-responsive" style="margin-bottom: 15px;">
+                        <table class="resep-table" id="tblResep">
+                            <thead>
+                                <tr>
+                                    <th>Racikan</th>
+                                    <th>Jml Permintaan</th>
+                                    <th>Jenis Racikan</th>
+                                    <th>Nama Obat</th>
+                                    <th>Jumlah</th>
+                                    <th>Signa (Sehari)</th>
+                                    <th>Aturan Pakai</th>
+                                    <th>Keterangan</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resepBody">
+                                <!-- Baris Resep Dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <button type="button" class="btn btn-outline" onclick="tambahBarisResep()" style="margin-bottom: 30px;"><i class="fa-solid fa-plus"></i> Tambah Obat ke Resep</button>
+
+                    <!-- Tombol Submit Utama -->
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;" id="submitBtn">
+                        <span id="btnText"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan Rekam Medis Komprehensif</span>
                         <div class="spinner" id="btnSpinner"></div>
                     </button>
                 </form>
             </div>
         </section>
 
-        <!-- 3. BAGIAN DASBOR ADMIN -->
+        <!-- DASBOR ADMIN & SKS -->
         <section id="dashboard" class="section">
             <div class="glass dashboard-container">
                 <div class="dash-header">
-                    <h2><i class="fa-solid fa-server" style="color:var(--primary)"></i> Basis Data Rekam Medis</h2>
+                    <h2><i class="fa-solid fa-server"></i> Basis Data Pasien</h2>
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="searchInput" placeholder="Cari Nama, No RM, atau NIK...">
+                        <input type="text" id="searchInput" placeholder="Cari Nama, No RM...">
                     </div>
                 </div>
 
                 <div class="table-responsive">
-                    <table id="dataTable">
+                    <table class="dash-table">
                         <thead>
                             <tr>
-                                <th>Tgl Pelayanan</th>
+                                <th>Tgl / Aksi</th>
                                 <th>No RM</th>
                                 <th>Identitas Pasien</th>
-                                <th>Elemen</th>
-                                <th>Catatan S.O.A.P Lengkap</th>
+                                <th>Fisik & SOAP</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
-                            <tr>
-                                <td colspan="5">
-                                    <div class="loader-center">
-                                        <i class="fa-solid fa-circle-notch fa-spin fa-2x"></i>
-                                        <p style="margin-top:10px;">Mengambil data dari server...</p>
-                                    </div>
-                                </td>
-                            </tr>
+                            <tr><td colspan="4" style="text-align: center; padding: 30px;">Mengambil data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -419,52 +328,183 @@
         </section>
     </main>
 
-    <!-- Komponen Pemberitahuan Toast -->
-    <div id="toast"><i class="fa-solid fa-circle-check"></i> <span id="toastMsg">Sukses!</span></div>
+    <!-- Modal Generate SKS -->
+    <div id="modalSks" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Terbitkan Surat Sakit</h3>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Lama Istirahat (Hari)</label>
+                <input type="number" id="sksHari" value="3">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Dari Tanggal</label>
+                <input type="date" id="sksMulai">
+            </div>
+            <div class="input-group" style="margin-bottom: 25px;">
+                <label>Sampai Tanggal</label>
+                <input type="date" id="sksSelesai">
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="eksekusiCetakSKS()"><i class="fa-solid fa-print"></i> Cetak PDF</button>
+                <button class="btn" style="flex: 1; background: #e2e8f0;" onclick="document.getElementById('modalSks').classList.remove('active')">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AREA CETAK SKS (HIDDEN DI LAYAR, MUNCUL SAAT DI-PRINT) -->
+    <div id="printArea">
+        <div class="kop-surat">
+            <img src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
+            <h1 style="font-size: 20pt; margin: 0;">KLINIK CARE MEDIKA</h1>
+            <p style="font-size: 11pt; margin: 0;">Jl. Kesehatan No. 123, Kota Anda, Telp: (021) 1234567</p>
+        </div>
+        <div class="sks-title">SURAT KETERANGAN SAKIT</div>
+        <div class="sks-body">
+            <p>Yang bertanda tangan di bawah ini menerangkan bahwa:</p>
+            <table style="width: 100%; margin: 15px 0; border: none; font-size: 12pt;">
+                <tr><td style="width: 150px; padding: 5px 0;">Nama Lengkap</td><td>: <strong id="printNama"></strong></td></tr>
+                <tr><td style="padding: 5px 0;">Usia / Jenis Kelamin</td><td>: <span id="printUsia"></span> Tahun / <span id="printJk"></span></td></tr>
+                <tr><td style="padding: 5px 0;">Pekerjaan</td><td>: Karyawan / Pelajar</td></tr>
+                <tr><td style="padding: 5px 0;">Alamat</td><td>: <span id="printAlamat"></span></td></tr>
+            </table>
+            <p style="text-align: justify; margin-top: 15px;">Berdasarkan hasil pemeriksaan kesehatan yang bersangkutan, pasien di atas dalam keadaan sakit dan memerlukan istirahat selama <strong><span id="printHari"></span> (<span id="printHariTeks"></span>) hari</strong>, terhitung mulai tanggal <strong><span id="printMulai"></span></strong> s/d <strong><span id="printSelesai"></span></strong>.</p>
+            <p>Harap maklum dan menjadi periksa bagi pihak yang berkepentingan.</p>
+        </div>
+        <div class="sks-signature">
+            <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
+            <p><strong>( ______________________ )</strong><br>SIP: .......................................</p>
+        </div>
+    </div>
+
+    <div id="toast"><span id="toastMsg">Sukses!</span></div>
 
     <!-- ==================================================================
-         LOGIKA JAVASCRIPT & INTEGRASI API
+         JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // Tautan API Google Apps Script Spesifik Anda
+        // MASUKKAN URL DEPLOYMENT GAS VERSI 2.0 ANDA DISINI
         const API_URL = "https://script.google.com/macros/s/AKfycbyZHWbU0e1oif7SlDWyZdCDRs_4_kQu_hREtK08l_c2VTj72kJD9K88lqgGAkjBzXtn/exec"; 
         
         let allPatientsData = [];
+        let tempPasienSks = null;
 
-        // 1. Fungsi Navigasi Antarmuka (Single Page Application)
+        // 1. SPA Navigation
         function navTo(sectionId) {
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            
             document.getElementById(sectionId).classList.add('active');
             const btn = document.getElementById('btn-' + sectionId);
             if(btn) btn.classList.add('active');
 
-            if(sectionId === 'dashboard') {
-                loadDashboardData();
-            }
+            if(sectionId === 'dashboard') loadDashboardData();
         }
 
-        // Menyetel Tanggal Hari Ini secara Otomatis pada Formulir
         document.getElementById('tanggalPelayanan').valueAsDate = new Date();
 
-        // 2. Mengirim Data Pasien Baru (POST mode no-cors)
+        // 2. Logika Toggle Riwayat & Alergi
+        const chkTidakAdaRiwayat = document.getElementById('chkTidakAdaRiwayat');
+        const riwayatContainer = document.getElementById('riwayatContainer');
+        chkTidakAdaRiwayat.addEventListener('change', function() {
+            riwayatContainer.style.display = this.checked ? 'none' : 'block';
+        });
+
+        function tambahRiwayat() {
+            const list = document.getElementById('riwayatList');
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.style.marginBottom = '10px';
+            div.style.flexDirection = 'row';
+            div.style.gap = '10px';
+            div.innerHTML = `
+                <input type="text" class="riwayat-input" placeholder="Sebutkan alergi/penyakit tambahan..." style="flex:1;">
+                <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>
+            `;
+            list.appendChild(div);
+        }
+
+        // 3. Logika E-Resep Dinamis
+        function tambahBarisResep() {
+            const tbody = document.getElementById('resepBody');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="res-racikan" style="min-width: 80px;">
+                        <option value="Non-Racik">Non-Racik</option>
+                        <option value="R1">R1</option>
+                        <option value="R2">R2</option>
+                        <option value="R3">R3</option>
+                    </select>
+                </td>
+                <td><input type="number" class="res-jml-minta" placeholder="Qty"></td>
+                <td><input type="text" class="res-jenis-racik" placeholder="Bentuk Racikan"></td>
+                <td><input type="text" class="res-nama-obat" placeholder="Nama Obat"></td>
+                <td><input type="number" class="res-jumlah" placeholder="Jml"></td>
+                <td><input type="text" class="res-signa" placeholder="Contoh: 3x1"></td>
+                <td>
+                    <select class="res-aturan" style="min-width: 140px;">
+                        <option value="- PILIH -">- PILIH -</option>
+                        <option value="Sebelum Makan">Sebelum Makan</option>
+                        <option value="Sesudah Makan">Sesudah Makan</option>
+                        <option value="Saat Makan">Saat Makan</option>
+                        <option value="Pemakaian Luar">Pemakaian Luar</option>
+                        <option value="Jika Diperlukan">Jika Diperlukan</option>
+                    </select>
+                </td>
+                <td><input type="text" class="res-ket" placeholder="Keterangan"></td>
+                <td><button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Jalankan 1 baris kosong resep di awal
+        tambahBarisResep();
+
+        // 4. Proses Submit Form ke GAS
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
+            // Ekstraksi Riwayat Dinamis
+            let riwayatFinal = "Tidak Ada";
+            if(!chkTidakAdaRiwayat.checked) {
+                const inputs = document.querySelectorAll('.riwayat-input');
+                let values = [];
+                inputs.forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
+                if(values.length > 0) riwayatFinal = values.join("; ");
+            }
+
+            // Ekstraksi Resep Dinamis ke JSON Array
+            let resepArray = [];
+            document.querySelectorAll('#resepBody tr').forEach(row => {
+                const obat = row.querySelector('.res-nama-obat').value.trim();
+                if(obat !== "") {
+                    resepArray.push({
+                        racikan: row.querySelector('.res-racikan').value,
+                        jmlPermintaan: row.querySelector('.res-jml-minta').value,
+                        jenisRacikan: row.querySelector('.res-jenis-racik').value,
+                        namaObat: obat,
+                        jumlah: row.querySelector('.res-jumlah').value,
+                        signa: row.querySelector('.res-signa').value,
+                        aturanPakai: row.querySelector('.res-aturan').value,
+                        keterangan: row.querySelector('.res-ket').value
+                    });
+                }
+            });
+
+            // Siapkan Form Data
+            const formData = new FormData(e.target);
+            const dataObj = Object.fromEntries(formData.entries());
+            
+            // Masukkan data ekstra ke objek
+            dataObj.riwayatAlergi = riwayatFinal;
+            dataObj.resepObat = JSON.stringify(resepArray);
+
+            // UI Loading
             const btn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
-            
-            btn.disabled = true;
-            btnText.style.display = 'none';
-            btnSpinner.style.display = 'block';
-
-            const formData = new FormData(e.target);
-            const dataObj = Object.fromEntries(formData.entries());
+            btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // Pengiriman data menggunakan fetch API
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
@@ -472,102 +512,138 @@
                     body: JSON.stringify(dataObj)
                 });
 
-                showToast("Rekam Medis berhasil disimpan!", "success");
+                showToast("Rekam Medis Komprehensif Berhasil Disimpan!", "success");
                 e.target.reset();
                 document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
+                document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); // Reset tabel resep
+                chkTidakAdaRiwayat.checked = true; document.getElementById('riwayatContainer').style.display = 'none'; // Reset riwayat
                 
                 setTimeout(() => navTo('dashboard'), 1500);
 
             } catch (error) {
-                console.error("Kesalahan pengiriman:", error);
-                showToast("Gagal menyimpan data ke server.", "error");
+                showToast("Gagal menyambung ke server Google.", "error");
             } finally {
-                btn.disabled = false;
-                btnText.style.display = 'block';
-                btnSpinner.style.display = 'none';
+                btn.disabled = false; btnText.style.display = 'block'; btnSpinner.style.display = 'none';
             }
         });
 
-        // 3. Menarik Data Rekam Medis (GET API)
+        // 5. GET Data dari GAS
         async function loadDashboardData() {
             const tBody = document.getElementById('tableBody');
-            tBody.innerHTML = `<tr><td colspan="5"><div class="loader-center"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i><p style="margin-top:10px;">Mengambil data dari basis data...</p></div></td></tr>`;
-            
+            tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data...</td></tr>`;
             try {
                 const response = await fetch(API_URL);
                 const result = await response.json();
-                
                 if(result.status === 'success') {
                     allPatientsData = result.data.reverse(); 
                     renderTable(allPatientsData);
-                } else {
-                    tBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data: ${result.message}</td></tr>`;
                 }
             } catch (error) {
-                console.error("Kesalahan pengambilan data:", error);
-                tBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Kesalahan koneksi atau endpoint tidak valid. Silakan periksa pengaturan jaringan.</td></tr>`;
+                tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip.</td></tr>`;
             }
         }
 
-        // 4. Merender Tabel Antarmuka Pengguna
+        // 6. Render Tabel Dasbor
         function renderTable(dataArray) {
             const tBody = document.getElementById('tableBody');
             tBody.innerHTML = '';
+            if(dataArray.length === 0) return tBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada arsip.</td></tr>`;
 
-            if(dataArray.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:var(--text-light); padding:30px;">Belum ada arsip rekam medis yang dicatat.</td></tr>`;
-                return;
-            }
-
-            dataArray.forEach(item => {
+            dataArray.forEach((item, index) => {
                 const tr = document.createElement('tr');
+                
+                // Menyiapkan object untuk dipanggil oleh fungsi modal SKS (mengakali string quotes di HTML inline)
+                const safeItem = encodeURIComponent(JSON.stringify(item));
+
                 tr.innerHTML = `
-                    <td style="font-weight:600; color:var(--primary); white-space:nowrap;">
-                        <i class="fa-regular fa-calendar"></i> ${item['Tanggal Pelayanan'] || '-'}
+                    <td style="white-space:nowrap;">
+                        <strong>${item['Tanggal Pelayanan'] || '-'}</strong><br>
+                        <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}')"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
                     </td>
                     <td><strong>${item['No RM'] || '-'}</strong></td>
                     <td>
-                        <div style="font-weight:700;">${item['Nama Lengkap'] || '-'}</div>
-                        <div style="font-size:0.8rem; color:var(--text-light);">NIK: ${item['NIK'] || '-'}</div>
-                        <div style="font-size:0.8rem; color:var(--text-light);">${item['Usia'] || '-'} Thn | ${item['Jenis Kelamin'] || '-'}</div>
+                        <strong>${item['Nama Lengkap'] || '-'}</strong><br>
+                        <small>Usia: ${item['Usia'] || '-'} Thn (${item['Jenis Kelamin']})</small><br>
+                        <small style="color:#ef4444;">Riwayat: ${item['Riwayat Penyakit & Alergi'] || 'Tidak Ada'}</small>
                     </td>
-                    <td style="font-weight:600; color:#ef4444;">${item['Elemen Gigi'] || '-'}</td>
-                    <td class="td-soap">
-                        <p><strong><span style="color:#f59e0b">S:</span></strong> ${item['Subjective'] || '-'}</p>
-                        <p><strong><span style="color:#3b82f6">O:</span></strong> ${item['Objective'] || '-'}</p>
-                        <p><strong><span style="color:#ef4444">A:</span></strong> ${item['Assessment'] || '-'}</p>
-                        <p style="border:none;"><strong><span style="color:#10b981">P:</span></strong> ${item['Plan'] || '-'}</p>
+                    <td>
+                        <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
+                            <strong>TD:</strong> ${item['Sistole']||'-'}/${item['Diastole']||'-'} | <strong>N:</strong> ${item['Detak Nadi (x/Mnt)']||'-'} | <strong>S:</strong> ${item['Suhu (C)']||'-'}°C | <strong>TB/BB:</strong> ${item['Tinggi Badan (cm)']||'-'}/${item['Berat Badan (kg)']||'-'}
+                        </div>
+                        <p style="font-size:0.85rem;"><strong>S:</strong> ${item['Subjective']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>O:</strong> ${item['Objective']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>A:</strong> ${item['Assessment']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>P:</strong> ${item['Plan']||'-'}</p>
                     </td>
                 `;
                 tBody.appendChild(tr);
             });
         }
 
-        // 5. Fitur Pencarian Data Real-Time
+        // Fitur Pencarian Dasbor
         document.getElementById('searchInput').addEventListener('input', (e) => {
-            const keyword = e.target.value.toLowerCase();
-            const filteredData = allPatientsData.filter(item => {
-                const nama = (item['Nama Lengkap'] || '').toLowerCase();
-                const rm = (item['No RM'] || '').toLowerCase();
-                const nik = (item['NIK'] || '').toLowerCase();
-                return nama.includes(keyword) || rm.includes(keyword) || nik.includes(keyword);
-            });
-            renderTable(filteredData);
+            const k = e.target.value.toLowerCase();
+            renderTable(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
         });
 
-        // 6. Manajemen Pemberitahuan
+        // 7. Modul Surat Keterangan Sakit (SKS) - Cetak PDF
+        function bukaModalSks(encodedItem) {
+            tempPasienSks = JSON.parse(decodeURIComponent(encodedItem));
+            document.getElementById('modalSks').classList.add('active');
+            
+            // Set default date
+            const today = new Date();
+            document.getElementById('sksMulai').valueAsDate = today;
+            
+            const besok = new Date();
+            besok.setDate(today.getDate() + 2); // Default 3 hari istirahat
+            document.getElementById('sksSelesai').valueAsDate = besok;
+        }
+
+        function formatTanggal(dateStr) {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        // Converter angka ke huruf (simple 1-10 untuk hari)
+        function angkaKeTeks(angka) {
+            const teks = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh"];
+            return teks[angka] || angka.toString();
+        }
+
+        function eksekusiCetakSKS() {
+            if(!tempPasienSks) return;
+
+            // Injeksi data ke dalam Hidden Area Print
+            document.getElementById('printNama').innerText = tempPasienSks['Nama Lengkap'];
+            document.getElementById('printUsia').innerText = tempPasienSks['Usia'];
+            document.getElementById('printJk').innerText = tempPasienSks['Jenis Kelamin'];
+            document.getElementById('printAlamat').innerText = tempPasienSks['Alamat'];
+            
+            const jmlHari = parseInt(document.getElementById('sksHari').value) || 1;
+            document.getElementById('printHari').innerText = jmlHari;
+            document.getElementById('printHariTeks').innerText = angkaKeTeks(jmlHari);
+            
+            document.getElementById('printMulai').innerText = formatTanggal(document.getElementById('sksMulai').value);
+            document.getElementById('printSelesai').innerText = formatTanggal(document.getElementById('sksSelesai').value);
+            
+            // Tanggal Surat di bawah TTD (Tanggal hari ini)
+            document.getElementById('printTglSurat').innerText = "Kendari, " + formatTanggal(new Date());
+
+            // Tutup Modal dan Trigger Dialog Print OS
+            document.getElementById('modalSks').classList.remove('active');
+            
+            // Berikan jeda sejenak agar modal tertutup sempurna sebelum PDF renderer browser muncul
+            setTimeout(() => {
+                window.print();
+            }, 500);
+        }
+
+        // Toast Notif
         function showToast(msg, type) {
-            const toast = document.getElementById('toast');
-            const toastMsg = document.getElementById('toastMsg');
-            
-            toast.className = ''; 
-            toast.classList.add(type);
-            
-            let icon = type === 'success' ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-triangle-exclamation"></i>';
-            toast.innerHTML = `${icon} <span style="margin-left:8px;">${msg}</span>`;
-            
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 3500);
+            const t = document.getElementById('toast');
+            t.className = type; t.innerHTML = msg;
+            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
         }
     </script>
 </body>
