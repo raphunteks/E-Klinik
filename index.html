@@ -13,10 +13,6 @@
     <meta property="og:title" content="Sistem E-RM | Klinik Pribadi">
     <meta property="og:description" content="Manajemen pencatatan klinis pasien berbasis SOAP.">
     <meta property="og:image" content="axalogo.png">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Sistem E-RM | Klinik Pribadi">
-    <meta name="twitter:description" content="Manajemen pencatatan klinis pasien berbasis SOAP.">
-    <meta name="twitter:image" content="axalogo.png">
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -76,10 +72,18 @@
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
 
-        /* Kalender UI */
-        input[type="date"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; }
-        .date-wrapper { position: relative; }
-        .date-wrapper::after { content: "\f133"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none; }
+        /* ==================================================================
+           PERBAIKAN BUG KALENDER UI 
+           ================================================================== */
+        input[type="date"] { 
+            position: relative; /* KUNCI PERBAIKAN: Membatasi klik overlay agar tidak bocor */
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator { 
+            background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; 
+            z-index: 10;
+        }
+        .date-wrapper { position: relative; display: block; }
+        .date-wrapper::after { content: "\f133"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none; z-index: 5; }
 
         /* Modul Spesifik */
         .module-title { font-size: 1.1rem; color: var(--text-dark); margin: 30px 0 15px 0; border-bottom: 2px solid var(--glass-border); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
@@ -110,10 +114,10 @@
         .spinner { border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* SKS Print Modal & Print Styles */
+        /* SKS Print Modal */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; }
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; position: relative; } /* Perbaikan isolasi posisi */
         
         /* CUMA MUNCUL SAAT DI CETAK / PRINT */
         #printArea { display: none; }
@@ -123,13 +127,7 @@
             .blob, nav, main, .modal, #toast { display: none !important; }
             
             /* Tampilkan area SKS */
-            #printArea { 
-                display: block !important; 
-                position: relative; 
-                width: 100%; 
-                font-family: 'Times New Roman', Times, serif; 
-                padding: 20px; 
-            }
+            #printArea { display: block !important; position: relative; width: 100%; font-family: 'Times New Roman', Times, serif; padding: 20px; }
             .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 30px; }
             .kop-surat img { height: 70px; margin-bottom: 5px; }
             .sks-title { text-align: center; text-decoration: underline; font-weight: bold; font-size: 14pt; margin-bottom: 20px;}
@@ -191,9 +189,11 @@
                     <!-- 1. Demografi -->
                     <h3 class="module-title"><i class="fa-solid fa-id-card"></i> Demografi Pasien</h3>
                     <div class="form-grid">
-                        <div class="input-group date-wrapper">
+                        <div class="input-group">
                             <label>Tanggal Pelayanan</label>
-                            <input type="date" id="tanggalPelayanan" name="tanggalPelayanan" required>
+                            <div class="date-wrapper">
+                                <input type="date" id="tanggalPelayanan" name="tanggalPelayanan" required>
+                            </div>
                         </div>
                         <div class="input-group"><label>No RM</label><input type="text" name="noRm" placeholder="Contoh: RM-001" required></div>
                         <div class="input-group"><label>NIK Pasien</label><input type="number" name="nik" placeholder="16 Digit NIK" required></div>
@@ -210,15 +210,15 @@
                     </div>
                     <div class="input-group" style="margin-bottom: 20px;">
                         <label>Alamat Domisili</label>
-                        <textarea name="alamat" rows="2" placeholder="Alamat lengkap..." required></textarea>
+                        <textarea name="alamat" rows="2" placeholder="Alamat lengkap pasien..." required></textarea>
                     </div>
 
-                    <!-- 2. Riwayat Penyakit & Alergi -->
+                    <!-- 2. Riwayat Penyakit & Alergi (DIPISAH) -->
                     <h3 class="module-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penyakit & Alergi Pasien</h3>
                     <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                         
                         <!-- Blok Riwayat Penyakit -->
-                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-viruses"></i> A. Riwayat Penyakit Pasien</h4>
+                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-viruses"></i> A. Riwayat Penyakit Sistemik</h4>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
                             <input type="checkbox" id="chkTidakAdaPenyakit" checked style="width: 18px; height: 18px;">
                             Tidak Ada Riwayat Penyakit
@@ -226,7 +226,7 @@
                         <div id="penyakitContainer" style="display: none; margin-bottom: 25px;">
                             <div id="penyakitList">
                                 <div class="input-group" style="margin-bottom: 10px; flex-direction: row; gap: 10px;">
-                                    <input type="text" class="penyakit-input" placeholder="Contoh: Hipertensi, Diabetes, Asma..." style="flex:1;">
+                                    <input type="text" class="penyakit-input" placeholder="Contoh: Hipertensi, Diabetes Melitus, Asma..." style="flex:1;">
                                 </div>
                             </div>
                             <button type="button" class="btn btn-outline" onclick="tambahPenyakit()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Penyakit</button>
@@ -235,7 +235,7 @@
                         <hr style="border-top: 1px dashed var(--glass-border); margin: 20px 0;">
 
                         <!-- Blok Riwayat Alergi -->
-                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-hand-dots"></i> B. Riwayat Alergi Pasien</h4>
+                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-hand-dots"></i> B. Riwayat Alergi</h4>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
                             <input type="checkbox" id="chkTidakAdaAlergi" checked style="width: 18px; height: 18px;">
                             Tidak Ada Riwayat Alergi
@@ -243,7 +243,7 @@
                         <div id="alergiContainer" style="display: none;">
                             <div id="alergiList">
                                 <div class="input-group" style="margin-bottom: 10px; flex-direction: row; gap: 10px;">
-                                    <input type="text" class="alergi-input" placeholder="Contoh: Alergi Amoxicillin, Alergi Makanan Laut..." style="flex:1;">
+                                    <input type="text" class="alergi-input" placeholder="Contoh: Alergi Amoxicillin, Alergi Cuaca Dingin..." style="flex:1;">
                                 </div>
                             </div>
                             <button type="button" class="btn btn-outline" onclick="tambahAlergi()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Alergi</button>
@@ -252,7 +252,7 @@
                     </div>
 
                     <!-- 3. Pemeriksaan Fisik Terpadu -->
-                    <h3 class="module-title"><i class="fa-solid fa-stethoscope"></i> Pemeriksaan Fisik</h3>
+                    <h3 class="module-title"><i class="fa-solid fa-stethoscope"></i> Pemeriksaan Fisik Terpadu</h3>
                     <div class="form-grid-small">
                         <div class="input-group">
                             <label>1. Kesadaran</label>
@@ -290,20 +290,20 @@
                     </div>
 
                     <div class="soap-section">
-                        <label><span class="soap-badge bg-s">S</span> Subjective (Anamnesis)</label>
-                        <textarea name="subjective" rows="3" placeholder="Keluhan utama pasien, durasi rasa sakit, faktor pemicu, riwayat perjalanan penyakit..." required></textarea>
+                        <label><span class="soap-badge bg-s">S</span> Subjective (Keluhan Utama / Anamnesis)</label>
+                        <textarea name="subjective" rows="3" placeholder="Keluhan utama pasien, sejak kapan mulai sakit, riwayat perjalanan penyakit, faktor pemicu sakit (mis: sakit saat minum dingin)..." required></textarea>
                     </div>
                     <div class="soap-section">
-                        <label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis)</label>
-                        <textarea name="objective" rows="3" placeholder="Hasil pemeriksaan ekstraoral & intraoral, tes vitalitas (dingin/panas/perkusi/palpasi), mobilitas, temuan radiografi..." required></textarea>
+                        <label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis & Radiografi)</label>
+                        <textarea name="objective" rows="3" placeholder="Hasil pemeriksaan ekstraoral, intraoral, tes vitalitas (dingin/panas/perkusi/palpasi), kedalaman karies, interpretasi rontgen..." required></textarea>
                     </div>
                     <div class="soap-section">
-                        <label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis/ICDAS)</label>
-                        <textarea name="assessment" rows="2" placeholder="Diagnosis utama (kerja), diagnosis banding, klasifikasi penyakit medis (contoh: Pulpitis Ireversibel Simtomatik)..." required></textarea>
+                        <label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis & Klasifikasi)</label>
+                        <textarea name="assessment" rows="2" placeholder="Diagnosis kerja utama, diagnosis banding, klasifikasi penyakit (misal: Pulpitis Ireversibel Simtomatik, Nekrosis Pulpa, ICDAS)..." required></textarea>
                     </div>
                     <div class="soap-section">
-                        <label><span class="soap-badge bg-p">P</span> Plan (Tindakan)</label>
-                        <textarea name="plan" rows="3" placeholder="Rencana perawatan konservasi/endodontik, tindakan pembedahan/restorasi, resep edukasi, instruksi rujukan..." required></textarea>
+                        <label><span class="soap-badge bg-p">P</span> Plan (Rencana Perawatan & Tindakan)</label>
+                        <textarea name="plan" rows="3" placeholder="Rencana perawatan, tindakan yang dilakukan hari ini (misal: open bur, tumpatan komposit), medikasi, instruksi pasien..." required></textarea>
                     </div>
 
                     <!-- 5. E-Resep Obat -->
@@ -375,19 +375,25 @@
             <h3 style="margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Terbitkan Surat Sakit</h3>
             <div class="input-group" style="margin-bottom: 15px;">
                 <label>Lama Istirahat (Hari)</label>
-                <input type="number" id="sksHari" value="3">
+                <input type="number" id="sksHari" value="3" min="1">
             </div>
+            
+            <!-- PERBAIKAN BUG: Penggunaan .date-wrapper dan layout -->
             <div class="input-group" style="margin-bottom: 15px;">
                 <label>Dari Tanggal</label>
-                <input type="date" id="sksMulai">
+                <div class="date-wrapper">
+                    <input type="date" id="sksMulai" style="width: 100%;">
+                </div>
             </div>
             <div class="input-group" style="margin-bottom: 25px;">
                 <label>Sampai Tanggal</label>
-                <input type="date" id="sksSelesai">
+                <div class="date-wrapper">
+                    <input type="date" id="sksSelesai" style="width: 100%;">
+                </div>
             </div>
             <div style="display: flex; gap: 10px;">
                 <button class="btn btn-primary" style="flex: 1;" onclick="eksekusiCetakSKS()"><i class="fa-solid fa-print"></i> Cetak PDF</button>
-                <button class="btn" style="flex: 1; background: #e2e8f0;" onclick="document.getElementById('modalSks').classList.remove('active')">Batal</button>
+                <button class="btn" style="flex: 1; background: #e2e8f0; color: #1e293b;" onclick="document.getElementById('modalSks').classList.remove('active')">Batal</button>
             </div>
         </div>
     </div>
@@ -413,7 +419,7 @@
         </div>
         <div class="sks-signature">
             <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
-            <br><br>
+            <br><br><br>
             <p><strong>( ______________________ )</strong><br>SIP: .......................................</p>
         </div>
     </div>
@@ -424,7 +430,7 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS VERSI 3.0 ANDA DISINI (PASTIKAN SUDAH NEW DEPLOYMENT)
+        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI (PASTIKAN SUDAH NEW DEPLOYMENT)
         const API_URL = "https://script.google.com/macros/s/AKfycbyZHWbU0e1oif7SlDWyZdCDRs_4_kQu_hREtK08l_c2VTj72kJD9K88lqgGAkjBzXtn/exec"; 
         
         let allPatientsData = [];
@@ -455,7 +461,7 @@
             const div = document.createElement('div');
             div.className = 'input-group';
             div.style.marginBottom = '10px'; div.style.flexDirection = 'row'; div.style.gap = '10px';
-            div.innerHTML = `<input type="text" class="penyakit-input" placeholder="Contoh penyakit lainnya..." style="flex:1;">
+            div.innerHTML = `<input type="text" class="penyakit-input" placeholder="Contoh penyakit lainnya..." style="flex:1; padding:10px;">
                              <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>`;
             list.appendChild(div);
         }
@@ -471,7 +477,7 @@
             const div = document.createElement('div');
             div.className = 'input-group';
             div.style.marginBottom = '10px'; div.style.flexDirection = 'row'; div.style.gap = '10px';
-            div.innerHTML = `<input type="text" class="alergi-input" placeholder="Contoh alergi lainnya..." style="flex:1;">
+            div.innerHTML = `<input type="text" class="alergi-input" placeholder="Contoh alergi lainnya..." style="flex:1; padding:10px;">
                              <button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>`;
             list.appendChild(div);
         }
@@ -510,8 +516,7 @@
             tbody.appendChild(tr);
         }
 
-        // Jalankan 1 baris kosong resep di awal
-        tambahBarisResep();
+        tambahBarisResep(); // Baris awal
 
         // 4. Proses Submit Form ke GAS
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
@@ -535,7 +540,7 @@
                 if(values.length > 0) strAlergi = values.join("; ");
             }
 
-            // Ekstraksi Resep Dinamis ke JSON Array
+            // Ekstraksi Resep
             let resepArray = [];
             document.querySelectorAll('#resepBody tr').forEach(row => {
                 const obat = row.querySelector('.res-nama-obat').value.trim();
@@ -553,16 +558,13 @@
                 }
             });
 
-            // Siapkan Form Data
             const formData = new FormData(e.target);
             const dataObj = Object.fromEntries(formData.entries());
             
-            // Masukkan data ekstra ke objek
             dataObj.riwayatPenyakit = strPenyakit;
             dataObj.riwayatAlergi = strAlergi;
             dataObj.resepObat = JSON.stringify(resepArray);
 
-            // UI Loading
             const btn = document.getElementById('submitBtn');
             const btnText = document.getElementById('btnText');
             const btnSpinner = document.getElementById('btnSpinner');
@@ -578,7 +580,7 @@
 
                 showToast("Rekam Medis Komprehensif Berhasil Disimpan!", "success");
                 
-                // Reset Form and States
+                // Reset Form
                 e.target.reset();
                 document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
                 document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); 
@@ -619,7 +621,6 @@
 
             dataArray.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                
                 const safeItem = encodeURIComponent(JSON.stringify(item));
 
                 tr.innerHTML = `
@@ -648,24 +649,35 @@
             });
         }
 
-        // Fitur Pencarian Dasbor
         document.getElementById('searchInput').addEventListener('input', (e) => {
             const k = e.target.value.toLowerCase();
             renderTable(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
         });
 
-        // 7. Modul Surat Keterangan Sakit (SKS) - Cetak PDF
+        // 7. Modul Surat Keterangan Sakit (SKS) - Logika Otomatis Tanggal
+        const inputHari = document.getElementById('sksHari');
+        const inputMulai = document.getElementById('sksMulai');
+        const inputSelesai = document.getElementById('sksSelesai');
+
+        function hitungTanggalSelesai() {
+            const startDate = new Date(inputMulai.value);
+            const days = parseInt(inputHari.value) || 1;
+            // Jika istirahat 3 hari dari tgl 15, artinya 15, 16, 17. 
+            // Maka rumusnya: startDate + (days - 1)
+            startDate.setDate(startDate.getDate() + (days - 1));
+            inputSelesai.valueAsDate = startDate;
+        }
+
+        inputHari.addEventListener('input', hitungTanggalSelesai);
+        inputMulai.addEventListener('change', hitungTanggalSelesai);
+
         function bukaModalSks(encodedItem) {
             tempPasienSks = JSON.parse(decodeURIComponent(encodedItem));
             document.getElementById('modalSks').classList.add('active');
             
-            // Set default date
-            const today = new Date();
-            document.getElementById('sksMulai').valueAsDate = today;
-            
-            const besok = new Date();
-            besok.setDate(today.getDate() + 2); // Default 3 hari istirahat
-            document.getElementById('sksSelesai').valueAsDate = besok;
+            inputHari.value = 3;
+            inputMulai.valueAsDate = new Date();
+            hitungTanggalSelesai(); // Panggil fungsi agar kolom selesai otomatis terisi
         }
 
         function formatTanggal(dateStr) {
@@ -674,7 +686,7 @@
         }
 
         function angkaKeTeks(angka) {
-            const teks = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh"];
+            const teks = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas", "Dua Belas", "Tiga Belas", "Empat Belas"];
             return teks[angka] || angka.toString();
         }
 
@@ -687,19 +699,17 @@
             document.getElementById('printJk').innerText = tempPasienSks['Jenis Kelamin'] || "-";
             document.getElementById('printAlamat').innerText = tempPasienSks['Alamat'] || "-";
             
-            const jmlHari = parseInt(document.getElementById('sksHari').value) || 1;
+            const jmlHari = parseInt(inputHari.value) || 1;
             document.getElementById('printHari').innerText = jmlHari;
             document.getElementById('printHariTeks').innerText = angkaKeTeks(jmlHari);
             
-            document.getElementById('printMulai').innerText = formatTanggal(document.getElementById('sksMulai').value);
-            document.getElementById('printSelesai').innerText = formatTanggal(document.getElementById('sksSelesai').value);
+            document.getElementById('printMulai').innerText = formatTanggal(inputMulai.value);
+            document.getElementById('printSelesai').innerText = formatTanggal(inputSelesai.value);
             
             document.getElementById('printTglSurat').innerText = "Kendari, " + formatTanggal(new Date());
 
-            // Tutup Modal terlebih dahulu agar dialog cetak tidak menangkap latar gelap modal
             document.getElementById('modalSks').classList.remove('active');
             
-            // Beri jeda 300ms agar DOM sempat melakukan re-render menghilangkan UI web
             setTimeout(() => {
                 window.print();
             }, 300);
