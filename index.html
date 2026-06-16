@@ -72,18 +72,36 @@
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
 
-        /* ==================================================================
-           PERBAIKAN BUG KALENDER UI 
-           ================================================================== */
-        input[type="date"] { 
-            position: relative; /* KUNCI PERBAIKAN: Membatasi klik overlay agar tidak bocor */
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator { 
-            background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; 
-            z-index: 10;
-        }
+        /* BUG KALENDER UI FIXED */
+        input[type="date"] { position: relative; }
+        input[type="date"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; z-index: 10; }
         .date-wrapper { position: relative; display: block; }
         .date-wrapper::after { content: "\f133"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none; z-index: 5; }
+
+        /* ==================================================================
+           CSS ODONTOGRAM VISUAL & INTERAKTIF (PENGGANTI GAMBAR EKSTERNAL)
+           ================================================================== */
+        .odontogram-wrapper {
+            background: rgba(255, 255, 255, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 15px; overflow-x: auto;
+        }
+        .odonto-grid { display: flex; flex-direction: column; gap: 15px; min-width: 680px; align-items: center; }
+        .odonto-row { display: flex; gap: 4px; justify-content: center; align-items: flex-end; }
+        .odonto-tooth { display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 32px; transition: transform 0.2s; }
+        .odonto-tooth:hover { transform: scale(1.1); }
+        .odonto-num { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-dark); }
+        
+        /* Desain 5 Permukaan Gigi (Top, Bottom, Left, Right, Center) via CSS Murni */
+        .odonto-box { position: relative; width: 26px; height: 26px; border: 1px solid #64748b; background: #fff; border-radius: 3px; overflow: hidden; transition: all 0.2s; }
+        .odonto-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom right, transparent 48%, #64748b 48%, #64748b 52%, transparent 52%), linear-gradient(to top right, transparent 48%, #64748b 48%, #64748b 52%, transparent 52%); }
+        .odonto-box::after { content: ''; position: absolute; top: 25%; left: 25%; right: 25%; bottom: 25%; border: 1px solid #64748b; background: #fff; }
+        .odonto-empty { width: 32px; height: 30px; }
+        .odonto-divider { width: 2px; background: rgba(0,0,0,0.1); margin: 0 10px; border-radius: 2px; }
+
+        /* State Saat Gigi Dipilih */
+        .odonto-tooth.selected .odonto-num { color: var(--primary); }
+        .odonto-tooth.selected .odonto-box { background: var(--primary); border-color: var(--primary); }
+        .odonto-tooth.selected .odonto-box::before { background: linear-gradient(to bottom right, transparent 48%, #fff 48%, #fff 52%, transparent 52%), linear-gradient(to top right, transparent 48%, #fff 48%, #fff 52%, transparent 52%); }
+        .odonto-tooth.selected .odonto-box::after { border-color: #fff; background: var(--primary); }
 
         /* Modul Spesifik */
         .module-title { font-size: 1.1rem; color: var(--text-dark); margin: 30px 0 15px 0; border-bottom: 2px solid var(--glass-border); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
@@ -117,16 +135,13 @@
         /* SKS Print Modal */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; position: relative; } /* Perbaikan isolasi posisi */
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; position: relative; } 
         
         /* CUMA MUNCUL SAAT DI CETAK / PRINT */
         #printArea { display: none; }
         @media print {
-            /* Sembunyikan elemen UI website secara mutlak */
             body { background: white !important; color: black; margin: 0; padding: 0; }
             .blob, nav, main, .modal, #toast { display: none !important; }
-            
-            /* Tampilkan area SKS */
             #printArea { display: block !important; position: relative; width: 100%; font-family: 'Times New Roman', Times, serif; padding: 20px; }
             .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 30px; }
             .kop-surat img { height: 70px; margin-bottom: 5px; }
@@ -213,11 +228,10 @@
                         <textarea name="alamat" rows="2" placeholder="Alamat lengkap pasien..." required></textarea>
                     </div>
 
-                    <!-- 2. Riwayat Penyakit & Alergi (DIPISAH) -->
+                    <!-- 2. Riwayat Penyakit & Alergi -->
                     <h3 class="module-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penyakit & Alergi Pasien</h3>
                     <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
                         
-                        <!-- Blok Riwayat Penyakit -->
                         <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-viruses"></i> A. Riwayat Penyakit Sistemik</h4>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
                             <input type="checkbox" id="chkTidakAdaPenyakit" checked style="width: 18px; height: 18px;">
@@ -234,7 +248,6 @@
 
                         <hr style="border-top: 1px dashed var(--glass-border); margin: 20px 0;">
 
-                        <!-- Blok Riwayat Alergi -->
                         <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-hand-dots"></i> B. Riwayat Alergi</h4>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
                             <input type="checkbox" id="chkTidakAdaAlergi" checked style="width: 18px; height: 18px;">
@@ -282,11 +295,20 @@
                         <div class="input-group"><label>10. Saturasi (%)</label><input type="number" name="saturasi" placeholder="98"></div>
                     </div>
 
-                    <!-- 4. Data Klinis & SOAP -->
+                    <!-- 4. Data Klinis, ODONTOGRAM & SOAP -->
                     <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</h3>
+                    
+                    <!-- AREA ODONTOGRAM VISUAL CSS INTERAKTIF -->
+                    <label style="margin-bottom: 5px; display: block;">Pemilihan Elemen Gigi (Odontogram Interaktif)</label>
+                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px;">*Klik pada kotak elemen gigi di bawah ini untuk memilih. Data otomatis masuk ke kolom input.</p>
+                    
+                    <div class="odontogram-wrapper" id="odontogramGrid">
+                        <!-- Odontogram di-generate via JavaScript -->
+                    </div>
+
                     <div class="input-group" style="margin-bottom: 20px;">
-                        <label>Elemen Gigi / Regio Odontogram</label>
-                        <input type="text" name="elemenGigi" placeholder="Contoh: Gigi 46, Regio Kanan Bawah..." required>
+                        <label>Detail Elemen Gigi / Regio</label>
+                        <input type="text" id="elemenGigiInput" name="elemenGigi" placeholder="Klik gigi di atas, atau ketik manual (Contoh: Gigi 46, Regio Kanan Bawah...)" required>
                     </div>
 
                     <div class="soap-section">
@@ -378,7 +400,6 @@
                 <input type="number" id="sksHari" value="3" min="1">
             </div>
             
-            <!-- PERBAIKAN BUG: Penggunaan .date-wrapper dan layout -->
             <div class="input-group" style="margin-bottom: 15px;">
                 <label>Dari Tanggal</label>
                 <div class="date-wrapper">
@@ -449,7 +470,68 @@
 
         document.getElementById('tanggalPelayanan').valueAsDate = new Date();
 
-        // 2. Logika Toggle Riwayat Penyakit & Alergi
+        // 2. Logika ODONTOGRAM CSS INTERAKTIF
+        let selectedTeeth = new Set();
+        
+        function renderOdontogram() {
+            // Peta Gigi Standar FDI
+            const odontoMap = [
+                [18,17,16,15,14,13,12,11, 21,22,23,24,25,26,27,28],
+                ['', '', '',55,54,53,52,51, 61,62,63,64,65,'', '', ''],
+                ['', '', '',85,84,83,82,81, 71,72,73,74,75,'', '', ''],
+                [48,47,46,45,44,43,42,41, 31,32,33,34,35,36,37,38]
+            ];
+            
+            let html = '<div class="odonto-grid">';
+            odontoMap.forEach(row => {
+                html += '<div class="odonto-row">';
+                row.forEach((num, index) => {
+                    if (num === '') {
+                        html += '<div class="odonto-empty"></div>';
+                    } else {
+                        html += `
+                        <div class="odonto-tooth" id="tooth-${num}" onclick="toggleTooth(${num})">
+                            <div class="odonto-num">${num}</div>
+                            <div class="odonto-box"></div>
+                        </div>`;
+                    }
+                    // Pembatas vertikal garis tengah mulut
+                    if (index === 7) {
+                        html += '<div class="odonto-divider"></div>';
+                    }
+                });
+                html += '</div>';
+            });
+            html += '</div>';
+            document.getElementById('odontogramGrid').innerHTML = html;
+        }
+
+        function toggleTooth(num) {
+            const el = document.getElementById('tooth-' + num);
+            if (selectedTeeth.has(num)) {
+                selectedTeeth.delete(num);
+                el.classList.remove('selected');
+            } else {
+                selectedTeeth.add(num);
+                el.classList.add('selected');
+            }
+            
+            // Perbarui Kolom Input
+            const inputElemen = document.getElementById('elemenGigiInput');
+            if(selectedTeeth.size > 0) {
+                // Urutkan angka agar rapi
+                let arr = Array.from(selectedTeeth).sort();
+                inputElemen.value = "Gigi " + arr.join(", ");
+            } else {
+                inputElemen.value = "";
+            }
+        }
+        
+        // Panggil fungsi render odontogram saat muat
+        renderOdontogram();
+
+
+        // 3. Logika Toggle Riwayat Penyakit & Alergi
         const chkTidakAdaPenyakit = document.getElementById('chkTidakAdaPenyakit');
         const penyakitContainer = document.getElementById('penyakitContainer');
         chkTidakAdaPenyakit.addEventListener('change', function() {
@@ -482,7 +564,7 @@
             list.appendChild(div);
         }
 
-        // 3. Logika E-Resep Dinamis
+        // 4. Logika E-Resep Dinamis
         function tambahBarisResep() {
             const tbody = document.getElementById('resepBody');
             const tr = document.createElement('tr');
@@ -518,7 +600,7 @@
 
         tambahBarisResep(); // Baris awal
 
-        // 4. Proses Submit Form ke GAS
+        // 5. Proses Submit Form ke GAS
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
@@ -585,8 +667,10 @@
                 document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
                 document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); 
                 
+                // Reset State Khusus
                 chkTidakAdaPenyakit.checked = true; penyakitContainer.style.display = 'none'; 
                 chkTidakAdaAlergi.checked = true; alergiContainer.style.display = 'none';
+                selectedTeeth.clear(); renderOdontogram(); // Bersihkan pilihan gigi
                 
                 setTimeout(() => navTo('dashboard'), 1500);
 
@@ -597,7 +681,7 @@
             }
         });
 
-        // 5. GET Data dari GAS
+        // 6. GET Data dari GAS
         async function loadDashboardData() {
             const tBody = document.getElementById('tableBody');
             tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data...</td></tr>`;
@@ -613,7 +697,7 @@
             }
         }
 
-        // 6. Render Tabel Dasbor
+        // 7. Render Tabel Dasbor
         function renderTable(dataArray) {
             const tBody = document.getElementById('tableBody');
             tBody.innerHTML = '';
@@ -637,6 +721,7 @@
                     </td>
                     <td>
                         <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
+                            <strong>Elemen Gigi: ${item['Elemen Gigi']||'-'}</strong><br>
                             <strong>TD:</strong> ${item['Sistole']||'-'}/${item['Diastole']||'-'} | <strong>N:</strong> ${item['Detak Nadi (x/Mnt)']||'-'} | <strong>S:</strong> ${item['Suhu (C)']||'-'}°C | <strong>TB/BB:</strong> ${item['Tinggi Badan (cm)']||'-'}/${item['Berat Badan (kg)']||'-'}
                         </div>
                         <p style="font-size:0.85rem;"><strong>S:</strong> ${item['Subjective']||'-'}</p>
@@ -654,7 +739,7 @@
             renderTable(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
         });
 
-        // 7. Modul Surat Keterangan Sakit (SKS) - Logika Otomatis Tanggal
+        // 8. Modul Surat Keterangan Sakit (SKS) - Logika Otomatis Tanggal
         const inputHari = document.getElementById('sksHari');
         const inputMulai = document.getElementById('sksMulai');
         const inputSelesai = document.getElementById('sksSelesai');
@@ -662,8 +747,6 @@
         function hitungTanggalSelesai() {
             const startDate = new Date(inputMulai.value);
             const days = parseInt(inputHari.value) || 1;
-            // Jika istirahat 3 hari dari tgl 15, artinya 15, 16, 17. 
-            // Maka rumusnya: startDate + (days - 1)
             startDate.setDate(startDate.getDate() + (days - 1));
             inputSelesai.valueAsDate = startDate;
         }
@@ -677,7 +760,7 @@
             
             inputHari.value = 3;
             inputMulai.valueAsDate = new Date();
-            hitungTanggalSelesai(); // Panggil fungsi agar kolom selesai otomatis terisi
+            hitungTanggalSelesai(); 
         }
 
         function formatTanggal(dateStr) {
@@ -686,14 +769,13 @@
         }
 
         function angkaKeTeks(angka) {
-            const teks = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas", "Dua Belas", "Tiga Belas", "Empat Belas"];
+            const teks = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas", "Dua Belas", "Tiga Belas", "Empat Belas", "Lima Belas"];
             return teks[angka] || angka.toString();
         }
 
         function eksekusiCetakSKS() {
             if(!tempPasienSks) return;
 
-            // Injeksi data ke dalam Hidden Area Print
             document.getElementById('printNama').innerText = tempPasienSks['Nama Lengkap'] || "-";
             document.getElementById('printUsia').innerText = tempPasienSks['Usia'] || "-";
             document.getElementById('printJk').innerText = tempPasienSks['Jenis Kelamin'] || "-";
@@ -715,7 +797,6 @@
             }, 300);
         }
 
-        // Toast Notif
         function showToast(msg, type) {
             const t = document.getElementById('toast');
             t.className = type; t.innerHTML = msg;
