@@ -156,70 +156,87 @@
         .tc-lbl { font-size: 9px; font-weight: bold; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 2px 4px; border-radius: 3px; color: #1e293b; letter-spacing: 0.5px;}
 
         /* ==================================================================
-           ODONTO GRID LAYOUT (NEW UPGRADE - PERFECT ALIGNMENT & LARGER SIZE)
+           ODONTO GRID LAYOUT (BIG UPGRADE - FLEXBOX FLOW & MOBILE FRIENDLY)
            ================================================================== */
         .odonto-grid-container {
             background: #f8fafc;
             border: 1px solid #cbd5e1;
             border-radius: 12px;
-            padding: 40px 20px 50px 20px;
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 70px; /* Jarak yang luas antar baris rahang */
             align-items: center;
             margin-bottom: 20px;
-            overflow-x: auto;
+            overflow-x: auto; /* Aktifkan scroll di mobile */
             box-shadow: inset 0 2px 10px rgba(0,0,0,0.02);
+            position: relative;
         }
+        
+        .scroll-hint { display: none; text-align: center; font-size: 0.85rem; color: var(--primary); margin-bottom: 10px; font-weight: 600;}
+        @media(max-width: 850px) { .scroll-hint { display: block; } }
+
         .odonto-grid {
-            display: inline-flex;
+            display: flex;
             flex-direction: column;
-            gap: 25px; /* Jarak antar baris elemen */
-            min-width: 950px;
+            gap: 30px; /* Jarak luas antar baris rahang */
+            min-width: max-content; /* Pastikan selalu meregang penuh meski di HP */
+            padding: 20px 10px;
             align-items: center;
-            margin-top: 10px;
         }
         .odonto-row {
             display: flex;
-            gap: 5px; /* Sedikit renggang biar tidak numpuk */
+            gap: 6px; /* Celah antar gigi */
             justify-content: center;
-            align-items: flex-end;
         }
         .odonto-tooth {
-            position: relative;
-            width: 50px; /* Size diperbesar secara optimal */
-            height: 50px;
             display: flex;
-            justify-content: center;
+            width: 45px; /* Gigi lebih besar dan jelas */
+            gap: 5px; /* Ruang untuk label, nomor, svg */
             align-items: center;
         }
-        .odonto-empty {
-            width: 50px;
-            height: 50px;
-        }
+        /* Menggunakan arah flex untuk memposisikan nomor & svg otomatis tanpa numpuk */
+        .odonto-row.top-jaw .odonto-tooth { flex-direction: column; }
+        .odonto-row.bottom-jaw .odonto-tooth { flex-direction: column-reverse; }
+        
+        .odonto-empty { width: 45px; height: 45px; }
+        
         .odonto-divider {
-            width: 25px;
+            width: 20px;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             color: #1e293b;
-            font-size: 1.3rem;
+            font-size: 1.5rem;
         }
+
         .odonto-num {
-            position: absolute;
-            font-size: 1.05rem; /* Ukuran font nomor gigi lebih besar */
+            font-size: 1rem;
             font-weight: 700;
             color: #0f172a;
+            line-height: 1;
         }
-        .num-top {
-            top: -32px;
-        }
-        .num-bottom {
-            bottom: -32px;
+        
+        .odonto-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #ef4444;
+            min-height: 14px; /* Memesan tempat meski kosong agar layout rata */
+            line-height: 1;
         }
 
         /* SVG Gigi Styles & States */
-        .tooth-svg { width: 50px; height: 85px; cursor: pointer; overflow: visible; transition: transform 0.1s; }
+        .tooth-svg { 
+            width: 45px; 
+            height: 45px; 
+            cursor: pointer; 
+            overflow: visible; /* Memungkinkan gambar akar tembus keluar kotak */
+            transition: transform 0.1s; 
+        }
+        /* Memberikan jarak agar root (akar) tidak bertabrakan dengan elemen lain */
+        .odonto-row.top-jaw .tooth-svg { margin-top: 15px; }
+        .odonto-row.bottom-jaw .tooth-svg { margin-bottom: 15px; }
+
         .tooth-svg:hover { transform: scale(1.1); z-index: 10; }
         
         .surface { fill: #ffffff; stroke: #64748b; stroke-width: 1.2; transition: fill 0.2s, stroke-width 0.2s; }
@@ -227,8 +244,8 @@
         
         /* Surface Colors Mappings Terkini */
         .surface[data-state="norm"] { fill: #ffffff; }
-        .surface[data-state="car"] { fill: #8b0000; stroke: #1e293b; stroke-width: 2; } /* Caries = Merah Gelap dgn batas tegas */
-        .surface[data-state="gif"] { fill: #808080; stroke: #1e293b; stroke-width: 2; } /* GIF = Abu-abu dgn batas tegas */
+        .surface[data-state="car"] { fill: #8b0000; stroke: #1e293b; stroke-width: 2; } 
+        .surface[data-state="gif"] { fill: #808080; stroke: #1e293b; stroke-width: 2; } 
         .surface[data-state="amf"] { fill: #1e293b; } 
         .surface[data-state="cof"] { fill: url(#pat-cof); } 
         .surface[data-state="fis"] { fill: url(#pat-fis); } 
@@ -313,7 +330,7 @@
         #toast.error { background: #ef4444; }
         #toast.info { background: #3b82f6; }
 
-        @media(max-width: 768px) {
+        @media(max-width: 850px) {
             .nav-links span { display: none; } 
             .form-container { padding: 20px; }
             .btn { width: 100%; }
@@ -496,29 +513,6 @@
                     <h3 class="module-title" style="justify-content: space-between;">
                         <span><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</span>
                     </h3>
-                    
-                    <div class="accordion-box">
-                        <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
-                            <span><i class="fa-solid fa-clock-rotate-left"></i> Ringkasan Riwayat Odontogram Lama</span>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="accordion-body" id="riwayatOdontoBody">
-                            <div class="table-responsive">
-                                <table class="riwayat-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Tanggal Kunjungan</th>
-                                            <th>Teks Detail Perawatan Elemen Gigi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="riwayatOdontoList">
-                                        <!-- Data riwayat akan dimuat otomatis -->
-                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Isi No RM / NIK / Nama pasien di atas untuk melacak memori riwayat.</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF (BIG UPGRADE - UI GRID BARU) -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
@@ -584,8 +578,11 @@
                         </div>
                     </div>
 
-                    <div class="odonto-grid-container" id="odontogramGrid">
-                        <!-- Odontogram SVG Grid Akan Dirender Disini -->
+                    <div class="odonto-grid-container">
+                        <div class="scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk melihat seluruh gigi</div>
+                        <div id="odontogramGrid" class="odonto-grid">
+                            <!-- Odontogram SVG Grid Akan Dirender Disini -->
+                        </div>
                     </div>
 
                     <!-- Hidden Input untuk menyimpan JSON State Odontogram -->
@@ -833,7 +830,8 @@
         // ==================================================================
         // 3. LOGIKA ODONTOGRAM CERDAS FULL SIMBOL & MEMORI
         // ==================================================================
-        const posteriorTeeth = [18,17,16,15,14, 28,27,26,25,24, 48,47,46,45,44, 38,37,36,35,34, 55,54, 65,64, 85,84, 75,74];
+        const anteriorTeeth = [13, 12, 11, 21, 22, 23, 53, 52, 51, 61, 62, 63, 83, 82, 81, 71, 72, 73, 43, 42, 41, 31, 32, 33];
+        const posteriorTeeth = [18, 17, 16, 15, 14, 24, 25, 26, 27, 28, 55, 54, 64, 65, 85, 84, 74, 75, 48, 47, 46, 45, 44, 34, 35, 36, 37, 38];
 
         let currentOdontoTool = 'norm'; 
         let currentOdontoToolType = 'norm'; 
@@ -844,7 +842,6 @@
             document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
             
-            // Munculkan Toast Penjelasan
             showToast(desc, 'info');
         }
 
@@ -867,9 +864,10 @@
                 { type: 'bottom', items: [48,47,46,45,44,43,42,41, 'divider-up', 31,32,33,34,35,36,37,38] }
             ];
             
-            let html = '<div class="odonto-grid">';
+            let html = '';
             odontoMap.forEach(row => {
-                html += '<div class="odonto-row">';
+                let rowClass = row.type === 'top' ? 'top-jaw' : 'bottom-jaw';
+                html += `<div class="odonto-row ${rowClass}">`;
                 row.items.forEach(num => {
                     if (num === '') {
                         html += '<div class="odonto-empty"></div>';
@@ -878,59 +876,19 @@
                     } else if (num === 'divider-up') {
                         html += '<div class="odonto-divider"><i class="fa-solid fa-caret-up"></i></div>';
                     } else {
-                        let numPositionClass = row.type === 'top' ? 'num-top' : 'num-bottom';
-                        html += `<div class="odonto-tooth">
-                                    <div class="odonto-num ${numPositionClass}">${num}</div>
+                        html += `<div class="odonto-tooth" id="tooth-wrap-${num}">
+                                    <div class="odonto-label" id="label-${num}"></div>
+                                    <div class="odonto-num">${num}</div>
                                     ${generateToothSVG(num, row.type)}
                                  </div>`;
                     }
                 });
                 html += '</div>';
             });
-            html += '</div>';
             document.getElementById('odontogramGrid').innerHTML = html;
         }
 
-        function generateToothSVG(id, position) {
-            let isFive = posteriorTeeth.includes(id);
-            // ViewBox diperbesar untuk mencegah SVG terpotong
-            let svg = `<svg viewBox="-5 -20 50 90" class="tooth-svg" id="svg-${id}">`;
-            
-            let labelY = position === 'top' ? -15 : 55;
-            let rootPath = position === 'top' ? "M 0 5 L 20 -25 L 40 5" : "M 0 35 L 20 65 L 40 35";
-            let rootTri = position === 'top' ? "10,0 30,0 20,-20" : "10,40 30,40 20,60";
-
-            svg += `<text x="20" y="${labelY}" class="tooth-label" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e293b"></text>`;
-
-            if (isFive) {
-                // Gigi Posterior (5 Permukaan)
-                svg += `<polygon data-pos="Top" points="0,10 40,10 30,20 10,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Right" points="40,10 40,50 30,40 30,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Bottom" points="0,50 40,50 30,40 10,40" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Left" points="0,10 0,50 10,40 10,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<rect data-pos="Center" x="10" y="20" width="20" height="20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-            } else {
-                // UPDATE: Desain Gigi Anterior (4 Permukaan) Sesuai Gbr 1
-                svg += `<polygon data-pos="Top" points="0,10 40,10 28,30 12,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Right" points="40,10 40,50 28,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Bottom" points="0,50 40,50 28,30 12,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Left" points="0,10 0,50 12,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-            }
-
-            svg += `<g class="overlay-mis" style="pointer-events:none; display:none;"><line x1="0" y1="10" x2="40" y2="50" stroke="#1e293b" stroke-width="4"/><line x1="40" y1="10" x2="0" y2="50" stroke="#1e293b" stroke-width="4"/></g>`;
-            svg += `<g class="overlay-cfr" style="pointer-events:none; display:none;"><line x1="12" y1="8" x2="12" y2="52" stroke="#1e293b" stroke-width="2"/><line x1="28" y1="8" x2="28" y2="52" stroke="#1e293b" stroke-width="2"/><line x1="-5" y1="22" x2="45" y2="22" stroke="#1e293b" stroke-width="2"/><line x1="-5" y1="38" x2="45" y2="38" stroke="#1e293b" stroke-width="2"/></g>`;
-            svg += `<g class="overlay-poc" style="pointer-events:none; display:none;"><rect x="0" y="10" width="40" height="40" fill="url(#pat-poc)" stroke="#1e293b" stroke-width="2" /></g>`;
-            svg += `<g class="overlay-fmc" style="pointer-events:none; display:none;"><rect x="0" y="10" width="40" height="40" fill="none" stroke="#1e293b" stroke-width="2"/><rect x="6" y="16" width="28" height="28" fill="none" stroke="#1e293b" stroke-width="2"/></g>`;
-            svg += `<g class="overlay-rrx" style="pointer-events:none; display:none;"><path d="${rootPath}" stroke="#ef4444" stroke-width="4" fill="none"/></g>`;
-
-            svg += `<polygon class="overlay-nvt" points="${rootTri}" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
-            svg += `<polygon class="overlay-rct" points="${rootTri}" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
-
-            svg += `</svg>`;
-            return svg;
-        }
-
-        // --- FUNGSI BARU UNTUK RENDER SVG READ-ONLY DI MODAL HISTORY ---
+        // FUNGSI BARU UNTUK RENDER MODAL HISTORY
         function generateReadOnlyOdontogram(stateStr) {
             if (!stateStr || stateStr === '-') return '<p style="color:#64748b; font-size:0.85rem;">Tidak ada data visual.</p>';
             let stateObj = {};
@@ -943,24 +901,24 @@
                 { type: 'bottom', items: [48,47,46,45,44,43,42,41, 'divider-up', 31,32,33,34,35,36,37,38] }
             ];
 
-            let html = '<div class="odonto-grid-container" style="padding: 10px; gap: 30px; border: none; background: transparent; box-shadow: none; overflow-x: auto; margin-bottom: 0;">';
-            html += '<div class="odonto-grid" style="min-width: 800px; gap: 15px; margin-top: 15px;">';
+            let html = '<div class="odonto-grid-container" style="padding: 10px; border: none; background: transparent; box-shadow: none; margin-bottom: 0;">';
+            html += '<div class="scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk melihat seluruh gigi</div>';
+            html += '<div class="odonto-grid" style="margin-top: 10px;">';
             
             odontoMap.forEach(row => {
-                html += '<div class="odonto-row">';
+                let rowClass = row.type === 'top' ? 'top-jaw' : 'bottom-jaw';
+                html += `<div class="odonto-row ${rowClass}">`;
                 row.items.forEach(num => {
-                    if (num === '') {
-                        html += '<div class="odonto-empty"></div>';
-                    } else if (num === 'divider-down') {
-                        html += '<div class="odonto-divider"><i class="fa-solid fa-caret-down"></i></div>';
-                    } else if (num === 'divider-up') {
-                        html += '<div class="odonto-divider"><i class="fa-solid fa-caret-up"></i></div>';
-                    } else {
-                        let numPositionClass = row.type === 'top' ? 'num-top' : 'num-bottom';
+                    if (num === '') html += '<div class="odonto-empty"></div>';
+                    else if (num === 'divider-down') html += '<div class="odonto-divider"><i class="fa-solid fa-caret-down"></i></div>';
+                    else if (num === 'divider-up') html += '<div class="odonto-divider"><i class="fa-solid fa-caret-up"></i></div>';
+                    else {
                         let toothData = stateObj[num] || {};
+                        let lbl = toothData.label || '';
                         html += `<div class="odonto-tooth">
-                                    <div class="odonto-num ${numPositionClass}">${num}</div>
-                                    ${getReadOnlyToothSVG(num, row.type, toothData)}
+                                    <div class="odonto-label">${lbl}</div>
+                                    <div class="odonto-num">${num}</div>
+                                    ${getReadOnlyToothSVGOnly(num, row.type, toothData)}
                                  </div>`;
                     }
                 });
@@ -970,7 +928,7 @@
             return html;
         }
 
-        function getReadOnlyToothSVG(id, position, data) {
+        function getReadOnlyToothSVGOnly(id, position, data) {
             let tempDiv = document.createElement('div');
             tempDiv.innerHTML = generateToothSVG(id, position);
             let svgEl = tempDiv.querySelector('svg');
@@ -986,13 +944,47 @@
                 }
             });
 
-            if (data.label) svgEl.querySelector('.tooth-label').textContent = data.label;
             if (data.whole) svgEl.setAttribute('data-whole', data.whole);
             if (data.root) svgEl.setAttribute('data-root', data.root);
 
-            // Mencegah interaksi pointer pada mode history
             svgEl.style.pointerEvents = 'none'; 
             return tempDiv.innerHTML;
+        }
+
+        function generateToothSVG(id, position) {
+            let isPosterior = posteriorTeeth.includes(id);
+            // ViewBox 40x40 perfectly aligns with our 42px width box
+            let svg = `<svg viewBox="0 0 40 40" class="tooth-svg" id="svg-${id}">`;
+            
+            let rootPath = position === 'top' ? "M 0 10 L 20 -20 L 40 10" : "M 0 30 L 20 60 L 40 30";
+            let rootTri = position === 'top' ? "10,0 30,0 20,-20" : "10,40 30,40 20,60";
+
+            if (isPosterior) {
+                // Gigi Posterior (5 Permukaan)
+                svg += `<polygon data-pos="Top" points="0,0 40,0 30,10 10,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Right" points="40,0 40,40 30,30 30,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Bottom" points="0,40 40,40 30,30 10,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Left" points="0,0 0,40 10,30 10,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<rect data-pos="Center" x="10" y="10" width="20" height="20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+            } else {
+                // Gigi Anterior (4 Permukaan - Akurat dengan Gambar 1)
+                svg += `<polygon data-pos="Top" points="0,0 40,0 28,20 12,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Right" points="40,0 40,40 28,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Bottom" points="0,40 40,40 28,20 12,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Left" points="0,0 0,40 12,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+            }
+
+            svg += `<g class="overlay-mis" style="pointer-events:none; display:none;"><line x1="0" y1="0" x2="40" y2="40" stroke="#1e293b" stroke-width="4"/><line x1="40" y1="0" x2="0" y2="40" stroke="#1e293b" stroke-width="4"/></g>`;
+            svg += `<g class="overlay-cfr" style="pointer-events:none; display:none;"><line x1="12" y1="-5" x2="12" y2="45" stroke="#1e293b" stroke-width="2"/><line x1="28" y1="-5" x2="28" y2="45" stroke="#1e293b" stroke-width="2"/><line x1="-5" y1="12" x2="45" y2="12" stroke="#1e293b" stroke-width="2"/><line x1="-5" y1="28" x2="45" y2="28" stroke="#1e293b" stroke-width="2"/></g>`;
+            svg += `<g class="overlay-poc" style="pointer-events:none; display:none;"><rect x="0" y="0" width="40" height="40" fill="url(#pat-poc)" stroke="#1e293b" stroke-width="2" /></g>`;
+            svg += `<g class="overlay-fmc" style="pointer-events:none; display:none;"><rect x="0" y="0" width="40" height="40" fill="none" stroke="#1e293b" stroke-width="2"/><rect x="6" y="6" width="28" height="28" fill="none" stroke="#1e293b" stroke-width="2"/></g>`;
+            svg += `<g class="overlay-rrx" style="pointer-events:none; display:none;"><path d="${rootPath}" stroke="#ef4444" stroke-width="4" fill="none"/></g>`;
+
+            svg += `<polygon class="overlay-nvt" points="${rootTri}" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
+            svg += `<polygon class="overlay-rct" points="${rootTri}" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
+
+            svg += `</svg>`;
+            return svg;
         }
 
         function applyOdontoTool(event, id) {
@@ -1005,7 +997,7 @@
             if (toolType === 'norm') {
                 svgEl.removeAttribute('data-whole');
                 svgEl.removeAttribute('data-root');
-                svgEl.querySelector('.tooth-label').textContent = '';
+                document.getElementById('label-' + id).textContent = '';
                 svgEl.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
             } 
             else if (toolType === 'surface') {
@@ -1032,7 +1024,7 @@
                 }
             }
             else if (toolType === 'label') {
-                let textEl = svgEl.querySelector('.tooth-label');
+                let textEl = document.getElementById('label-' + id);
                 if (textEl.textContent === toolValue.toUpperCase()) {
                     textEl.textContent = '';
                 } else {
@@ -1047,7 +1039,6 @@
             let q = Math.floor(id / 10); 
             let isPosterior = posteriorTeeth.includes(id);
 
-            // Perbaikan penamaan Oklusal vs Insisal
             if (position === 'Center') return isPosterior ? 'Oklusal' : 'Insisal';
 
             if (q === 1 || q === 5) {
@@ -1081,13 +1072,19 @@
             let results = [];
             let odontoStateJSON = {}; 
 
-            document.querySelectorAll('.tooth-svg').forEach(svg => {
-                let id = parseInt(svg.id.replace('svg-', ''));
+            document.querySelectorAll('.odonto-tooth').forEach(wrapper => {
+                let numEl = wrapper.querySelector('.odonto-num');
+                if (!numEl) return;
+                
+                let id = parseInt(numEl.textContent);
+                if (isNaN(id)) return;
+
+                let svg = wrapper.querySelector('.tooth-svg');
                 let toothData = {};
                 let hasData = false;
                 let issues = [];
 
-                let labelText = svg.querySelector('.tooth-label').textContent;
+                let labelText = wrapper.querySelector('.odonto-label').textContent;
                 if (labelText) { 
                     toothData.label = labelText; 
                     let lowerLabel = labelText.toLowerCase();
@@ -1126,19 +1123,23 @@
         }
 
         function applyPastOdontoState(stateObj) {
-            document.querySelectorAll('.tooth-svg').forEach(svg => {
+            document.querySelectorAll('.odonto-tooth').forEach(wrapper => {
+                let numEl = wrapper.querySelector('.odonto-num');
+                if (!numEl) return;
+                
+                let toothId = parseInt(numEl.textContent);
+                if (isNaN(toothId)) return;
+
+                let svg = wrapper.querySelector('.tooth-svg');
                 svg.removeAttribute('data-whole');
                 svg.removeAttribute('data-root');
-                svg.querySelector('.tooth-label').textContent = '';
+                wrapper.querySelector('.odonto-label').textContent = '';
                 svg.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
-            });
 
-            for (let toothId in stateObj) {
-                let svg = document.getElementById('svg-' + toothId);
-                if (!svg) continue;
                 let data = stateObj[toothId];
-                
-                if (data.label) svg.querySelector('.tooth-label').textContent = data.label;
+                if (!data) return;
+
+                if (data.label) wrapper.querySelector('.odonto-label').textContent = data.label;
                 if (data.root) svg.setAttribute('data-root', data.root);
                 if (data.whole) svg.setAttribute('data-whole', data.whole);
 
@@ -1148,7 +1149,7 @@
                         if (polygon) polygon.setAttribute('data-state', data.surfaces[pos]);
                     }
                 }
-            }
+            });
             generateOdontoTextSummary();
         }
 
@@ -1471,7 +1472,7 @@
                         visualOdontoHTML = `
                             <details class="tl-accordion" open>
                                 <summary><i class="fa-solid fa-tooth"></i> Visualisasi Odontogram</summary>
-                                <div class="details-content" style="overflow-x:auto; background: #fff; text-align: center; padding: 15px 5px;">
+                                <div class="details-content" style="padding: 0; background: #fff;">
                                     ${generateReadOnlyOdontogram(v['Data Odontogram Visual'])}
                                 </div>
                             </details>
