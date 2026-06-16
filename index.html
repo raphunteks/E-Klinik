@@ -358,6 +358,30 @@
                     <!-- 5. Data Klinis, ODONTOGRAM & SOAP -->
                     <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</h3>
                     
+                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF (BIG UPGRADE) -->
+                    <div class="accordion-box">
+                        <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
+                            <span><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Odontogram Pasien</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="riwayatOdontoBody">
+                            <div class="table-responsive">
+                                <table class="riwayat-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal</th>
+                                            <th>Detail Perawatan Elemen Gigi Sebelumnya</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="riwayatOdontoList">
+                                        <!-- Data riwayat akan dimuat dari pasien yang sedang dicari (Mockup state) -->
+                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Cari No RM pasien pada Dasbor untuk memuat riwayat kunjungan.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                     <label style="margin-bottom: 5px; display: block;">Pemetaan Odontogram Interaktif</label>
                     <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">
                         *Saat mengetik No RM yang sudah pernah berkunjung, Odontogram visual akan terisi otomatis dengan memori kunjungan lalu.<br>
@@ -366,7 +390,7 @@
                     
                     <!-- PEMILIH ALAT ODONTOGRAM -->
                     <div class="odonto-tools" id="odontoTools">
-                        <button type="button" class="tool-btn" data-tool="norm" onclick="setOdontoTool('norm', this)"><div class="tc-norm"></div> Normal</button>
+                        <button type="button" class="tool-btn" data-tool="norm" onclick="setOdontoTool('norm', this)"><div class="tc-norm"></div> Normal (Clear)</button>
                         <button type="button" class="tool-btn active" data-tool="car" onclick="setOdontoTool('car', this)"><div class="tc-car"></div> CAR (Caries)</button>
                         <button type="button" class="tool-btn" data-tool="gif" onclick="setOdontoTool('gif', this)"><div class="tc-gif"></div> GIF (Glass Ionomer)</button>
                         <button type="button" class="tool-btn" data-tool="cof" onclick="setOdontoTool('cof', this)"><div class="tc-cof"></div> COF (Composite)</button>
@@ -852,10 +876,12 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // FIXED POST: MENGIRIM TANPA HEADER "application/json" AGAR OTOMATIS MENJADI text/plain (LOLOS CORS)
-                await fetch(API_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify(dataObj) 
+                // FIXED POST: MENGEMBALIKAN KE MODE POLOS
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(dataObj)
                 });
                 
                 showToast("Rekam Medis Komprehensif Berhasil Disimpan!", "success");
@@ -871,42 +897,19 @@
             }
         });
 
-        // 6. GET Data dari GAS (FIXED CORS & REDIRECT ERROR)
+        // 6. GET Data dari GAS
         async function loadDashboardData() {
             const tBody = document.getElementById('tableBody');
-            tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data dari server...</td></tr>`;
-            
+            tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data...</td></tr>`;
             try {
-                // FIXED GET: Menghapus deklarasi header custom untuk mencegah "Preflight OPTIONS" ditolak Google.
-                const response = await fetch(API_URL + "?action=read&ts=" + new Date().getTime());
-                
-                if (!response.ok) throw new Error("HTTP Status " + response.status);
-
-                // Baca teks murni dulu untuk mencegah crash jika Google mengirim halaman Login HTML
-                const textResponse = await response.text(); 
-                
-                try {
-                    const result = JSON.parse(textResponse);
-                    if(result.status === 'success') {
-                        allPatientsData = result.data.reverse(); 
-                        renderTable(allPatientsData);
-                    } else {
-                        tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">Error Server: ${result.message}</td></tr>`;
-                    }
-                } catch (parseError) {
-                    console.error("Format data bukan JSON (Tautan kedaluwarsa atau akses ditolak):", textResponse);
-                    tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">
-                        <strong>Gagal membaca format database.</strong><br>
-                        <small>Kemungkinan akses ditolak Google. Pastikan "Who has access" adalah "Anyone".</small>
-                    </td></tr>`;
+                const response = await fetch(API_URL);
+                const result = await response.json();
+                if(result.status === 'success') {
+                    allPatientsData = result.data.reverse(); 
+                    renderTable(allPatientsData);
                 }
-
             } catch (error) {
-                console.error("Kesalahan Jaringan (CORS):", error);
-                tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">
-                    <strong>Koneksi ke database terputus.</strong><br>
-                    <small>Permintaan diblokir browser. Pastikan URL API adalah hasil deploy terbaru.</small>
-                </td></tr>`;
+                tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip.</td></tr>`;
             }
         }
 
