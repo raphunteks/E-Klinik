@@ -18,15 +18,15 @@
     <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
         <defs>
             <pattern id="pat-cof" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="6" height="6" fill="#10b981" />
-                <line x1="0" y1="0" x2="0" y2="6" stroke="#1e293b" stroke-width="1.5" />
+                <rect width="6" height="6" fill="#ffffff" />
+                <line x1="0" y1="0" x2="0" y2="6" stroke="#10b981" stroke-width="2.5" />
             </pattern>
             <pattern id="pat-fis" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
                 <rect width="6" height="6" fill="#ffffff" />
-                <line x1="0" y1="0" x2="0" y2="6" stroke="#ef4444" stroke-width="1.5" />
+                <line x1="0" y1="0" x2="0" y2="6" stroke="#ef4444" stroke-width="2.5" />
             </pattern>
             <pattern id="pat-poc" width="6" height="6" patternUnits="userSpaceOnUse">
-                <rect width="6" height="6" fill="#ffffff" />
+                <rect width="6" height="6" fill="transparent" />
                 <line x1="3" y1="0" x2="3" y2="6" stroke="#1e293b" stroke-width="1.5" />
             </pattern>
         </defs>
@@ -109,7 +109,7 @@
         .date-wrapper::after { content: "\f133"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none; z-index: 5; }
 
         /* ==================================================================
-           CSS ODONTOGRAM LENGKAP (SVG & LEGEND)
+           CSS ODONTOGRAM LENGKAP (SVG & KATEGORI ALAT)
            ================================================================== */
         .odontogram-wrapper { background: rgba(255, 255, 255, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px 15px; margin-bottom: 15px; overflow-x: auto; text-align: center; }
 
@@ -123,49 +123,53 @@
         .riwayat-table th { background: #e2e8f0; padding: 10px; text-align: left; color: #475569; }
         .riwayat-table td { padding: 10px; border-bottom: 1px solid #cbd5e1; }
 
-        /* Tools UI Grid */
-        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin-bottom: 5px; }
+        /* Tools UI Grid & Kategori */
+        .odonto-tools-container { background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--glass-border); }
+        .tools-category { font-weight: 700; margin-top: 15px; margin-bottom: 10px; font-size: 0.85rem; color: var(--primary); text-transform: uppercase; border-bottom: 1px solid var(--glass-border); padding-bottom: 5px; text-align: left;}
+        .tools-category:first-child { margin-top: 0; }
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin-bottom: 15px; }
+        
         .tool-btn { padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; background: white; color: var(--text-dark); display: flex; align-items: center; gap: 6px; justify-content: left; }
-        .tool-btn:hover { background: #f8fafc; }
+        .tool-btn:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         .tool-btn.active { border-color: var(--primary); background: #e0f2fe; color: var(--primary); box-shadow: 0 2px 5px rgba(2,132,199,0.15); }
         
-        /* Tool Colors Indicators (CSS Standar) */
+        /* Tool Colors Indicators (Visualisasi Indikator Tombol) */
         .tc-norm { width: 14px; height: 14px; border-radius: 3px; background: #ffffff; border: 1px solid #94a3b8; }
-        .tc-car { width: 14px; height: 14px; border-radius: 3px; background: #ef4444; }
+        .tc-car { width: 14px; height: 14px; border-radius: 3px; background: #ef4444; border: 1px solid #1e293b; }
         .tc-amf { width: 14px; height: 14px; border-radius: 3px; background: #1e293b; }
-        .tc-cof { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(45deg, #10b981, #10b981 2px, #1e293b 2px, #1e293b 3px); }
-        .tc-fis { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(45deg, #ffffff, #ffffff 2px, #ef4444 2px, #ef4444 3px); }
+        .tc-cof { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(45deg, #10b981, #10b981 2px, #ffffff 2px, #ffffff 4px); }
+        .tc-fis { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(45deg, #ef4444, #ef4444 2px, #ffffff 2px, #ffffff 4px); }
         
-        .tc-mis { width: 14px; height: 14px; border-radius: 3px; background: transparent; border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center; font-size:10px; font-weight:bold; color: #1e293b; }
+        .tc-mis { width: 14px; height: 14px; border-radius: 3px; background: transparent; display: flex; align-items: center; justify-content: center; font-size:12px; font-weight:bold; color: #1e293b; }
         .tc-mis::before { content: 'X'; }
-        .tc-cfr { width: 14px; height: 14px; border-radius: 3px; background: transparent; border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center; font-size:10px; font-weight:bold; color: #1e293b; }
+        .tc-cfr { width: 14px; height: 14px; border-radius: 3px; background: transparent; display: flex; align-items: center; justify-content: center; font-size:12px; font-weight:bold; color: #1e293b; }
         .tc-cfr::before { content: '#'; }
         .tc-poc { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(90deg, #ffffff, #ffffff 2px, #1e293b 2px, #1e293b 3px); }
         .tc-fmc { width: 14px; height: 14px; border-radius: 3px; background: transparent; border: 3px double #1e293b; }
-        .tc-rrx { width: 14px; height: 14px; border-radius: 3px; background: transparent; border: 1px solid #ef4444; display: flex; align-items: center; justify-content: center; font-size:8px; font-weight:bold; color: #ef4444; }
+        .tc-rrx { width: 14px; height: 14px; border-radius: 3px; background: transparent; display: flex; align-items: center; justify-content: center; font-size:10px; font-weight:bold; color: #ef4444; }
         .tc-rrx::before { content: 'V'; }
         
-        .tc-rct { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 10px solid #1e293b; }
-        .tc-nvt { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 10px solid #fff; filter: drop-shadow(0 0 1px #000); }
-        .tc-lbl { font-size: 8px; font-weight: bold; background: #e2e8f0; padding: 2px 4px; border-radius: 3px; color: #1e293b;}
+        .tc-rct { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 8px solid #1e293b; }
+        .tc-nvt { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 8px solid #fff; filter: drop-shadow(0 0 1px #000); }
+        .tc-lbl { font-size: 8px; font-weight: bold; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 2px 4px; border-radius: 3px; color: #1e293b; letter-spacing: 0.5px;}
 
         /* Odonto Grid Layout */
-        .odonto-grid { display: inline-flex; flex-direction: column; gap: 8px; min-width: 680px; align-items: center; margin-top: 10px; }
-        .odonto-row { display: flex; gap: 3px; justify-content: center; align-items: flex-end; }
-        .odonto-tooth { display: flex; flex-direction: column; align-items: center; width: 34px; }
+        .odonto-grid { display: inline-flex; flex-direction: column; gap: 15px; min-width: 680px; align-items: center; margin-top: 10px; }
+        .odonto-row { display: flex; gap: 4px; justify-content: center; align-items: flex-end; }
+        .odonto-tooth { display: flex; flex-direction: column; align-items: center; width: 36px; }
         .odonto-num { font-size: 0.75rem; font-weight: 700; margin-bottom: 2px; color: var(--text-dark); }
-        .odonto-empty { width: 34px; height: 34px; }
-        .odonto-divider { width: 2px; background: rgba(0,0,0,0.15); margin: 0 10px; border-radius: 2px; }
+        .odonto-empty { width: 36px; height: 36px; }
+        .odonto-divider { width: 2px; background: rgba(0,0,0,0.2); margin: 0 10px; border-radius: 2px; }
 
         /* SVG Gigi Styles & States */
-        .tooth-svg { width: 34px; height: 50px; transition: transform 0.1s; cursor: pointer; position: relative; }
+        .tooth-svg { width: 36px; height: 52px; transition: transform 0.1s; cursor: pointer; position: relative; }
         .tooth-svg:hover { transform: scale(1.15); z-index: 10; }
-        .surface { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; transition: fill 0.2s, opacity 0.2s; }
-        .surface:hover { opacity: 0.7; stroke-width: 2; stroke: var(--primary);}
+        .surface { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; transition: fill 0.2s, stroke-width 0.2s; }
+        .surface:hover { opacity: 0.8; stroke-width: 2; stroke: var(--primary);}
         
-        /* Surface Colors Mappings */
+        /* Surface Colors Mappings Terkini */
         .surface[data-state="norm"] { fill: #ffffff; }
-        .surface[data-state="car"] { fill: #ef4444; } 
+        .surface[data-state="car"] { fill: #ef4444; stroke: #1e293b; stroke-width: 2; } /* Caries = Merah dgn batas tegas */
         .surface[data-state="amf"] { fill: #1e293b; } 
         .surface[data-state="cof"] { fill: url(#pat-cof); } 
         .surface[data-state="fis"] { fill: url(#pat-fis); } 
@@ -243,17 +247,20 @@
             .sks-signature p { margin-bottom: 60px; }
         }
 
-        /* Notifikasi */
-        #toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; border-radius: 12px; color: white; font-weight: 500; display: flex; align-items: center; gap: 10px; transform: translateX(150%); transition: transform 0.4s; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        /* Notifikasi TOAST Terpusat */
+        #toast { position: fixed; bottom: 30px; right: 30px; padding: 16px 24px; border-radius: 12px; color: white; font-weight: 500; display: flex; align-items: center; gap: 10px; transform: translateX(150%); transition: transform 0.4s; z-index: 2000; box-shadow: 0 10px 25px rgba(0,0,0,0.2); max-width: 350px; line-height: 1.4; font-size: 0.9rem;}
         #toast.show { transform: translateX(0); }
         #toast.success { background: #10b981; }
         #toast.error { background: #ef4444; }
+        #toast.info { background: #3b82f6; }
 
         @media(max-width: 768px) {
             .nav-links span { display: none; } 
             .form-container { padding: 20px; }
             .btn { width: 100%; }
             .auto-fill-bubble { flex-direction: column; text-align: center; gap: 15px; }
+            #toast { left: 50%; right: auto; transform: translateX(-50%) translateY(150%); bottom: 20px; width: 90%; }
+            #toast.show { transform: translateX(-50%) translateY(0); }
         }
     </style>
 </head>
@@ -455,40 +462,61 @@
                     <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF (BIG UPGRADE - SIMBOL LENGKAP) -->
                     <label style="margin-bottom: 5px; display: block;">Pemetaan Odontogram Interaktif</label>
                     <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">
-                        *Saat Anda memasukkan No RM pasien lama, gigi ini akan otomatis menampilkan gambaran perawatan masa lalu.<br>
                         *Pilih Alat (Tool) pada kategori di bawah ini, lalu klik kotak area gigi untuk menerapkan tindakan.
                     </p>
                     
-                    <div class="odonto-tools-container" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <div class="odonto-tools-container">
                         <!-- Kategori 1 -->
-                        <div style="font-weight: 600; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-dark);">1. Alat Permukaan (Klik Sisi Pinggir/Tengah Gigi)</div>
+                        <div class="tools-category">1. Keadaan Gigi (Klik Sembarang Area Gigi)</div>
                         <div class="tools-grid">
-                            <button type="button" class="tool-btn active" data-tool="norm" data-type="norm" onclick="setOdontoTool('norm', 'norm', this)"><div class="tc-norm"></div> Normal / Hapus</button>
-                            <button type="button" class="tool-btn" data-tool="car" data-type="surface" onclick="setOdontoTool('car', 'surface', this)"><div class="tc-car"></div> CAR (Caries)</button>
-                            <button type="button" class="tool-btn" data-tool="amf" data-type="surface" onclick="setOdontoTool('amf', 'surface', this)"><div class="tc-amf"></div> AMF (Amalgam)</button>
-                            <button type="button" class="tool-btn" data-tool="cof" data-type="surface" onclick="setOdontoTool('cof', 'surface', this)"><div class="tc-cof"></div> COF (Composite)</button>
-                            <button type="button" class="tool-btn" data-tool="fis" data-type="surface" onclick="setOdontoTool('fis', 'surface', this)"><div class="tc-fis"></div> FIS (Sealant)</button>
+                            <button type="button" class="tool-btn active" onclick="setOdontoTool('norm', 'norm', this, 'SOU (Gigi Sehat, Normal, Tanpa Kelainan) - Menghapus seluruh riwayat gigi yang dipilih.')"><div class="tc-norm"></div> SOU (Normal)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('non', 'label', this, 'NON (Gigi tidak ada / tidak diketahui)')"><div class="tc-lbl">NON</div> NON (Tdk Ada)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('une', 'label', this, 'UNE (Un-erupted / Belum tumbuh)')"><div class="tc-lbl">UNE</div> UNE (Un-erupt)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('pre', 'label', this, 'PRE (Partial erupted / Tumbuh sebagian)')"><div class="tc-lbl">PRE</div> PRE (Partial)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('imv', 'label', this, 'IMV (Impacted visible / Impaksi)')"><div class="tc-lbl">IMV</div> IMV (Impaksi)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('ano', 'label', this, 'ANO (Anomali - Peg shape, micro, fusi, dll)')"><div class="tc-lbl">ANO</div> ANO (Anomali)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('dia', 'label', this, 'DIA (Diastema - Ada jarak antar gigi)')"><div class="tc-lbl">DIA</div> DIA (Diastema)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('att', 'label', this, 'ATT (Atrisi)')"><div class="tc-lbl">ATT</div> ATT (Atrisi)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('abr', 'label', this, 'ABR (Abrasi)')"><div class="tc-lbl">ABR</div> ABR (Abrasi)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('cfr', 'whole', this, 'CFR (Crown Fracture / Fraktur Mahkota)')"><div class="tc-cfr"></div> CFR (Fracture)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('nvt', 'root', this, 'NVT (Gigi Non Vital)')"><div class="tc-nvt"></div> NVT (Non Vital)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('rrx', 'whole', this, 'RRX (Sisa Akar)')"><div class="tc-rrx"></div> RRX (Sisa Akar)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('mis', 'whole', this, 'MIS (Gigi Hilang)')"><div class="tc-mis"></div> MIS (Hilang)</button>
                         </div>
-                        
+
                         <!-- Kategori 2 -->
-                        <div style="font-weight: 600; margin-top: 15px; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-dark);">2. Kondisi Seluruh Gigi (Klik Sembarang Area Gigi)</div>
+                        <div class="tools-category">2. Bahan Restorasi & Karies (Klik Permukaan/Sisi Gigi)</div>
                         <div class="tools-grid">
-                            <button type="button" class="tool-btn" data-tool="mis" data-type="whole" onclick="setOdontoTool('mis', 'whole', this)"><div class="tc-mis"></div> MIS (Missing)</button>
-                            <button type="button" class="tool-btn" data-tool="cfr" data-type="whole" onclick="setOdontoTool('cfr', 'whole', this)"><div class="tc-cfr"></div> CFR (Fracture)</button>
-                            <button type="button" class="tool-btn" data-tool="poc" data-type="whole" onclick="setOdontoTool('poc', 'whole', this)"><div class="tc-poc"></div> POC (Porcelain)</button>
-                            <button type="button" class="tool-btn" data-tool="fmc" data-type="whole" onclick="setOdontoTool('fmc', 'whole', this)"><div class="tc-fmc"></div> FMC (Full Metal)</button>
-                            <button type="button" class="tool-btn" data-tool="rrx" data-type="whole" onclick="setOdontoTool('rrx', 'whole', this)"><div class="tc-rrx"></div> RRX (Radix)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('car', 'surface', this, 'CAR (Caries / Karies) - Garis batas tegas dan isi merah pada posisi karies.')"><div class="tc-car"></div> CAR (Caries)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('amf', 'surface', this, 'AMF (Amalgam Filling)')"><div class="tc-amf"></div> AMF (Amalgam)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('gif', 'surface', this, 'GIF (GIC / Silika Filling)')"><div class="tc-gif"></div> GIF (GIC/Silika)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('cof', 'surface', this, 'COF (Composite Filling - Arsir Hijau)')"><div class="tc-cof"></div> COF (Composite)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('fis', 'surface', this, 'FIS (Fissure Sealant - Arsir Merah)')"><div class="tc-fis"></div> FIS (Sealant)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('inl', 'label', this, 'INL (Inlay)')"><div class="tc-lbl">INL</div> INL (Inlay)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('onl', 'label', this, 'ONL (Onlay)')"><div class="tc-lbl">ONL</div> ONL (Onlay)</button>
                         </div>
 
                         <!-- Kategori 3 -->
-                        <div style="font-weight: 600; margin-top: 15px; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-dark);">3. Akar & Keterangan Tambahan (Klik Sembarang Area Gigi)</div>
+                        <div class="tools-category">3. Restorasi (Klik Sembarang Area Gigi)</div>
                         <div class="tools-grid">
-                            <button type="button" class="tool-btn" data-tool="rct" data-type="root" onclick="setOdontoTool('rct', 'root', this)"><div class="tc-rct"></div> RCT (Root Canal)</button>
-                            <button type="button" class="tool-btn" data-tool="nvt" data-type="root" onclick="setOdontoTool('nvt', 'root', this)"><div class="tc-nvt"></div> NVT (Non-Vital)</button>
-                            <button type="button" class="tool-btn" data-tool="non" data-type="label" onclick="setOdontoTool('non', 'label', this)"><div class="tc-lbl">NON</div> Tidak Ada</button>
-                            <button type="button" class="tool-btn" data-tool="une" data-type="label" onclick="setOdontoTool('une', 'label', this)"><div class="tc-lbl">UNE</div> Un-Erupted</button>
-                            <button type="button" class="tool-btn" data-tool="pre" data-type="label" onclick="setOdontoTool('pre', 'label', this)"><div class="tc-lbl">PRE</div> Partial Erupt</button>
-                            <button type="button" class="tool-btn" data-tool="ano" data-type="label" onclick="setOdontoTool('ano', 'label', this)"><div class="tc-lbl">ANO</div> Anomali</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('fmc', 'whole', this, 'FMC (Full Metal Crown / Mahkota Logam)')"><div class="tc-fmc"></div> FMC (Metal Crwn)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('poc', 'whole', this, 'POC (Porcelain Crown / Mahkota Porcelain)')"><div class="tc-poc"></div> POC (Porc. Crwn)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('mpc', 'label', this, 'MPC (Metal Porcelain Crown)')"><div class="tc-lbl">MPC</div> MPC (Met-Porc)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('gmc', 'label', this, 'GMC (Gold Metal Crown)')"><div class="tc-lbl">GMC</div> GMC (Gold)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('rct', 'root', this, 'RCT (Root Canal Treatment / Perawatan Saluran Akar)')"><div class="tc-rct"></div> RCT (Sal. Akar)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('ipx', 'label', this, 'IPX (Implan)')"><div class="tc-lbl">IPX</div> IPX (Implan)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('meb', 'label', this, 'MEB (Metal Bridge / Jembatan Logam)')"><div class="tc-lbl">MEB</div> MEB (Met. Brdg)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('pob', 'label', this, 'POB (Porcelain Bridge / Jembatan Porcelain)')"><div class="tc-lbl">POB</div> POB (Porc. Brdg)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('pon', 'label', this, 'PON (Pontic)')"><div class="tc-lbl">PON</div> PON (Pontic)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('abu', 'label', this, 'ABU (Gigi Abutment / Penyangga)')"><div class="tc-lbl">ABU</div> ABU (Abutment)</button>
+                        </div>
+
+                        <!-- Kategori 4 -->
+                        <div class="tools-category">4. Protesa (Klik Sembarang Area Gigi)</div>
+                        <div class="tools-grid">
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('prd', 'label', this, 'PRD (Partial Denture / Gigi Tiruan Sebagian)')"><div class="tc-lbl">PRD</div> PRD (P. Denture)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('fld', 'label', this, 'FLD (Full Denture / Gigi Tiruan Lengkap)')"><div class="tc-lbl">FLD</div> FLD (F. Denture)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('acr', 'label', this, 'ACR (Acrylic)')"><div class="tc-lbl">ACR</div> ACR (Acrylic)</button>
                         </div>
                     </div>
 
@@ -750,18 +778,25 @@
         let currentOdontoTool = 'norm'; 
         let currentOdontoToolType = 'norm'; 
 
-        function setOdontoTool(tool, type, btnElement) {
+        function setOdontoTool(tool, type, btnElement, desc) {
             currentOdontoTool = tool;
             currentOdontoToolType = type;
             document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
+            
+            // Munculkan Toast Penjelasan
+            showToast(desc, 'info');
         }
 
         const labelMapping = {
-            'car': 'Caries', 'amf': 'Tambalan Amalgam', 'cof': 'Tambalan Composite', 'fis': 'Pit & Fissure Sealant',
-            'mis': 'Missing', 'cfr': 'Fracture', 'poc': 'Porcelain Crown', 'fmc': 'Full Metal Crown', 'rrx': 'Sisa Akar (Radix)',
-            'rct': 'Perawatan Saluran Akar', 'nvt': 'Gigi Non-Vital',
-            'non': 'Tidak Ada (NON)', 'une': 'Un-Erupted', 'pre': 'Partial Erupt', 'ano': 'Anomali'
+            'car': 'Caries', 'amf': 'Amalgam Filling', 'cof': 'Composite Filling', 'fis': 'Pit & Fissure Sealant',
+            'mis': 'Gigi Hilang (Missing)', 'cfr': 'Crown Fracture', 'poc': 'Porcelain Crown', 'fmc': 'Full Metal Crown', 
+            'rrx': 'Sisa Akar (Radix)', 'rct': 'Perawatan Saluran Akar', 'nvt': 'Gigi Non-Vital',
+            'non': 'Tidak Ada (NON)', 'une': 'Un-Erupted', 'pre': 'Partial Erupted', 'imv': 'Impacted Visible', 
+            'ano': 'Anomali', 'dia': 'Diastema', 'att': 'Atrisi', 'abr': 'Abrasi', 'inl': 'Inlay', 'onl': 'Onlay',
+            'mpc': 'Metal Porcelain Crown', 'gmc': 'Gold Metal Crown', 'ipx': 'Implan', 'meb': 'Metal Bridge',
+            'pob': 'Porcelain Bridge', 'pon': 'Pontic', 'abu': 'Gigi Abutment', 'prd': 'Partial Denture', 
+            'fld': 'Full Denture', 'acr': 'Acrylic'
         };
 
         function renderOdontogram() {
