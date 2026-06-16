@@ -88,6 +88,7 @@
         label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        input[readonly] { background: rgba(226, 232, 240, 0.5); }
 
         /* BUBBLE UI AUTO-FILL (AESTHETIC) */
         .auto-fill-bubble {
@@ -438,7 +439,6 @@
                     <!-- 5. Data Klinis, ODONTOGRAM & SOAP -->
                     <h3 class="module-title" style="justify-content: space-between;">
                         <span><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</span>
-                        <a href="https://drive.google.com/file/d/1kv2sd6zHcW7sL-Oo2xtY8d5WBVgKIjd6/view?usp=sharing" target="_blank" class="btn btn-outline" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-book"></i> Panduan Pengisian</a>
                     </h3>
                     
                     <div class="accordion-box">
@@ -465,7 +465,10 @@
                     </div>
 
                     <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF (BIG UPGRADE - SIMBOL LENGKAP & UKURAN BESAR) -->
-                    <label style="margin-bottom: 5px; display: block;">Pemetaan Odontogram Interaktif</label>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <label style="margin: 0;">Pemetaan Odontogram Interaktif</label>
+                        <a href="https://drive.google.com/file/d/1kv2sd6zHcW7sL-Oo2xtY8d5WBVgKIjd6/view?usp=sharing" target="_blank" class="btn btn-primary" style="font-size: 0.75rem; padding: 5px 10px;"><i class="fa-solid fa-file-pdf"></i> Lihat Panduan Odontogram</a>
+                    </div>
                     <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">
                         *Pilih Alat (Tool) pada kategori di bawah ini, lalu klik kotak area gigi untuk menerapkan tindakan.
                     </p>
@@ -794,7 +797,7 @@
         }
 
         const labelMapping = {
-            'car': 'karies (Caries)', 'amf': 'tumpatan Amalgam (Amalgam Filling)', 'cof': 'tumpatan Komposit (Composite Filling)', 'fis': 'Pit & Fissure Sealant',
+            'car': 'karies (Caries)', 'amf': 'tumpatan Amalgam (Amalgam Filling)', 'gif': 'tumpatan Glass Ionomer Filling', 'cof': 'tumpatan Komposit (Composite Filling)', 'fis': 'Pit & Fissure Sealant',
             'mis': 'Gigi Hilang (Missing)', 'cfr': 'Fraktur Mahkota (Crown Fracture)', 'poc': 'Mahkota Porselen (Porcelain Crown)', 'fmc': 'Mahkota Logam (Full Metal Crown)', 
             'rrx': 'Sisa Akar (Radix)', 'rct': 'Perawatan Saluran Akar', 'nvt': 'Gigi Non-Vital',
             'non': 'Tidak Ada (NON)', 'une': 'Belum Tumbuh (Un-Erupted)', 'pre': 'Tumbuh Sebagian (Partial Erupted)', 'imv': 'Impaksi (Impacted Visible)', 
