@@ -88,6 +88,8 @@
         label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        /* Hapus atribut gaya cursor not-allowed untuk input yang tidak readonly */
+        input[readonly] { background: rgba(226, 232, 240, 0.5); }
 
         /* BUBBLE UI AUTO-FILL (AESTHETIC) */
         .auto-fill-bubble {
@@ -135,8 +137,9 @@
         
         /* Tool Colors Indicators (Visualisasi Indikator Tombol) */
         .tc-norm { width: 16px; height: 16px; border-radius: 3px; background: #ffffff; border: 1px solid #94a3b8; }
-        .tc-car { width: 16px; height: 16px; border-radius: 3px; background: #ef4444; border: 1px solid #1e293b; }
+        .tc-car { width: 16px; height: 16px; border-radius: 3px; background: #8b0000; border: 1px solid #1e293b; }
         .tc-amf { width: 16px; height: 16px; border-radius: 3px; background: #1e293b; }
+        .tc-gif { width: 16px; height: 16px; border-radius: 3px; background: #808080; border: 1px solid #1e293b; }
         .tc-cof { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(45deg, #10b981, #10b981 2px, #ffffff 2px, #ffffff 4px); }
         .tc-fis { width: 16px; height: 16px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(45deg, #ef4444, #ef4444 2px, #ffffff 2px, #ffffff 4px); }
         
@@ -169,7 +172,8 @@
         
         /* Surface Colors Mappings Terkini */
         .surface[data-state="norm"] { fill: #ffffff; }
-        .surface[data-state="car"] { fill: #ef4444; stroke: #1e293b; stroke-width: 2; } /* Caries = Merah dgn batas tegas */
+        .surface[data-state="car"] { fill: #8b0000; stroke: #1e293b; stroke-width: 2; } /* Caries = Merah Gelap dgn batas tegas */
+        .surface[data-state="gif"] { fill: #808080; stroke: #1e293b; stroke-width: 2; } /* GIF = Abu-abu dgn batas tegas */
         .surface[data-state="amf"] { fill: #1e293b; } 
         .surface[data-state="cof"] { fill: url(#pat-cof); } 
         .surface[data-state="fis"] { fill: url(#pat-fis); } 
