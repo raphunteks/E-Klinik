@@ -79,29 +79,39 @@
         .date-wrapper::after { content: "\f133"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none; z-index: 5; }
 
         /* ==================================================================
-           CSS ODONTOGRAM VISUAL & INTERAKTIF (PENGGANTI GAMBAR EKSTERNAL)
+           CSS ODONTOGRAM INTERAKTIF & CERDAS (SVG BASED)
            ================================================================== */
         .odontogram-wrapper {
-            background: rgba(255, 255, 255, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 15px; margin-bottom: 15px; overflow-x: auto;
+            background: rgba(255, 255, 255, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px 15px; margin-bottom: 15px; overflow-x: auto; text-align: center;
         }
-        .odonto-grid { display: flex; flex-direction: column; gap: 15px; min-width: 680px; align-items: center; }
-        .odonto-row { display: flex; gap: 4px; justify-content: center; align-items: flex-end; }
-        .odonto-tooth { display: flex; flex-direction: column; align-items: center; cursor: pointer; width: 32px; transition: transform 0.2s; }
-        .odonto-tooth:hover { transform: scale(1.1); }
-        .odonto-num { font-size: 0.75rem; font-weight: 700; margin-bottom: 4px; color: var(--text-dark); }
         
-        /* Desain 5 Permukaan Gigi (Top, Bottom, Left, Right, Center) via CSS Murni */
-        .odonto-box { position: relative; width: 26px; height: 26px; border: 1px solid #64748b; background: #fff; border-radius: 3px; overflow: hidden; transition: all 0.2s; }
-        .odonto-box::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(to bottom right, transparent 48%, #64748b 48%, #64748b 52%, transparent 52%), linear-gradient(to top right, transparent 48%, #64748b 48%, #64748b 52%, transparent 52%); }
-        .odonto-box::after { content: ''; position: absolute; top: 25%; left: 25%; right: 25%; bottom: 25%; border: 1px solid #64748b; background: #fff; }
-        .odonto-empty { width: 32px; height: 30px; }
-        .odonto-divider { width: 2px; background: rgba(0,0,0,0.1); margin: 0 10px; border-radius: 2px; }
+        /* Legend Box */
+        .legend-box { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; flex-wrap: wrap; background: rgba(255,255,255,0.4); padding: 10px; border-radius: 8px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; color: var(--text-dark); }
+        .legend-color { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #94a3b8; }
+        .lc-w { background: #ffffff; }
+        .lc-c { background: #ef4444; }
+        .lc-f { background: #3b82f6; }
+        .lc-m { background: #1e293b; }
 
-        /* State Saat Gigi Dipilih */
-        .odonto-tooth.selected .odonto-num { color: var(--primary); }
-        .odonto-tooth.selected .odonto-box { background: var(--primary); border-color: var(--primary); }
-        .odonto-tooth.selected .odonto-box::before { background: linear-gradient(to bottom right, transparent 48%, #fff 48%, #fff 52%, transparent 52%), linear-gradient(to top right, transparent 48%, #fff 48%, #fff 52%, transparent 52%); }
-        .odonto-tooth.selected .odonto-box::after { border-color: #fff; background: var(--primary); }
+        .odonto-grid { display: inline-flex; flex-direction: column; gap: 10px; min-width: 680px; align-items: center; }
+        .odonto-row { display: flex; gap: 4px; justify-content: center; align-items: flex-end; }
+        .odonto-tooth { display: flex; flex-direction: column; align-items: center; width: 34px; }
+        .odonto-num { font-size: 0.75rem; font-weight: 700; margin-bottom: 2px; color: var(--text-dark); }
+        .odonto-empty { width: 34px; height: 34px; }
+        .odonto-divider { width: 2px; background: rgba(0,0,0,0.2); margin: 0 10px; border-radius: 2px; }
+
+        /* SVG Gigi Styles */
+        .tooth-svg { width: 32px; height: 32px; stroke: #64748b; stroke-width: 1.5; transition: transform 0.1s; cursor: pointer; }
+        .tooth-svg:hover { transform: scale(1.15); z-index: 10; stroke-width: 2;}
+        .surface { fill: #ffffff; transition: fill 0.2s, opacity 0.2s; }
+        .surface:hover { opacity: 0.6; }
+        
+        /* Pewarnaan Permukaan Berdasarkan State */
+        .surface[data-state="w"] { fill: #ffffff; } /* Normal */
+        .surface[data-state="c"] { fill: #ef4444; } /* Karies */
+        .surface[data-state="f"] { fill: #3b82f6; } /* Tumpatan */
+        .surface[data-state="m"] { fill: #1e293b; } /* Hilang */
 
         /* Modul Spesifik */
         .module-title { font-size: 1.1rem; color: var(--text-dark); margin: 30px 0 15px 0; border-bottom: 2px solid var(--glass-border); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
@@ -298,17 +308,27 @@
                     <!-- 4. Data Klinis, ODONTOGRAM & SOAP -->
                     <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</h3>
                     
-                    <!-- AREA ODONTOGRAM VISUAL CSS INTERAKTIF -->
-                    <label style="margin-bottom: 5px; display: block;">Pemilihan Elemen Gigi (Odontogram Interaktif)</label>
-                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px;">*Klik pada kotak elemen gigi di bawah ini untuk memilih. Data otomatis masuk ke kolom input.</p>
+                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF -->
+                    <label style="margin-bottom: 5px; display: block;">Pemetaan Odontogram Interaktif</label>
+                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 10px;">
+                        *Klik secara spesifik pada bagian/permukaan gigi (Atas/Bawah/Kiri/Kanan/Tengah). Klik berulang untuk mengubah kondisinya. Hasilnya akan dikonversi menjadi teks otomatis ke dalam form "Detail Elemen".
+                    </p>
                     
+                    <!-- Legend Keterangan Warna -->
+                    <div class="legend-box">
+                        <div class="legend-item"><div class="legend-color lc-w"></div> Normal</div>
+                        <div class="legend-item"><div class="legend-color lc-c"></div> Karies</div>
+                        <div class="legend-item"><div class="legend-color lc-f"></div> Tumpatan</div>
+                        <div class="legend-item"><div class="legend-color lc-m"></div> Hilang</div>
+                    </div>
+
                     <div class="odontogram-wrapper" id="odontogramGrid">
-                        <!-- Odontogram di-generate via JavaScript -->
+                        <!-- Odontogram SVG Grid Akan Dirender Disini Melalui JavaScript -->
                     </div>
 
                     <div class="input-group" style="margin-bottom: 20px;">
-                        <label>Detail Elemen Gigi / Regio</label>
-                        <input type="text" id="elemenGigiInput" name="elemenGigi" placeholder="Klik gigi di atas, atau ketik manual (Contoh: Gigi 46, Regio Kanan Bawah...)" required>
+                        <label>Detail Hasil Elemen Gigi Odontogram</label>
+                        <input type="text" id="elemenGigiInput" name="elemenGigi" placeholder="Contoh manual: Gigi 46, Regio Kanan Bawah..." required>
                     </div>
 
                     <div class="soap-section">
@@ -470,15 +490,27 @@
 
         document.getElementById('tanggalPelayanan').valueAsDate = new Date();
 
-        // 2. Logika ODONTOGRAM CSS INTERAKTIF
-        let selectedTeeth = new Set();
+        // ==================================================================
+        // 2. LOGIKA ODONTOGRAM CERDAS (MAPPING NAMA PERMUKAAN OTOMATIS)
+        // ==================================================================
         
+        // Identifikasi Gigi 5 Permukaan (Posterior & Sebagian Anak) Sesuai Guideline
+        const fiveSurfaces = [
+            18,17,16,15,14, 28,27,26,25,24, // Permanen Atas
+            48,47,46,45,44, 38,37,36,35,34, // Permanen Bawah
+            55,54, 65,64,                   // Anak Atas
+            85,84, 75,74                    // Anak Bawah
+        ];
+
+        // Status Klik
+        const surfaceStates = ['w', 'c', 'f', 'm'];
+        const stateLabels = { 'w': 'Normal', 'c': 'Karies', 'f': 'Tumpatan', 'm': 'Hilang' };
+
         function renderOdontogram() {
-            // Peta Gigi Standar FDI
             const odontoMap = [
                 [18,17,16,15,14,13,12,11, 21,22,23,24,25,26,27,28],
-                ['', '', '',55,54,53,52,51, 61,62,63,64,65,'', '', ''],
-                ['', '', '',85,84,83,82,81, 71,72,73,74,75,'', '', ''],
+                ['','','',55,54,53,52,51, 61,62,63,64,65,'','',''],
+                ['','','',85,84,83,82,81, 71,72,73,74,75,'','',''],
                 [48,47,46,45,44,43,42,41, 31,32,33,34,35,36,37,38]
             ];
             
@@ -490,15 +522,12 @@
                         html += '<div class="odonto-empty"></div>';
                     } else {
                         html += `
-                        <div class="odonto-tooth" id="tooth-${num}" onclick="toggleTooth(${num})">
+                        <div class="odonto-tooth">
                             <div class="odonto-num">${num}</div>
-                            <div class="odonto-box"></div>
+                            ${generateToothSVG(num)}
                         </div>`;
                     }
-                    // Pembatas vertikal garis tengah mulut
-                    if (index === 7) {
-                        html += '<div class="odonto-divider"></div>';
-                    }
+                    if (index === 7) html += '<div class="odonto-divider"></div>'; // Garis Tengah
                 });
                 html += '</div>';
             });
@@ -506,28 +535,105 @@
             document.getElementById('odontogramGrid').innerHTML = html;
         }
 
-        function toggleTooth(num) {
-            const el = document.getElementById('tooth-' + num);
-            if (selectedTeeth.has(num)) {
-                selectedTeeth.delete(num);
-                el.classList.remove('selected');
-            } else {
-                selectedTeeth.add(num);
-                el.classList.add('selected');
-            }
+        function generateToothSVG(id) {
+            let isFive = fiveSurfaces.includes(id);
+            let svg = `<svg viewBox="0 0 40 40" class="tooth-svg" id="svg-${id}">`;
             
-            // Perbarui Kolom Input
-            const inputElemen = document.getElementById('elemenGigiInput');
-            if(selectedTeeth.size > 0) {
-                // Urutkan angka agar rapi
-                let arr = Array.from(selectedTeeth).sort();
-                inputElemen.value = "Gigi " + arr.join(", ");
+            // Polygon untuk menangkap area klik, berpusat di tengah jika 4 bagian, atau terpotong kotak tengah jika 5 bagian.
+            if (isFive) {
+                svg += `<polygon data-pos="Top" points="0,0 40,0 30,10 10,10" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
+                svg += `<polygon data-pos="Right" points="40,0 40,40 30,30 30,10" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
+                svg += `<polygon data-pos="Bottom" points="0,40 40,40 30,30 10,30" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
+                svg += `<polygon data-pos="Left" points="0,0 0,40 10,30 10,10" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
+                svg += `<rect data-pos="Center" x="10" y="10" width="20" height="20" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
             } else {
-                inputElemen.value = "";
+                svg += `<polygon data-pos="Top" points="0,0 40,0 20,20" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
+                svg += `<polygon data-pos="Right" points="40,0 40,40 20,20" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
+                svg += `<polygon data-pos="Bottom" points="0,40 40,40 20,20" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
+                svg += `<polygon data-pos="Left" points="0,0 0,40 20,20" class="surface" data-state="w" onclick="cycleSurfaceColor(this, ${id})" />`;
             }
+            svg += `</svg>`;
+            return svg;
         }
-        
-        // Panggil fungsi render odontogram saat muat
+
+        // Fungsi mengubah warna saat diklik
+        function cycleSurfaceColor(element, id) {
+            let currentState = element.getAttribute('data-state') || 'w';
+            let nextIndex = (surfaceStates.indexOf(currentState) + 1) % surfaceStates.length;
+            element.setAttribute('data-state', surfaceStates[nextIndex]);
+            
+            generateOdontoTextSummary();
+        }
+
+        // Fungsi Cerdas: Menerjemahkan posisi bentuk (Top, Bottom, dll) menjadi Nomenklatur Medis Asli!
+        function resolveDentalSurfaceName(id, position) {
+            let q = Math.floor(id / 10); // Ambil Kuadran (1, 2, 3, 4, 5, 6, 7, 8)
+            let isPosterior = fiveSurfaces.includes(id);
+
+            if (position === 'Center') return 'Oklusal';
+
+            // Rahang Atas Kanan (Q1, Q5)
+            if (q === 1 || q === 5) {
+                if (position === 'Top') return isPosterior ? 'Bukal' : 'Labial';
+                if (position === 'Bottom') return 'Palatal';
+                if (position === 'Left') return 'Distal';
+                if (position === 'Right') return 'Mesial';
+            }
+            // Rahang Atas Kiri (Q2, Q6)
+            if (q === 2 || q === 6) {
+                if (position === 'Top') return isPosterior ? 'Bukal' : 'Labial';
+                if (position === 'Bottom') return 'Palatal';
+                if (position === 'Left') return 'Mesial';
+                if (position === 'Right') return 'Distal';
+            }
+            // Rahang Bawah Kiri (Q3, Q7)
+            if (q === 3 || q === 7) {
+                if (position === 'Top') return 'Lingual';
+                if (position === 'Bottom') return isPosterior ? 'Bukal' : 'Labial';
+                if (position === 'Left') return 'Mesial';
+                if (position === 'Right') return 'Distal';
+            }
+            // Rahang Bawah Kanan (Q4, Q8)
+            if (q === 4 || q === 8) {
+                if (position === 'Top') return 'Lingual';
+                if (position === 'Bottom') return isPosterior ? 'Bukal' : 'Labial';
+                if (position === 'Left') return 'Distal';
+                if (position === 'Right') return 'Mesial';
+            }
+            return position; // fallback
+        }
+
+        // Kumpulkan data semua gigi dan masukkan ke input teks
+        function generateOdontoTextSummary() {
+            let results = [];
+            document.querySelectorAll('.tooth-svg').forEach(svg => {
+                let id = parseInt(svg.id.replace('svg-', ''));
+                let surfaces = Array.from(svg.querySelectorAll('.surface'));
+                let issues = [];
+                
+                // Cek apakah seluruh bagian hilang/hitam ('m')
+                let isCompletelyMissing = surfaces.every(s => s.getAttribute('data-state') === 'm');
+                
+                if (isCompletelyMissing) {
+                    results.push(`Gigi ${id} (Hilang Total)`);
+                } else {
+                    surfaces.forEach(s => {
+                        let state = s.getAttribute('data-state');
+                        if (state && state !== 'w') { // Jika bukan normal putih
+                            let rawPosition = s.getAttribute('data-pos');
+                            let medicalSurfaceName = resolveDentalSurfaceName(id, rawPosition);
+                            issues.push(`${medicalSurfaceName} ${stateLabels[state]}`);
+                        }
+                    });
+                    if (issues.length > 0) {
+                        results.push(`Gigi ${id} (${issues.join(', ')})`);
+                    }
+                }
+            });
+            document.getElementById('elemenGigiInput').value = results.join('; ');
+        }
+
+        // Panggil untuk render pertama kali
         renderOdontogram();
 
 
@@ -670,7 +776,7 @@
                 // Reset State Khusus
                 chkTidakAdaPenyakit.checked = true; penyakitContainer.style.display = 'none'; 
                 chkTidakAdaAlergi.checked = true; alergiContainer.style.display = 'none';
-                selectedTeeth.clear(); renderOdontogram(); // Bersihkan pilihan gigi
+                renderOdontogram(); // Bersihkan pilihan warna gigi
                 
                 setTimeout(() => navTo('dashboard'), 1500);
 
