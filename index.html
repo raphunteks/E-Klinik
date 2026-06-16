@@ -9,10 +9,6 @@
     <link rel="icon" type="image/png" href="axalogo.png">
     <link rel="apple-touch-icon" href="axalogo.png">
     <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis pasien terintegrasi.">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Sistem E-RM | Klinik Pribadi">
-    <meta property="og:description" content="Manajemen pencatatan klinis pasien berbasis SOAP.">
-    <meta property="og:image" content="axalogo.png">
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -82,9 +78,7 @@
         /* ==================================================================
            CSS ODONTOGRAM INTERAKTIF & RIWAYAT (BIG UPGRADE)
            ================================================================== */
-        .odontogram-wrapper {
-            background: rgba(255, 255, 255, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px 15px; margin-bottom: 15px; overflow-x: auto; text-align: center;
-        }
+        .odontogram-wrapper { background: rgba(255, 255, 255, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px 15px; margin-bottom: 15px; overflow-x: auto; text-align: center; }
 
         /* Riwayat Odontogram Accordion */
         .accordion-box { background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
@@ -126,16 +120,13 @@
         .surface { fill: #ffffff; transition: fill 0.2s, opacity 0.2s; }
         .surface:hover { opacity: 0.7; }
         
-        /* Surface Colors */
         .surface[data-state="norm"] { fill: #ffffff; }
-        .surface[data-state="car"] { fill: #ef4444; } /* Karies */
-        .surface[data-state="gif"] { fill: #10b981; } /* GIC */
-        .surface[data-state="cof"] { fill: #3b82f6; } /* Composite */
+        .surface[data-state="car"] { fill: #ef4444; } 
+        .surface[data-state="gif"] { fill: #10b981; } 
+        .surface[data-state="cof"] { fill: #3b82f6; } 
         
-        /* Whole Tooth Overlays (Missing & Radix) */
         .overlay-mis { display: none; pointer-events: none; }
         .overlay-rrx { display: none; pointer-events: none; }
-        
         .tooth-svg[data-whole="mis"] .overlay-mis { display: block; }
         .tooth-svg[data-whole="rrx"] .overlay-rrx { display: block; }
 
@@ -547,7 +538,7 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI (HARUS NEW DEPLOYMENT V4)
+        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI (PASTIKAN MENGGUNAKAN LINK TERBARU)
         const API_URL = "https://script.google.com/macros/s/AKfycbyZHWbU0e1oif7SlDWyZdCDRs_4_kQu_hREtK08l_c2VTj72kJD9K88lqgGAkjBzXtn/exec"; 
         
         let allPatientsData = [];
@@ -820,10 +811,10 @@
         }
         tambahBarisResep(); 
 
-        // 5. Proses Submit Form ke GAS
+        // 5. Proses Submit Form ke GAS (PENCEGAHAN BLOKIR CORS VIA TEXT/PLAIN)
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            generateOdontoTextSummary(); // Make sure JSON state is up to date
+            generateOdontoTextSummary(); 
 
             let strPenyakit = "Tidak Ada";
             if(!chkTidakAdaPenyakit.checked) {
@@ -857,7 +848,12 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                await fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(dataObj) });
+                // MENGHILANGKAN HEADER application/json AGAR BROWSER MENGIRIM SEBAGAI text/plain (BYPASS CORS)
+                await fetch(API_URL, { 
+                    method: 'POST', 
+                    body: JSON.stringify(dataObj) 
+                });
+                
                 showToast("Rekam Medis Komprehensif Berhasil Disimpan!", "success");
                 e.target.reset(); document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
                 document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); 
@@ -871,20 +867,21 @@
             }
         });
 
-        // 6. GET Data dari GAS (FIXED Fetch Error Handling)
+        // 6. GET Data dari GAS (FIXED FETCH MENCEGAH REDIRECT ERROR)
         async function loadDashboardData() {
             const tBody = document.getElementById('tableBody');
             tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data dari server...</td></tr>`;
             
             try {
-                // Menambahkan redirect: 'follow' agar jika ada pengalihan dari server Google, fetch tidak gagal
-                const response = await fetch(API_URL, { redirect: "follow" });
+                // Menambahkan parameter 'ts' (timestamp) menghindari cache respons Google yang lama.
+                const response = await fetch(API_URL + "?action=read&ts=" + new Date().getTime(), {
+                    method: "GET",
+                    headers: { "Accept": "application/json" }
+                });
                 
-                if (!response.ok) {
-                    throw new Error("HTTP Status " + response.status);
-                }
+                if (!response.ok) throw new Error("HTTP " + response.status);
 
-                // Cek teks mentah terlebih dahulu untuk menghindari JSON Parse Error akibat HTML Google Login
+                // Membaca sbg teks terlebih dahulu sebelum parsing ke JSON
                 const textResponse = await response.text(); 
                 
                 try {
@@ -893,22 +890,21 @@
                         allPatientsData = result.data.reverse(); 
                         renderTable(allPatientsData);
                     } else {
-                        tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Error Backend: ${result.message}</td></tr>`;
+                        tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">Error Server: ${result.message}</td></tr>`;
                     }
                 } catch (parseError) {
                     console.error("Respon bukan JSON:", textResponse);
                     tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">
                         <strong>Gagal membaca database.</strong><br>
-                        <small>Penyebab: Hak akses Web App Google Apps Script Anda belum disetel ke "Anyone" (Semua Orang).</small><br>
-                        <small>Silakan lakukan Deploy > New Deployment > Ubah "Who has access" menjadi "Anyone".</small>
+                        <small>Hak akses Web App terblokir oleh Google. Pastikan saat Deploy "Execute as" adalah "Me", dan "Who has access" adalah "Anyone".</small>
                     </td></tr>`;
                 }
 
             } catch (error) {
-                console.error("Kesalahan Jaringan/CORS:", error);
+                console.error("Kesalahan Jaringan:", error);
                 tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">
                     <strong>Koneksi ke database terputus.</strong><br>
-                    <small>Pastikan URL API GAS sudah menggunakan hasil New Deployment terbaru.</small>
+                    <small>Periksa koneksi internet Anda atau pastikan URL API sudah benar.</small>
                 </td></tr>`;
             }
         }
