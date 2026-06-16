@@ -871,19 +871,45 @@
             }
         });
 
-        // 6. GET Data dari GAS
+        // 6. GET Data dari GAS (FIXED Fetch Error Handling)
         async function loadDashboardData() {
             const tBody = document.getElementById('tableBody');
-            tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data...</td></tr>`;
+            tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data dari server...</td></tr>`;
+            
             try {
-                const response = await fetch(API_URL);
-                const result = await response.json();
-                if(result.status === 'success') {
-                    allPatientsData = result.data.reverse(); 
-                    renderTable(allPatientsData);
+                // Menambahkan redirect: 'follow' agar jika ada pengalihan dari server Google, fetch tidak gagal
+                const response = await fetch(API_URL, { redirect: "follow" });
+                
+                if (!response.ok) {
+                    throw new Error("HTTP Status " + response.status);
                 }
+
+                // Cek teks mentah terlebih dahulu untuk menghindari JSON Parse Error akibat HTML Google Login
+                const textResponse = await response.text(); 
+                
+                try {
+                    const result = JSON.parse(textResponse);
+                    if(result.status === 'success') {
+                        allPatientsData = result.data.reverse(); 
+                        renderTable(allPatientsData);
+                    } else {
+                        tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Error Backend: ${result.message}</td></tr>`;
+                    }
+                } catch (parseError) {
+                    console.error("Respon bukan JSON:", textResponse);
+                    tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">
+                        <strong>Gagal membaca database.</strong><br>
+                        <small>Penyebab: Hak akses Web App Google Apps Script Anda belum disetel ke "Anyone" (Semua Orang).</small><br>
+                        <small>Silakan lakukan Deploy > New Deployment > Ubah "Who has access" menjadi "Anyone".</small>
+                    </td></tr>`;
+                }
+
             } catch (error) {
-                tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip.</td></tr>`;
+                console.error("Kesalahan Jaringan/CORS:", error);
+                tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">
+                    <strong>Koneksi ke database terputus.</strong><br>
+                    <small>Pastikan URL API GAS sudah menggunakan hasil New Deployment terbaru.</small>
+                </td></tr>`;
             }
         }
 
