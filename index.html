@@ -374,8 +374,8 @@
                                         </tr>
                                     </thead>
                                     <tbody id="riwayatOdontoList">
-                                        <!-- Data riwayat akan dimuat dari pasien yang sedang dicari (Mockup state) -->
-                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Cari No RM pasien pada Dasbor untuk memuat riwayat kunjungan.</td></tr>
+                                        <!-- Data riwayat akan dimuat otomatis saat NIK/RM diisi -->
+                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Isi No RM / NIK pasien untuk memuat riwayat kunjungan.</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -566,11 +566,16 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI (PASTIKAN MENGGUNAKAN LINK TERBARU)
-        const API_URL = "https://script.google.com/macros/s/AKfycbyZHWbU0e1oif7SlDWyZdCDRs_4_kQu_hREtK08l_c2VTj72kJD9K88lqgGAkjBzXtn/exec"; 
+        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI
+        const API_URL = "https://script.google.com/macros/s/AKfycbyIVmMKZKTWbJXQ7QBP7zgqRgEZqjT2pPsHmaneqUz44XIvn7U3FleQrdJY-zwI8p8/exec"; 
         
         let allPatientsData = [];
         let tempPasienSks = null;
+
+        // Panggil saat aplikasi pertama kali dibuka agar data 'allPatientsData' terisi untuk fitur auto-load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadDashboardData(true); 
+        });
 
         // 1. SPA Navigation
         function navTo(sectionId) {
@@ -580,10 +585,15 @@
             const btn = document.getElementById('btn-' + sectionId);
             if(btn) btn.classList.add('active');
 
-            if(sectionId === 'dashboard') loadDashboardData();
+            if(sectionId === 'dashboard') loadDashboardData(false);
         }
 
         document.getElementById('tanggalPelayanan').valueAsDate = new Date();
+
+        function toggleAccordion(id) {
+            const body = document.getElementById(id);
+            body.classList.toggle('open');
+        }
 
         // ==================================================================
         // 2. LOGIKA ODONTOGRAM CERDAS TOOL-BASED & MEMORI AUTO-LOAD
@@ -778,7 +788,7 @@
                 // Cari histori pasien berdasar No RM atau NIK
                 let pastVisits = allPatientsData.filter(i => (i['No RM']||'').toLowerCase() === key || (i['NIK']||'').toString() === key);
                 if (pastVisits.length > 0) {
-                    // Sort dari terlama ke terbaru
+                    // Sort dari terlama ke terbaru (Gunakan parsing standar untuk format yyyy-MM-dd)
                     pastVisits.sort((a,b) => new Date(a['Timestamp']) - new Date(b['Timestamp']));
                     
                     // Merge Odontogram Memori (tindakan lama ditimpa tindakan baru secara kumulatif)
@@ -793,8 +803,26 @@
                     });
                     
                     applyPastOdontoState(mergedOdonto);
+                    renderRiwayatOdonto(pastVisits);
                 }
             }
+        }
+
+        function renderRiwayatOdonto(filteredData) {
+            const tbody = document.getElementById('riwayatOdontoList');
+            if(filteredData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color: var(--text-light);">Tidak ditemukan riwayat.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = '';
+            filteredData.forEach(item => {
+                if(item['Elemen Gigi'] && item['Elemen Gigi'] !== '-') {
+                    tbody.innerHTML += `<tr>
+                        <td style="white-space:nowrap; width:120px;"><strong>${item['Tanggal Pelayanan']}</strong></td>
+                        <td><span style="color:var(--primary); font-weight:600;">${item['Elemen Gigi']}</span><br><small style="color:var(--text-light)">Tindakan: ${item['Plan']}</small></td>
+                    </tr>`;
+                }
+            });
         }
 
         // 3. Logika Toggle Riwayat Penyakit & Alergi
@@ -876,7 +904,7 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // FIXED POST: MENGEMBALIKAN KE MODE POLOS
+                // KEMBALI KE METODE FETCH LAMA YANG TERBUKTI WORK
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
@@ -897,19 +925,19 @@
             }
         });
 
-        // 6. GET Data dari GAS
-        async function loadDashboardData() {
+        // 6. GET Data dari GAS (KEMBALI KE SCRIPT LAMA YANG WORK)
+        async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
-            tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data...</td></tr>`;
+            if(!silent) tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data...</td></tr>`;
             try {
                 const response = await fetch(API_URL);
                 const result = await response.json();
                 if(result.status === 'success') {
                     allPatientsData = result.data.reverse(); 
-                    renderTable(allPatientsData);
+                    if(!silent) renderTable(allPatientsData);
                 }
             } catch (error) {
-                tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip.</td></tr>`;
+                if(!silent) tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip. Pastikan URL GAS benar.</td></tr>`;
             }
         }
 
