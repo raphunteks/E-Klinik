@@ -33,7 +33,7 @@
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
-        body { background: var(--bg-gradient); color: var(--text-dark); min-height: 100vh; background-attachment: fixed; position: relative; overflow-x: hidden; }
+        body { background: var(--bg-gradient); color: var(--text-dark); min-height: 100vh; background-attachment: fixed; position: relative; overflow-x: hidden; scroll-behavior: smooth; }
 
         /* Background Animasi */
         .blob { position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1; opacity: 0.6; }
@@ -50,7 +50,7 @@
         .nav-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: var(--text-dark); cursor: pointer; padding: 8px 14px; border-radius: 8px; transition: all 0.3s; }
         .nav-btn:hover, .nav-btn.active { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: var(--primary); }
 
-        main { padding: 30px 5%; max-width: 1400px; margin: auto; }
+        main { padding: 30px 5%; max-width: 1400px; margin: auto; position: relative; }
         .section { display: none; animation: fadeIn 0.4s ease-in-out; }
         .section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
@@ -59,11 +59,13 @@
         .btn { padding: 12px 24px; border-radius: 10px; border: none; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25); }
         .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
+        .btn-success { background: var(--success); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); }
+        .btn-success:hover { background: #059669; transform: translateY(-2px); }
         .btn-danger { background: var(--danger); color: white; padding: 8px 12px; font-size: 0.8rem; }
         .btn-danger:hover { background: #dc2626; }
         .btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); padding: 8px 16px;}
         
-        .form-container { padding: 30px; }
+        .form-container { padding: 30px; position: relative; }
         .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 25px; }
         .form-grid-small { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .form-grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
@@ -72,6 +74,19 @@
         label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+
+        /* BUBBLE UI AUTO-FILL (AESTHETIC) */
+        .auto-fill-bubble {
+            display: none; align-items: center; justify-content: space-between;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white; padding: 15px 20px; border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.3);
+            margin-bottom: 25px; animation: slideDown 0.4s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .auto-fill-bubble i { font-size: 1.5rem; margin-right: 15px; }
+        .auto-fill-text { flex: 1; font-size: 0.9rem; line-height: 1.4; margin-right: 15px; }
+        .auto-fill-text strong { font-weight: 700; font-size: 1rem; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
         /* BUG KALENDER UI FIXED */
         input[type="date"] { position: relative; }
@@ -167,16 +182,22 @@
         /* Modal General */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; position: relative; max-height: 90vh; overflow-y: auto;} 
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 800px; position: relative; max-height: 90vh; overflow-y: auto;} 
         .close-modal { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
         .close-modal:hover { color: var(--danger); }
 
-        /* Timeline Riwayat Kunjungan */
+        /* Timeline Riwayat Kunjungan (Detailed) */
         .timeline { border-left: 3px solid var(--primary); padding-left: 20px; margin-top: 20px; }
-        .timeline-item { position: relative; margin-bottom: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .timeline-item { position: relative; margin-bottom: 25px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; overflow: hidden; }
         .timeline-item::before { content: ''; position: absolute; left: -28px; top: 15px; width: 13px; height: 13px; border-radius: 50%; background: white; border: 3px solid var(--primary); }
-        .tl-date { font-weight: 700; color: var(--primary); margin-bottom: 5px; font-size: 0.9rem;}
+        .tl-header { padding: 15px; background: #e0f2fe; border-bottom: 1px solid #bae6fd; }
+        .tl-date { font-weight: 700; color: var(--primary); font-size: 0.95rem; margin-bottom: 5px;}
+        .tl-body { padding: 15px; font-size: 0.85rem; color: #334155;}
         
+        details.tl-accordion { background: white; border: 1px solid #e2e8f0; border-radius: 6px; margin-bottom: 10px; }
+        details.tl-accordion summary { font-weight: 600; cursor: pointer; padding: 10px; background: #f1f5f9; outline: none; }
+        details.tl-accordion .details-content { padding: 10px; border-top: 1px solid #e2e8f0; }
+
         /* CUMA MUNCUL SAAT DI CETAK / PRINT */
         #printArea { display: none; }
         @media print {
@@ -201,6 +222,7 @@
             .nav-links span { display: none; } 
             .form-container { padding: 20px; }
             .btn { width: 100%; }
+            .auto-fill-bubble { flex-direction: column; text-align: center; gap: 15px; }
         }
     </style>
 </head>
@@ -228,8 +250,8 @@
                 <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Sistem E-RM Terpadu</h1>
                 <p style="color: var(--text-light); margin-bottom: 30px; line-height: 1.6;">Solusi cerdas rekam medis digital berbasis SOAP, lengkap dengan e-Resep dan penerbitan Surat Keterangan Sakit otomatis.</p>
                 <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
-                    <button class="btn btn-primary" onclick="navTo('form-section')"><i class="fa-solid fa-plus"></i> Pasien Baru</button>
-                    <button class="btn" style="background: white; border: 1px solid var(--glass-border);" onclick="navTo('dashboard')"><i class="fa-solid fa-folder-open"></i> Buka Arsip</button>
+                    <button class="btn btn-primary" onclick="navTo('form-section')"><i class="fa-solid fa-plus"></i> Pasien Baru / Lama</button>
+                    <button class="btn" style="background: white; border: 1px solid var(--glass-border);" onclick="navTo('dashboard')"><i class="fa-solid fa-folder-open"></i> Buka Arsip Database</button>
                 </div>
             </div>
         </section>
@@ -239,6 +261,18 @@
             <div class="glass form-container">
                 <h2 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-file-medical"></i> Formulir Rekam Medis</h2>
                 
+                <!-- BUBBLE UI AUTO FILL (MUNCUL OTOMATIS) -->
+                <div class="auto-fill-bubble" id="autoFillAlert">
+                    <div style="display:flex; align-items:center;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <div class="auto-fill-text">
+                            <strong>Halo! Data Pasien Ditemukan.</strong><br>
+                            Mengingat ini adalah pasien lama, Anda dapat memuat riwayat Demografi, Fisik, Sosial, dan Tanda Vital sebelumnya untuk menghemat waktu. (SOAP & Resep dikosongkan untuk diisi baru).
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="eksekusiAutoFill()"><i class="fa-solid fa-bolt"></i> Ya, Muat Otomatis</button>
+                </div>
+
                 <form id="ermForm">
                     
                     <!-- 1. Demografi -->
@@ -250,9 +284,10 @@
                                 <input type="date" id="tanggalPelayanan" name="tanggalPelayanan" required>
                             </div>
                         </div>
-                        <div class="input-group"><label>No RM</label><input type="text" id="inputNoRm" name="noRm" placeholder="Ketik No RM untuk Load Data Lama" required></div>
+                        <div class="input-group"><label>No RM</label><input type="text" id="inputNoRm" name="noRm" placeholder="Ketik No RM untuk Cek Memori" required></div>
                         <div class="input-group"><label>NIK Pasien</label><input type="number" id="inputNik" name="nik" placeholder="16 Digit NIK" required></div>
-                        <div class="input-group"><label>Nama Lengkap</label><input type="text" name="namaLengkap" placeholder="Nama sesuai KTP" required></div>
+                        <div class="input-group"><label>Nama Lengkap</label><input type="text" id="inputNama" name="namaLengkap" placeholder="Nama sesuai KTP" required></div>
+                        <div class="input-group"><label>Tempat, Tanggal Lahir</label><input type="text" name="tempatTanggalLahir" placeholder="Contoh: Kendari, 17 Agustus 1990" required></div>
                         <div class="input-group"><label>Usia (Tahun)</label><input type="number" name="usia" placeholder="35" required></div>
                         <div class="input-group">
                             <label>Jenis Kelamin</label>
@@ -358,10 +393,10 @@
                     <!-- 5. Data Klinis, ODONTOGRAM & SOAP -->
                     <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</h3>
                     
-                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF (BIG UPGRADE) -->
+                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF -->
                     <div class="accordion-box">
                         <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
-                            <span><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Odontogram Pasien</span>
+                            <span><i class="fa-solid fa-clock-rotate-left"></i> Ringkasan Riwayat Odontogram Lama</span>
                             <i class="fa-solid fa-chevron-down"></i>
                         </div>
                         <div class="accordion-body" id="riwayatOdontoBody">
@@ -369,13 +404,13 @@
                                 <table class="riwayat-table">
                                     <thead>
                                         <tr>
-                                            <th>Tanggal</th>
-                                            <th>Detail Perawatan Elemen Gigi Sebelumnya</th>
+                                            <th>Tanggal Kunjungan</th>
+                                            <th>Teks Detail Perawatan Elemen Gigi</th>
                                         </tr>
                                     </thead>
                                     <tbody id="riwayatOdontoList">
                                         <!-- Data riwayat akan dimuat otomatis saat NIK/RM diisi -->
-                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Isi No RM / NIK pasien untuk memuat riwayat kunjungan.</td></tr>
+                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Isi No RM / NIK / Nama pasien di atas untuk melacak memori riwayat.</td></tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -384,8 +419,8 @@
 
                     <label style="margin-bottom: 5px; display: block;">Pemetaan Odontogram Interaktif</label>
                     <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">
-                        *Saat mengetik No RM yang sudah pernah berkunjung, Odontogram visual akan terisi otomatis dengan memori kunjungan lalu.<br>
-                        *Klik Alat (Tool) di bawah, lalu klik kotak area gigi untuk menerapkan warna status/tindakan.
+                        *Saat Anda memasukkan No RM pasien lama, gigi ini akan otomatis menampilkan gambaran karies/tambalan masa lalu.<br>
+                        *Klik Alat (Tool) di bawah, lalu klik kotak area gigi untuk menerapkan tindakan hari ini.
                     </p>
                     
                     <!-- PEMILIH ALAT ODONTOGRAM -->
@@ -399,7 +434,7 @@
                     </div>
 
                     <div class="odontogram-wrapper" id="odontogramGrid">
-                        <!-- Odontogram SVG Grid Akan Dirender Disini Melalui JavaScript -->
+                        <!-- Odontogram SVG Grid Akan Dirender Disini -->
                     </div>
 
                     <!-- Hidden Input untuk menyimpan JSON State Odontogram -->
@@ -412,19 +447,19 @@
 
                     <div class="soap-section">
                         <label><span class="soap-badge bg-s">S</span> Subjective (Keluhan Utama / Anamnesis)</label>
-                        <textarea name="subjective" rows="3" placeholder="Keluhan utama pasien, sejak kapan mulai sakit, riwayat perjalanan penyakit, faktor pemicu sakit (mis: sakit saat minum dingin)..." required></textarea>
+                        <textarea name="subjective" id="fSubjective" rows="3" placeholder="Keluhan utama pasien hari ini, riwayat perjalanan penyakit, faktor pemicu sakit..." required></textarea>
                     </div>
                     <div class="soap-section">
                         <label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis & Radiografi)</label>
-                        <textarea name="objective" rows="3" placeholder="Hasil pemeriksaan ekstraoral, intraoral, tes vitalitas (dingin/panas/perkusi/palpasi), kedalaman karies, interpretasi rontgen..." required></textarea>
+                        <textarea name="objective" id="fObjective" rows="3" placeholder="Hasil pemeriksaan klinis ekstraoral & intraoral hari ini, tes vitalitas, interpretasi rontgen..." required></textarea>
                     </div>
                     <div class="soap-section">
                         <label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis & Klasifikasi)</label>
-                        <textarea name="assessment" rows="2" placeholder="Diagnosis kerja utama, diagnosis banding, klasifikasi penyakit (misal: Pulpitis Ireversibel Simtomatik, Nekrosis Pulpa, ICDAS)..." required></textarea>
+                        <textarea name="assessment" id="fAssessment" rows="2" placeholder="Diagnosis kerja utama hari ini, klasifikasi penyakit (misal: Pulpitis Ireversibel Simtomatik)..." required></textarea>
                     </div>
                     <div class="soap-section">
                         <label><span class="soap-badge bg-p">P</span> Plan (Rencana Perawatan & Tindakan)</label>
-                        <textarea name="plan" rows="3" placeholder="Rencana perawatan, tindakan yang dilakukan hari ini (misal: open bur, tumpatan komposit), medikasi, instruksi pasien..." required></textarea>
+                        <textarea name="plan" id="fPlan" rows="3" placeholder="Rencana perawatan & tindakan yang dilakukan hari ini, instruksi pulang, rencana kontrol..." required></textarea>
                     </div>
 
                     <!-- 6. E-Resep Obat -->
@@ -470,7 +505,7 @@
                         <input type="text" id="searchInput" placeholder="Cari Nama, No RM...">
                     </div>
                 </div>
-                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Klik 2x (Double-Click) pada baris pasien untuk melihat riwayat kunjungan detail.</p>
+                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Klik 2x (Double-Click) pada baris pasien untuk melihat seluruh histori kunjungan.</p>
 
                 <div class="table-responsive">
                     <table class="dash-table">
@@ -479,7 +514,7 @@
                                 <th>Tgl / Aksi</th>
                                 <th>No RM</th>
                                 <th>Identitas Pasien</th>
-                                <th>Fisik & SOAP</th>
+                                <th>Fisik & SOAP (Kunjungan Terakhir)</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody">
@@ -519,13 +554,13 @@
         </div>
     </div>
 
-    <!-- Modal Riwayat Kunjungan Pasien (Double Click Dashboard) -->
+    <!-- Modal Riwayat Kunjungan Pasien LENGKAP (Double Click) -->
     <div id="modalRiwayatPasien" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="width: 95%; max-width: 900px;">
             <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalRiwayatPasien').classList.remove('active')"></i>
-            <h3 style="margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-book-medical"></i> Riwayat Kunjungan Pasien</h3>
-            <p style="font-size:0.9rem; color:var(--text-light); margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">
-                Nama: <strong id="histNama">-</strong> | No RM: <strong id="histRm">-</strong>
+            <h3 style="margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-book-medical"></i> Rekam Jejak Medis Komprehensif</h3>
+            <p style="font-size:0.95rem; color:var(--text-light); margin-bottom: 20px; border-bottom: 2px solid var(--glass-border); padding-bottom: 10px;">
+                Nama: <strong id="histNama" style="color:var(--text-dark)">-</strong> | No RM: <strong id="histRm" style="color:var(--text-dark)">-</strong>
             </p>
             
             <div class="timeline" id="historyTimeline">
@@ -566,13 +601,14 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI
+        // MASUKKAN URL DEPLOYMENT GAS VERSI 5 ANDA DISINI (PASTIKAN SUDAH NEW DEPLOYMENT)
         const API_URL = "https://script.google.com/macros/s/AKfycbyIVmMKZKTWbJXQ7QBP7zgqRgEZqjT2pPsHmaneqUz44XIvn7U3FleQrdJY-zwI8p8/exec"; 
         
         let allPatientsData = [];
         let tempPasienSks = null;
+        let memoryPatientData = null; // Menyimpan data memori untuk auto-fill
 
-        // Panggil saat aplikasi pertama kali dibuka agar data 'allPatientsData' terisi untuk fitur auto-load
+        // Panggil saat aplikasi pertama kali dibuka agar data 'allPatientsData' terisi untuk auto-load (Background Load)
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData(true); 
         });
@@ -596,9 +632,8 @@
         }
 
         // ==================================================================
-        // 2. LOGIKA ODONTOGRAM CERDAS TOOL-BASED & MEMORI AUTO-LOAD
+        // 2. LOGIKA ODONTOGRAM CERDAS & MEMORI AUTO-LOAD (VISUAL)
         // ==================================================================
-        
         const fiveSurfaces = [
             18,17,16,15,14, 28,27,26,25,24, 
             48,47,46,45,44, 38,37,36,35,34, 
@@ -712,7 +747,7 @@
 
         function generateOdontoTextSummary() {
             let results = [];
-            let odontoStateJSON = {}; // Memori Visual
+            let odontoStateJSON = {}; 
 
             document.querySelectorAll('.tooth-svg').forEach(svg => {
                 let id = parseInt(svg.id.replace('svg-', ''));
@@ -750,15 +785,12 @@
             document.getElementById('odontoVisualInput').value = JSON.stringify(odontoStateJSON);
         }
 
-        // Fungsi Auto-Load Odontogram dari Histori Kunjungan Sebelumnya
         function applyPastOdontoState(stateObj) {
-            // Reset All To Normal
             document.querySelectorAll('.tooth-svg').forEach(svg => {
                 svg.removeAttribute('data-whole');
                 svg.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
             });
 
-            // Re-apply states
             for (let toothId in stateObj) {
                 let svg = document.getElementById('svg-' + toothId);
                 if (!svg) continue;
@@ -778,20 +810,26 @@
 
         renderOdontogram();
 
-        // Auto-Load Data saat ngetik No RM / NIK
+        // ==================================================================
+        // 3. LOGIKA AUTO-FILL DEMOGRAFI, FISIS & BUBBLE UI ALERT
+        // ==================================================================
         document.getElementById('inputNoRm').addEventListener('input', checkPastVisits);
         document.getElementById('inputNik').addEventListener('input', checkPastVisits);
+        document.getElementById('inputNama').addEventListener('input', checkPastVisits);
 
         function checkPastVisits(e) {
             let key = e.target.value.toLowerCase().trim();
             if (key.length > 2 && allPatientsData.length > 0) {
-                // Cari histori pasien berdasar No RM atau NIK
-                let pastVisits = allPatientsData.filter(i => (i['No RM']||'').toLowerCase() === key || (i['NIK']||'').toString() === key);
+                
+                let pastVisits = allPatientsData.filter(i => (i['No RM']||'').toLowerCase() === key || (i['NIK']||'').toString() === key || (i['Nama Lengkap']||'').toLowerCase().includes(key));
+                
                 if (pastVisits.length > 0) {
-                    // Sort dari terlama ke terbaru (Gunakan parsing standar untuk format yyyy-MM-dd)
-                    pastVisits.sort((a,b) => new Date(a['Timestamp']) - new Date(b['Timestamp']));
+                    // Tampilkan BUBBLE UI
+                    document.getElementById('autoFillAlert').style.display = 'flex';
                     
-                    // Merge Odontogram Memori (tindakan lama ditimpa tindakan baru secara kumulatif)
+                    pastVisits.sort((a,b) => new Date(a['Timestamp']) - new Date(b['Timestamp']));
+                    memoryPatientData = pastVisits[pastVisits.length - 1]; // Ambil data kunjungan PALING BARU untuk autofill
+                    
                     let mergedOdonto = {};
                     pastVisits.forEach(v => {
                         if (v['Data Odontogram Visual'] && v['Data Odontogram Visual'] !== '-') {
@@ -804,8 +842,94 @@
                     
                     applyPastOdontoState(mergedOdonto);
                     renderRiwayatOdonto(pastVisits);
+                } else {
+                    document.getElementById('autoFillAlert').style.display = 'none';
                 }
+            } else {
+                document.getElementById('autoFillAlert').style.display = 'none';
             }
+        }
+
+        // Fungsi Eksekusi ketika Bubble Button diklik
+        function eksekusiAutoFill() {
+            if(!memoryPatientData) return;
+            const rec = memoryPatientData;
+            
+            // Set Nilai Input Dasar
+            const setter = (name, val) => { const el = document.querySelector(`[name="${name}"]`); if(el && val && val !== '-') el.value = val; };
+            setter('noRm', rec['No RM']);
+            setter('nik', rec['NIK']);
+            setter('namaLengkap', rec['Nama Lengkap']);
+            setter('tempatTanggalLahir', rec['Tempat, Tanggal Lahir']);
+            setter('usia', rec['Usia']);
+            setter('jenisKelamin', rec['Jenis Kelamin']);
+            setter('alamat', rec['Alamat']);
+            
+            setter('alatBantu', rec['Alat Bantu']);
+            setter('agama', rec['Agama']);
+            setter('kendalaKomunikasi', rec['Kendala Komunikasi']);
+            setter('perawatDiRumah', rec['Perawat di Rumah']);
+            setter('bantuanAktifitas', rec['Bantuan Aktifitas']);
+            setter('ekspresiEmosi', rec['Ekspresi Emosi']);
+            setter('bahasa', rec['Bahasa']);
+            setter('pekerjaan', rec['Pekerjaan']);
+            setter('tinggalDengan', rec['Tinggal Dengan']);
+            setter('sosialEkonomi', rec['Sosial Ekonomi']);
+            setter('jaminan', rec['Jaminan']);
+            setter('gangguanJiwa', rec['Gangguan Jiwa']);
+            setter('statusPerkawinan', rec['Status Perkawinan']);
+            setter('statusEkonomi', rec['Status Ekonomi']);
+            setter('hubunganKeluarga', rec['Hubungan Keluarga']);
+            
+            setter('kesadaran', rec['Kesadaran']);
+            setter('sistole', rec['Sistole']);
+            setter('diastole', rec['Diastole']);
+            setter('beratBadan', rec['Berat Badan (kg)']);
+            setter('tinggiBadan', rec['Tinggi Badan (cm)']);
+            setter('caraUkurTb', rec['Cara Ukur TB']);
+            setter('lingkarPerut', rec['Lingkar Perut (cm)']);
+            setter('nadi', rec['Detak Nadi (x/Mnt)']);
+            setter('nafas', rec['Nafas (x/Mnt)']);
+            setter('suhu', rec['Suhu (C)']);
+            setter('saturasi', rec['Saturasi (%)']);
+
+            // Setup Ulang Riwayat Penyakit (Checkbox + List)
+            const pContainer = document.getElementById('penyakitContainer');
+            const pList = document.getElementById('penyakitList');
+            if(rec['Riwayat Penyakit'] && rec['Riwayat Penyakit'] !== 'Tidak Ada' && rec['Riwayat Penyakit'] !== '-') {
+                document.getElementById('chkTidakAdaPenyakit').checked = false;
+                pContainer.style.display = 'block'; pList.innerHTML = '';
+                rec['Riwayat Penyakit'].split(';').forEach(p => {
+                    if(p.trim() !== '') {
+                        let div = document.createElement('div'); div.className = 'input-group'; div.style.marginBottom = '10px'; div.style.flexDirection = 'row'; div.style.gap = '10px';
+                        div.innerHTML = `<input type="text" class="penyakit-input" value="${p.trim()}" style="flex:1;"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>`;
+                        pList.appendChild(div);
+                    }
+                });
+            } else {
+                document.getElementById('chkTidakAdaPenyakit').checked = true; pContainer.style.display = 'none';
+            }
+
+            // Setup Ulang Riwayat Alergi (Checkbox + List)
+            const aContainer = document.getElementById('alergiContainer');
+            const aList = document.getElementById('alergiList');
+            if(rec['Riwayat Alergi'] && rec['Riwayat Alergi'] !== 'Tidak Ada' && rec['Riwayat Alergi'] !== '-') {
+                document.getElementById('chkTidakAdaAlergi').checked = false;
+                aContainer.style.display = 'block'; aList.innerHTML = '';
+                rec['Riwayat Alergi'].split(';').forEach(a => {
+                    if(a.trim() !== '') {
+                        let div = document.createElement('div'); div.className = 'input-group'; div.style.marginBottom = '10px'; div.style.flexDirection = 'row'; div.style.gap = '10px';
+                        div.innerHTML = `<input type="text" class="alergi-input" value="${a.trim()}" style="flex:1;"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>`;
+                        aList.appendChild(div);
+                    }
+                });
+            } else {
+                document.getElementById('chkTidakAdaAlergi').checked = true; aContainer.style.display = 'none';
+            }
+
+            // Sembunyikan bubble & tampilkan toast
+            document.getElementById('autoFillAlert').style.display = 'none';
+            showToast("Berhasil memuat memori data kunjungan masa lalu!", "success");
         }
 
         function renderRiwayatOdonto(filteredData) {
@@ -825,30 +949,9 @@
             });
         }
 
-        // 3. Logika Toggle Riwayat Penyakit & Alergi
-        const chkTidakAdaPenyakit = document.getElementById('chkTidakAdaPenyakit');
-        const penyakitContainer = document.getElementById('penyakitContainer');
-        chkTidakAdaPenyakit.addEventListener('change', function() { penyakitContainer.style.display = this.checked ? 'none' : 'block'; });
-
-        function tambahPenyakit() {
-            const list = document.getElementById('penyakitList');
-            const div = document.createElement('div'); div.className = 'input-group'; div.style.marginBottom = '10px'; div.style.flexDirection = 'row'; div.style.gap = '10px';
-            div.innerHTML = `<input type="text" class="penyakit-input" placeholder="Contoh penyakit..." style="flex:1;"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>`;
-            list.appendChild(div);
-        }
-
-        const chkTidakAdaAlergi = document.getElementById('chkTidakAdaAlergi');
-        const alergiContainer = document.getElementById('alergiContainer');
-        chkTidakAdaAlergi.addEventListener('change', function() { alergiContainer.style.display = this.checked ? 'none' : 'block'; });
-
-        function tambahAlergi() {
-            const list = document.getElementById('alergiList');
-            const div = document.createElement('div'); div.className = 'input-group'; div.style.marginBottom = '10px'; div.style.flexDirection = 'row'; div.style.gap = '10px';
-            div.innerHTML = `<input type="text" class="alergi-input" placeholder="Contoh alergi..." style="flex:1;"><button type="button" class="btn btn-danger" onclick="this.parentElement.remove()">X</button>`;
-            list.appendChild(div);
-        }
-
-        // 4. Logika E-Resep Dinamis
+        // ==================================================================
+        // 4. LOGIKA E-RESEP DINAMIS
+        // ==================================================================
         function tambahBarisResep() {
             const tbody = document.getElementById('resepBody');
             const tr = document.createElement('tr');
@@ -867,7 +970,9 @@
         }
         tambahBarisResep(); 
 
-        // 5. Proses Submit Form ke GAS (PENCEGAHAN BLOKIR CORS)
+        // ==================================================================
+        // 5. PROSES SUBMIT FORM KE GAS
+        // ==================================================================
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             generateOdontoTextSummary(); 
@@ -904,7 +1009,7 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // KEMBALI KE METODE FETCH LAMA YANG TERBUKTI WORK
+                // FETCH API LAMA YANG WORK
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
@@ -916,7 +1021,8 @@
                 e.target.reset(); document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
                 document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); 
                 chkTidakAdaPenyakit.checked = true; penyakitContainer.style.display = 'none'; chkTidakAdaAlergi.checked = true; alergiContainer.style.display = 'none';
-                applyPastOdontoState({}); // Membersihkan coretan odontogram
+                applyPastOdontoState({}); document.getElementById('autoFillAlert').style.display = 'none'; memoryPatientData = null;
+                
                 setTimeout(() => navTo('dashboard'), 1500);
             } catch (error) {
                 showToast("Gagal menyambung ke server Google.", "error");
@@ -925,7 +1031,9 @@
             }
         });
 
-        // 6. GET Data dari GAS (KEMBALI KE SCRIPT LAMA YANG WORK)
+        // ==================================================================
+        // 6. GET DATA DARI GAS
+        // ==================================================================
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
             if(!silent) tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data...</td></tr>`;
@@ -937,11 +1045,10 @@
                     if(!silent) renderTable(allPatientsData);
                 }
             } catch (error) {
-                if(!silent) tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip. Pastikan URL GAS benar.</td></tr>`;
+                if(!silent) tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip. Pastikan URL GAS benar & telah New Deployment.</td></tr>`;
             }
         }
 
-        // 7. Render Tabel Dasbor & Klik Ganda (Double Click)
         function renderTable(dataArray) {
             const tBody = document.getElementById('tableBody');
             tBody.innerHTML = '';
@@ -951,7 +1058,6 @@
                 const tr = document.createElement('tr');
                 tr.style.cursor = 'pointer'; 
                 const safeItem = encodeURIComponent(JSON.stringify(item));
-                const safeRm = item['No RM'].replace(/'/g, "\\'");
 
                 tr.innerHTML = `
                     <td style="white-space:nowrap;">
@@ -987,7 +1093,7 @@
         });
 
         // ==================================================================
-        // 8. LOGIKA RIWAYAT KUNJUNGAN PASIEN (DOUBLE CLICK)
+        // 7. LOGIKA RIWAYAT KUNJUNGAN PASIEN KOMPREHENSIF (DOUBLE CLICK)
         // ==================================================================
         function bukaRiwayatKunjungan(rmFilter, nama) {
             document.getElementById('histRm').innerText = rmFilter;
@@ -1002,15 +1108,67 @@
                 timeline.innerHTML = '<p style="color:var(--text-light)">Tidak ada riwayat ditemukan.</p>';
             } else {
                 visits.forEach(v => {
+                    
+                    // Ekstrak Resep Obat JSON ke HTML Table
+                    let resepHTML = '';
+                    try {
+                        let rs = JSON.parse(v['Resep Obat']);
+                        if(rs && rs.length > 0) {
+                            resepHTML = '<table style="width:100%; border-collapse:collapse; margin-top:10px;"><tr><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Obat</th><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Jml</th><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Aturan</th></tr>';
+                            rs.forEach(r => {
+                                let labelRacik = r.racikan !== 'Non-Racik' ? `[${r.racikan}] ` : '';
+                                resepHTML += `<tr><td style="border-bottom:1px solid #eee; padding:4px;">${labelRacik}${r.namaObat}</td><td style="border-bottom:1px solid #eee; padding:4px;">${r.jumlah}</td><td style="border-bottom:1px solid #eee; padding:4px;">${r.signa} (${r.aturanPakai})</td></tr>`;
+                            });
+                            resepHTML += '</table>';
+                        } else { resepHTML = '<p style="color:#64748b; margin-top:5px;">Tidak ada resep obat.</p>'; }
+                    } catch(e) { resepHTML = `<p>${v['Resep Obat']}</p>`; }
+
+                    // Template HTML Detail Card
                     timeline.innerHTML += `
                         <div class="timeline-item">
-                            <div class="tl-date"><i class="fa-regular fa-calendar-check"></i> ${v['Tanggal Pelayanan']}</div>
-                            <p style="font-size: 0.85rem; margin-bottom: 5px;"><strong style="color:var(--primary);">${v['Elemen Gigi'] && v['Elemen Gigi'] !== '-' ? v['Elemen Gigi'] : 'Pemeriksaan Umum'}</strong></p>
-                            <div style="font-size: 0.8rem; color: #475569; background: white; padding: 10px; border-radius: 6px; border: 1px solid #e2e8f0;">
-                                <strong>S:</strong> ${v['Subjective']}<br>
-                                <strong>O:</strong> ${v['Objective']}<br>
-                                <strong>A:</strong> ${v['Assessment']}<br>
-                                <strong>P:</strong> <span style="color:#10b981; font-weight:600;">${v['Plan']}</span>
+                            <div class="tl-header">
+                                <div class="tl-date"><i class="fa-regular fa-calendar-check"></i> ${v['Tanggal Pelayanan']}</div>
+                                <strong style="color:var(--text-dark);">${v['Elemen Gigi'] && v['Elemen Gigi'] !== '-' ? 'Odontogram: ' + v['Elemen Gigi'] : 'Pemeriksaan Umum'}</strong>
+                            </div>
+                            <div class="tl-body">
+                                
+                                <details class="tl-accordion">
+                                    <summary><i class="fa-solid fa-user-tag"></i> Info Demografi & Psiko-Sosio-Ekonomi</summary>
+                                    <div class="details-content">
+                                        <p><strong>TTL:</strong> ${v['Tempat, Tanggal Lahir']||'-'} | <strong>Pekerjaan:</strong> ${v['Pekerjaan']||'-'}</p>
+                                        <p><strong>Status Bio/Mental:</strong> Kesadaran ${v['Kesadaran']}, Emosi ${v['Ekspresi Emosi']}, Ggn Jiwa: ${v['Gangguan Jiwa']}</p>
+                                        <p><strong>Sosial/Ekonomi:</strong> ${v['Sosial Ekonomi']}, Jaminan: ${v['Jaminan']}, Status Kawin: ${v['Status Perkawinan']}</p>
+                                        <p><strong>Bantuan:</strong> Tinggal dgn ${v['Tinggal Dengan']}, Alat Bantu: ${v['Alat Bantu']}</p>
+                                    </div>
+                                </details>
+
+                                <details class="tl-accordion" open>
+                                    <summary><i class="fa-solid fa-stethoscope"></i> Tanda Vital, Riwayat & S.O.A.P</summary>
+                                    <div class="details-content">
+                                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px; font-size:0.8rem; background: #e0f2fe; padding:8px; border-radius:6px;">
+                                            <span><strong>TD:</strong> ${v['Sistole']}/${v['Diastole']}</span>
+                                            <span><strong>Nadi:</strong> ${v['Detak Nadi (x/Mnt)']}</span>
+                                            <span><strong>Nafas:</strong> ${v['Nafas (x/Mnt)']}</span>
+                                            <span><strong>Suhu:</strong> ${v['Suhu (C)']}°C</span>
+                                            <span><strong>SpO2:</strong> ${v['Saturasi (%)']}%</span>
+                                            <span><strong>TB/BB:</strong> ${v['Tinggi Badan (cm)']}/${v['Berat Badan (kg)']}</span>
+                                        </div>
+                                        <p style="color:#ef4444; margin-bottom:10px;"><strong>Alergi:</strong> ${v['Riwayat Alergi']} | <strong>Penyakit:</strong> ${v['Riwayat Penyakit']}</p>
+                                        
+                                        <strong>S (Subjektif):</strong> ${v['Subjective']}<br>
+                                        <strong>O (Objektif):</strong> ${v['Objective']}<br>
+                                        <strong>A (Asesmen):</strong> ${v['Assessment']}<br>
+                                        <strong>P (Plan):</strong> <span style="color:#10b981; font-weight:600;">${v['Plan']}</span>
+                                    </div>
+                                </details>
+
+                                <details class="tl-accordion">
+                                    <summary><i class="fa-solid fa-pills"></i> Resep Obat Diberikan</summary>
+                                    <div class="details-content">
+                                        ${resepHTML}
+                                    </div>
+                                </details>
+
                             </div>
                         </div>
                     `;
@@ -1020,7 +1178,7 @@
         }
 
         // ==================================================================
-        // 9. MODUL SKS - LOGIKA OTOMATIS TANGGAL & PRINT
+        // 8. MODUL SKS - LOGIKA OTOMATIS TANGGAL & PRINT
         // ==================================================================
         const inputHari = document.getElementById('sksHari');
         const inputMulai = document.getElementById('sksMulai');
