@@ -70,7 +70,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 
         /* Buttons & Inputs */
-        .btn { padding: 12px 24px; border-radius: 10px; border: none; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn { padding: 12px 24px; border-radius: 10px; border: none; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;}
         .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 15px rgba(2, 132, 199, 0.25); }
         .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
         .btn-success { background: var(--success); color: white; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.25); }
@@ -88,8 +88,6 @@
         label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
-        /* Hapus atribut gaya cursor not-allowed untuk input yang tidak readonly */
-        input[readonly] { background: rgba(226, 232, 240, 0.5); }
 
         /* BUBBLE UI AUTO-FILL (AESTHETIC) */
         .auto-fill-bubble {
@@ -438,7 +436,10 @@
                     </div>
 
                     <!-- 5. Data Klinis, ODONTOGRAM & SOAP -->
-                    <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</h3>
+                    <h3 class="module-title" style="justify-content: space-between;">
+                        <span><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</span>
+                        <a href="https://drive.google.com/file/d/1kv2sd6zHcW7sL-Oo2xtY8d5WBVgKIjd6/view?usp=sharing" target="_blank" class="btn btn-outline" style="font-size: 0.8rem; padding: 6px 12px;"><i class="fa-solid fa-book"></i> Panduan Pengisian</a>
+                    </h3>
                     
                     <div class="accordion-box">
                         <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
@@ -793,14 +794,14 @@
         }
 
         const labelMapping = {
-            'car': 'Caries', 'amf': 'Amalgam Filling', 'cof': 'Composite Filling', 'fis': 'Pit & Fissure Sealant',
-            'mis': 'Gigi Hilang (Missing)', 'cfr': 'Crown Fracture', 'poc': 'Porcelain Crown', 'fmc': 'Full Metal Crown', 
+            'car': 'karies (Caries)', 'amf': 'tumpatan Amalgam (Amalgam Filling)', 'cof': 'tumpatan Komposit (Composite Filling)', 'fis': 'Pit & Fissure Sealant',
+            'mis': 'Gigi Hilang (Missing)', 'cfr': 'Fraktur Mahkota (Crown Fracture)', 'poc': 'Mahkota Porselen (Porcelain Crown)', 'fmc': 'Mahkota Logam (Full Metal Crown)', 
             'rrx': 'Sisa Akar (Radix)', 'rct': 'Perawatan Saluran Akar', 'nvt': 'Gigi Non-Vital',
-            'non': 'Tidak Ada (NON)', 'une': 'Un-Erupted', 'pre': 'Partial Erupted', 'imv': 'Impacted Visible', 
+            'non': 'Tidak Ada (NON)', 'une': 'Belum Tumbuh (Un-Erupted)', 'pre': 'Tumbuh Sebagian (Partial Erupted)', 'imv': 'Impaksi (Impacted Visible)', 
             'ano': 'Anomali', 'dia': 'Diastema', 'att': 'Atrisi', 'abr': 'Abrasi', 'inl': 'Inlay', 'onl': 'Onlay',
             'mpc': 'Metal Porcelain Crown', 'gmc': 'Gold Metal Crown', 'ipx': 'Implan', 'meb': 'Metal Bridge',
-            'pob': 'Porcelain Bridge', 'pon': 'Pontic', 'abu': 'Gigi Abutment', 'prd': 'Partial Denture', 
-            'fld': 'Full Denture', 'acr': 'Acrylic'
+            'pob': 'Porcelain Bridge', 'pon': 'Pontic', 'abu': 'Gigi Abutment', 'prd': 'Gigi Tiruan Sebagian (Partial Denture)', 
+            'fld': 'Gigi Tiruan Lengkap (Full Denture)', 'acr': 'Akrilik (Acrylic)'
         };
 
         function renderOdontogram() {
@@ -953,7 +954,12 @@
                 let issues = [];
 
                 let labelText = svg.querySelector('.tooth-label').textContent;
-                if (labelText) { toothData.label = labelText; issues.push(`Status: ${labelText}`); hasData = true; }
+                if (labelText) { 
+                    toothData.label = labelText; 
+                    let lowerLabel = labelText.toLowerCase();
+                    issues.push(`Status: ${labelMapping[lowerLabel] || labelText}`); 
+                    hasData = true; 
+                }
 
                 let rootState = svg.getAttribute('data-root');
                 if (rootState) { toothData.root = rootState; issues.push(`${labelMapping[rootState]}`); hasData = true; }
