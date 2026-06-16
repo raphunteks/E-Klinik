@@ -9,15 +9,29 @@
     <link rel="icon" type="image/png" href="axalogo.png">
     <link rel="apple-touch-icon" href="axalogo.png">
     <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis pasien terintegrasi.">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Sistem E-RM | Klinik Pribadi">
-    <meta property="og:description" content="Manajemen pencatatan klinis pasien berbasis SOAP.">
-    <meta property="og:image" content="axalogo.png">
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Definisi Pola (Patterns) SVG untuk Odontogram -->
+    <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+        <defs>
+            <pattern id="pat-cof" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="6" height="6" fill="#10b981" />
+                <line x1="0" y1="0" x2="0" y2="6" stroke="#1e293b" stroke-width="1.5" />
+            </pattern>
+            <pattern id="pat-fis" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="6" height="6" fill="#ffffff" />
+                <line x1="0" y1="0" x2="0" y2="6" stroke="#ef4444" stroke-width="1.5" />
+            </pattern>
+            <pattern id="pat-poc" width="6" height="6" patternUnits="userSpaceOnUse">
+                <rect width="6" height="6" fill="#ffffff" />
+                <line x1="3" y1="0" x2="3" y2="6" stroke="#1e293b" stroke-width="1.5" />
+            </pattern>
+        </defs>
+    </svg>
+
     <style>
         /* ==================================================================
            UI GLASSMORPHISM & MOBILE RESPONSIVE UPGRADE
@@ -74,7 +88,6 @@
         label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
-        input[readonly] { background: rgba(226, 232, 240, 0.5); cursor: not-allowed; }
 
         /* BUBBLE UI AUTO-FILL (AESTHETIC) */
         .auto-fill-bubble {
@@ -89,18 +102,17 @@
         .auto-fill-text strong { font-weight: 700; font-size: 1rem; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* BUG KALENDER UI FIXED */
+        /* KALENDER UI FIXED */
         input[type="date"] { position: relative; }
         input[type="date"]::-webkit-calendar-picker-indicator { background: transparent; bottom: 0; color: transparent; cursor: pointer; height: auto; left: 0; position: absolute; right: 0; top: 0; width: auto; z-index: 10; }
         .date-wrapper { position: relative; display: block; }
         .date-wrapper::after { content: "\f133"; font-family: "Font Awesome 6 Free"; font-weight: 900; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--primary); pointer-events: none; z-index: 5; }
 
         /* ==================================================================
-           CSS ODONTOGRAM INTERAKTIF & RIWAYAT (BIG UPGRADE)
+           CSS ODONTOGRAM LENGKAP (SVG & LEGEND)
            ================================================================== */
         .odontogram-wrapper { background: rgba(255, 255, 255, 0.6); border: 1px solid var(--glass-border); border-radius: 12px; padding: 20px 15px; margin-bottom: 15px; overflow-x: auto; text-align: center; }
 
-        /* Riwayat Odontogram Accordion */
         .accordion-box { background: rgba(255,255,255,0.4); border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 20px; overflow: hidden; }
         .accordion-header { padding: 15px 20px; background: rgba(255,255,255,0.5); cursor: pointer; display: flex; justify-content: space-between; align-items: center; font-weight: 600; color: var(--text-dark); transition: background 0.3s; }
         .accordion-header:hover { background: rgba(255,255,255,0.7); }
@@ -111,44 +123,62 @@
         .riwayat-table th { background: #e2e8f0; padding: 10px; text-align: left; color: #475569; }
         .riwayat-table td { padding: 10px; border-bottom: 1px solid #cbd5e1; }
 
-        /* Odonto Tools (Pemilih Alat) */
-        .odonto-tools { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-bottom: 20px; background: rgba(255,255,255,0.4); padding: 15px; border-radius: 10px; }
-        .tool-btn { padding: 8px 16px; border-radius: 8px; border: 2px solid transparent; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; background: white; color: var(--text-dark); display: flex; align-items: center; gap: 6px; }
-        .tool-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .tool-btn.active { border-color: var(--primary); background: #f0f9ff; color: var(--primary); }
+        /* Tools UI Grid */
+        .tools-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); gap: 8px; margin-bottom: 5px; }
+        .tool-btn { padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: all 0.2s; background: white; color: var(--text-dark); display: flex; align-items: center; gap: 6px; justify-content: left; }
+        .tool-btn:hover { background: #f8fafc; }
+        .tool-btn.active { border-color: var(--primary); background: #e0f2fe; color: var(--primary); box-shadow: 0 2px 5px rgba(2,132,199,0.15); }
         
-        /* Tool Colors Indicators */
-        .tc-norm { width: 14px; height: 14px; border-radius: 4px; background: #ffffff; border: 1px solid #cbd5e1; }
-        .tc-car { width: 14px; height: 14px; border-radius: 4px; background: #ef4444; }
-        .tc-gif { width: 14px; height: 14px; border-radius: 4px; background: #10b981; }
-        .tc-cof { width: 14px; height: 14px; border-radius: 4px; background: #3b82f6; }
-        .tc-mis { width: 14px; height: 14px; border-radius: 4px; background: transparent; border: 2px solid #1e293b; display: flex; align-items: center; justify-content: center; font-size:10px; font-weight:bold; color: #1e293b; }
+        /* Tool Colors Indicators (CSS Standar) */
+        .tc-norm { width: 14px; height: 14px; border-radius: 3px; background: #ffffff; border: 1px solid #94a3b8; }
+        .tc-car { width: 14px; height: 14px; border-radius: 3px; background: #ef4444; }
+        .tc-amf { width: 14px; height: 14px; border-radius: 3px; background: #1e293b; }
+        .tc-cof { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(45deg, #10b981, #10b981 2px, #1e293b 2px, #1e293b 3px); }
+        .tc-fis { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(45deg, #ffffff, #ffffff 2px, #ef4444 2px, #ef4444 3px); }
+        
+        .tc-mis { width: 14px; height: 14px; border-radius: 3px; background: transparent; border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center; font-size:10px; font-weight:bold; color: #1e293b; }
         .tc-mis::before { content: 'X'; }
-        .tc-rrx { width: 14px; height: 14px; border-radius: 4px; background: transparent; border: 2px solid #ef4444; display: flex; align-items: center; justify-content: center; font-size:10px; font-weight:bold; color: #ef4444; }
+        .tc-cfr { width: 14px; height: 14px; border-radius: 3px; background: transparent; border: 1px solid #1e293b; display: flex; align-items: center; justify-content: center; font-size:10px; font-weight:bold; color: #1e293b; }
+        .tc-cfr::before { content: '#'; }
+        .tc-poc { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #94a3b8; background: repeating-linear-gradient(90deg, #ffffff, #ffffff 2px, #1e293b 2px, #1e293b 3px); }
+        .tc-fmc { width: 14px; height: 14px; border-radius: 3px; background: transparent; border: 3px double #1e293b; }
+        .tc-rrx { width: 14px; height: 14px; border-radius: 3px; background: transparent; border: 1px solid #ef4444; display: flex; align-items: center; justify-content: center; font-size:8px; font-weight:bold; color: #ef4444; }
         .tc-rrx::before { content: 'V'; }
+        
+        .tc-rct { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 10px solid #1e293b; }
+        .tc-nvt { width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 10px solid #fff; filter: drop-shadow(0 0 1px #000); }
+        .tc-lbl { font-size: 8px; font-weight: bold; background: #e2e8f0; padding: 2px 4px; border-radius: 3px; color: #1e293b;}
 
-        .odonto-grid { display: inline-flex; flex-direction: column; gap: 10px; min-width: 680px; align-items: center; margin-top: 10px; }
-        .odonto-row { display: flex; gap: 4px; justify-content: center; align-items: flex-end; }
+        /* Odonto Grid Layout */
+        .odonto-grid { display: inline-flex; flex-direction: column; gap: 8px; min-width: 680px; align-items: center; margin-top: 10px; }
+        .odonto-row { display: flex; gap: 3px; justify-content: center; align-items: flex-end; }
         .odonto-tooth { display: flex; flex-direction: column; align-items: center; width: 34px; }
         .odonto-num { font-size: 0.75rem; font-weight: 700; margin-bottom: 2px; color: var(--text-dark); }
         .odonto-empty { width: 34px; height: 34px; }
-        .odonto-divider { width: 2px; background: rgba(0,0,0,0.2); margin: 0 10px; border-radius: 2px; }
+        .odonto-divider { width: 2px; background: rgba(0,0,0,0.15); margin: 0 10px; border-radius: 2px; }
 
         /* SVG Gigi Styles & States */
-        .tooth-svg { width: 32px; height: 32px; stroke: #64748b; stroke-width: 1.5; transition: transform 0.1s; cursor: pointer; position: relative; }
-        .tooth-svg:hover { transform: scale(1.15); z-index: 10; stroke-width: 2;}
-        .surface { fill: #ffffff; transition: fill 0.2s, opacity 0.2s; }
-        .surface:hover { opacity: 0.7; }
+        .tooth-svg { width: 34px; height: 50px; transition: transform 0.1s; cursor: pointer; position: relative; }
+        .tooth-svg:hover { transform: scale(1.15); z-index: 10; }
+        .surface { fill: #ffffff; stroke: #64748b; stroke-width: 1.5; transition: fill 0.2s, opacity 0.2s; }
+        .surface:hover { opacity: 0.7; stroke-width: 2; stroke: var(--primary);}
         
+        /* Surface Colors Mappings */
         .surface[data-state="norm"] { fill: #ffffff; }
         .surface[data-state="car"] { fill: #ef4444; } 
-        .surface[data-state="gif"] { fill: #10b981; } 
-        .surface[data-state="cof"] { fill: #3b82f6; } 
+        .surface[data-state="amf"] { fill: #1e293b; } 
+        .surface[data-state="cof"] { fill: url(#pat-cof); } 
+        .surface[data-state="fis"] { fill: url(#pat-fis); } 
         
-        .overlay-mis { display: none; pointer-events: none; }
-        .overlay-rrx { display: none; pointer-events: none; }
-        .tooth-svg[data-whole="mis"] .overlay-mis { display: block; }
-        .tooth-svg[data-whole="rrx"] .overlay-rrx { display: block; }
+        /* Independent Whole Tooth / Root Overlays Display */
+        .tooth-svg[data-whole="mis"] .overlay-mis { display: block !important; }
+        .tooth-svg[data-whole="cfr"] .overlay-cfr { display: block !important; }
+        .tooth-svg[data-whole="poc"] .overlay-poc { display: block !important; }
+        .tooth-svg[data-whole="fmc"] .overlay-fmc { display: block !important; }
+        .tooth-svg[data-whole="rrx"] .overlay-rrx { display: block !important; }
+
+        .tooth-svg[data-root="nvt"] .overlay-nvt { display: block !important; }
+        .tooth-svg[data-root="rct"] .overlay-rct { display: block !important; }
 
         /* Modul Spesifik */
         .module-title { font-size: 1.1rem; color: var(--text-dark); margin: 30px 0 15px 0; border-bottom: 2px solid var(--glass-border); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
@@ -262,7 +292,7 @@
             <div class="glass form-container">
                 <h2 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-file-medical"></i> Formulir Rekam Medis</h2>
                 
-                <!-- BUBBLE UI AUTO FILL (MUNCUL OTOMATIS) -->
+                <!-- BUBBLE UI AUTO FILL -->
                 <div class="auto-fill-bubble" id="autoFillAlert">
                     <div style="display:flex; align-items:center;">
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
@@ -289,7 +319,6 @@
                         <div class="input-group"><label>NIK Pasien</label><input type="number" id="inputNik" name="nik" placeholder="16 Digit NIK" required></div>
                         <div class="input-group"><label>Nama Lengkap</label><input type="text" id="inputNama" name="namaLengkap" placeholder="Nama sesuai KTP" required></div>
                         
-                        <!-- UPGRADE Cerdas Tempat Tgl Lahir -> Usia -->
                         <div class="input-group">
                             <label>Tempat, Tanggal Bulan Tahun Lahir</label>
                             <input type="text" id="inputTtl" name="tempatTanggalLahir" placeholder="Cth: Kendari, 03/03/2002" required>
@@ -306,7 +335,6 @@
                         </div>
                     </div>
                     <div class="input-group" style="margin-bottom: 20px;">
-                        <!-- UPGRADE Label Alamat -->
                         <label>Alamat Sesuai KTP</label>
                         <textarea name="alamat" rows="2" placeholder="Alamat lengkap pasien..." required></textarea>
                     </div>
@@ -401,7 +429,6 @@
                     <!-- 5. Data Klinis, ODONTOGRAM & SOAP -->
                     <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</h3>
                     
-                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF -->
                     <div class="accordion-box">
                         <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
                             <span><i class="fa-solid fa-clock-rotate-left"></i> Ringkasan Riwayat Odontogram Lama</span>
@@ -417,7 +444,7 @@
                                         </tr>
                                     </thead>
                                     <tbody id="riwayatOdontoList">
-                                        <!-- Data riwayat akan dimuat otomatis saat NIK/RM diisi -->
+                                        <!-- Data riwayat akan dimuat otomatis -->
                                         <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Isi No RM / NIK / Nama pasien di atas untuk melacak memori riwayat.</td></tr>
                                     </tbody>
                                 </table>
@@ -425,20 +452,44 @@
                         </div>
                     </div>
 
+                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF (BIG UPGRADE - SIMBOL LENGKAP) -->
                     <label style="margin-bottom: 5px; display: block;">Pemetaan Odontogram Interaktif</label>
                     <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">
-                        *Saat Anda memasukkan No RM pasien lama, gigi ini akan otomatis menampilkan gambaran karies/tambalan masa lalu.<br>
-                        *Klik Alat (Tool) di bawah, lalu klik kotak area gigi untuk menerapkan tindakan hari ini.
+                        *Saat Anda memasukkan No RM pasien lama, gigi ini akan otomatis menampilkan gambaran perawatan masa lalu.<br>
+                        *Pilih Alat (Tool) pada kategori di bawah ini, lalu klik kotak area gigi untuk menerapkan tindakan.
                     </p>
                     
-                    <!-- PEMILIH ALAT ODONTOGRAM -->
-                    <div class="odonto-tools" id="odontoTools">
-                        <button type="button" class="tool-btn" data-tool="norm" onclick="setOdontoTool('norm', this)"><div class="tc-norm"></div> Normal (Clear)</button>
-                        <button type="button" class="tool-btn active" data-tool="car" onclick="setOdontoTool('car', this)"><div class="tc-car"></div> CAR (Caries)</button>
-                        <button type="button" class="tool-btn" data-tool="gif" onclick="setOdontoTool('gif', this)"><div class="tc-gif"></div> GIF (Glass Ionomer)</button>
-                        <button type="button" class="tool-btn" data-tool="cof" onclick="setOdontoTool('cof', this)"><div class="tc-cof"></div> COF (Composite)</button>
-                        <button type="button" class="tool-btn" data-tool="mis" onclick="setOdontoTool('mis', this)"><div class="tc-mis"></div> MIS (Missing)</button>
-                        <button type="button" class="tool-btn" data-tool="rrx" onclick="setOdontoTool('rrx', this)"><div class="tc-rrx"></div> RRX (Radix)</button>
+                    <div class="odonto-tools-container" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                        <!-- Kategori 1 -->
+                        <div style="font-weight: 600; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-dark);">1. Alat Permukaan (Klik Sisi Pinggir/Tengah Gigi)</div>
+                        <div class="tools-grid">
+                            <button type="button" class="tool-btn active" data-tool="norm" data-type="norm" onclick="setOdontoTool('norm', 'norm', this)"><div class="tc-norm"></div> Normal / Hapus</button>
+                            <button type="button" class="tool-btn" data-tool="car" data-type="surface" onclick="setOdontoTool('car', 'surface', this)"><div class="tc-car"></div> CAR (Caries)</button>
+                            <button type="button" class="tool-btn" data-tool="amf" data-type="surface" onclick="setOdontoTool('amf', 'surface', this)"><div class="tc-amf"></div> AMF (Amalgam)</button>
+                            <button type="button" class="tool-btn" data-tool="cof" data-type="surface" onclick="setOdontoTool('cof', 'surface', this)"><div class="tc-cof"></div> COF (Composite)</button>
+                            <button type="button" class="tool-btn" data-tool="fis" data-type="surface" onclick="setOdontoTool('fis', 'surface', this)"><div class="tc-fis"></div> FIS (Sealant)</button>
+                        </div>
+                        
+                        <!-- Kategori 2 -->
+                        <div style="font-weight: 600; margin-top: 15px; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-dark);">2. Kondisi Seluruh Gigi (Klik Sembarang Area Gigi)</div>
+                        <div class="tools-grid">
+                            <button type="button" class="tool-btn" data-tool="mis" data-type="whole" onclick="setOdontoTool('mis', 'whole', this)"><div class="tc-mis"></div> MIS (Missing)</button>
+                            <button type="button" class="tool-btn" data-tool="cfr" data-type="whole" onclick="setOdontoTool('cfr', 'whole', this)"><div class="tc-cfr"></div> CFR (Fracture)</button>
+                            <button type="button" class="tool-btn" data-tool="poc" data-type="whole" onclick="setOdontoTool('poc', 'whole', this)"><div class="tc-poc"></div> POC (Porcelain)</button>
+                            <button type="button" class="tool-btn" data-tool="fmc" data-type="whole" onclick="setOdontoTool('fmc', 'whole', this)"><div class="tc-fmc"></div> FMC (Full Metal)</button>
+                            <button type="button" class="tool-btn" data-tool="rrx" data-type="whole" onclick="setOdontoTool('rrx', 'whole', this)"><div class="tc-rrx"></div> RRX (Radix)</button>
+                        </div>
+
+                        <!-- Kategori 3 -->
+                        <div style="font-weight: 600; margin-top: 15px; margin-bottom: 10px; font-size: 0.85rem; color: var(--text-dark);">3. Akar & Keterangan Tambahan (Klik Sembarang Area Gigi)</div>
+                        <div class="tools-grid">
+                            <button type="button" class="tool-btn" data-tool="rct" data-type="root" onclick="setOdontoTool('rct', 'root', this)"><div class="tc-rct"></div> RCT (Root Canal)</button>
+                            <button type="button" class="tool-btn" data-tool="nvt" data-type="root" onclick="setOdontoTool('nvt', 'root', this)"><div class="tc-nvt"></div> NVT (Non-Vital)</button>
+                            <button type="button" class="tool-btn" data-tool="non" data-type="label" onclick="setOdontoTool('non', 'label', this)"><div class="tc-lbl">NON</div> Tidak Ada</button>
+                            <button type="button" class="tool-btn" data-tool="une" data-type="label" onclick="setOdontoTool('une', 'label', this)"><div class="tc-lbl">UNE</div> Un-Erupted</button>
+                            <button type="button" class="tool-btn" data-tool="pre" data-type="label" onclick="setOdontoTool('pre', 'label', this)"><div class="tc-lbl">PRE</div> Partial Erupt</button>
+                            <button type="button" class="tool-btn" data-tool="ano" data-type="label" onclick="setOdontoTool('ano', 'label', this)"><div class="tc-lbl">ANO</div> Anomali</button>
+                        </div>
                     </div>
 
                     <div class="odontogram-wrapper" id="odontogramGrid">
@@ -609,7 +660,7 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI
+        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI (PASTIKAN MENGGUNAKAN LINK TERBARU)
         const API_URL = "https://script.google.com/macros/s/AKfycbyIVmMKZKTWbJXQ7QBP7zgqRgEZqjT2pPsHmaneqUz44XIvn7U3FleQrdJY-zwI8p8/exec"; 
         
         let allPatientsData = [];
@@ -688,7 +739,7 @@
         });
 
         // ==================================================================
-        // 3. LOGIKA ODONTOGRAM CERDAS & MEMORI AUTO-LOAD (VISUAL)
+        // 3. LOGIKA ODONTOGRAM CERDAS FULL SIMBOL & MEMORI
         // ==================================================================
         const fiveSurfaces = [
             18,17,16,15,14, 28,27,26,25,24, 
@@ -696,15 +747,22 @@
             55,54, 65,64, 85,84, 75,74                    
         ];
 
-        let currentOdontoTool = 'car'; 
+        let currentOdontoTool = 'norm'; 
+        let currentOdontoToolType = 'norm'; 
 
-        function setOdontoTool(tool, btnElement) {
+        function setOdontoTool(tool, type, btnElement) {
             currentOdontoTool = tool;
+            currentOdontoToolType = type;
             document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
         }
 
-        const stateLabels = { 'norm': 'Normal', 'car': 'Karies', 'gif': 'Glass Ionomer', 'cof': 'Komposit' };
+        const labelMapping = {
+            'car': 'Caries', 'amf': 'Tambalan Amalgam', 'cof': 'Tambalan Composite', 'fis': 'Pit & Fissure Sealant',
+            'mis': 'Missing', 'cfr': 'Fracture', 'poc': 'Porcelain Crown', 'fmc': 'Full Metal Crown', 'rrx': 'Sisa Akar (Radix)',
+            'rct': 'Perawatan Saluran Akar', 'nvt': 'Gigi Non-Vital',
+            'non': 'Tidak Ada (NON)', 'une': 'Un-Erupted', 'pre': 'Partial Erupt', 'ano': 'Anomali'
+        };
 
         function renderOdontogram() {
             const odontoMap = [
@@ -733,23 +791,32 @@
 
         function generateToothSVG(id) {
             let isFive = fiveSurfaces.includes(id);
-            let svg = `<svg viewBox="0 0 40 40" class="tooth-svg" id="svg-${id}">`;
+            let svg = `<svg viewBox="-5 -15 50 75" class="tooth-svg" id="svg-${id}">`;
             
+            svg += `<text x="20" y="-2" class="tooth-label" text-anchor="middle" font-size="12" font-weight="bold" fill="#1e293b"></text>`;
+
             if (isFive) {
-                svg += `<polygon data-pos="Top" points="0,0 40,0 30,10 10,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Right" points="40,0 40,40 30,30 30,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Bottom" points="0,40 40,40 30,30 10,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Left" points="0,0 0,40 10,30 10,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<rect data-pos="Center" x="10" y="10" width="20" height="20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Top" points="0,10 40,10 30,20 10,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Right" points="40,10 40,50 30,40 30,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Bottom" points="0,50 40,50 30,40 10,40" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Left" points="0,10 0,50 10,40 10,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<rect data-pos="Center" x="10" y="20" width="20" height="20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
             } else {
-                svg += `<polygon data-pos="Top" points="0,0 40,0 20,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Right" points="40,0 40,40 20,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Bottom" points="0,40 40,40 20,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-                svg += `<polygon data-pos="Left" points="0,0 0,40 20,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Top" points="0,10 40,10 20,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Right" points="40,10 40,50 20,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Bottom" points="0,50 40,50 20,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Left" points="0,10 0,50 20,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
             }
 
-            svg += `<g class="overlay-mis"><line x1="0" y1="0" x2="40" y2="40" stroke="#1e293b" stroke-width="4"/><line x1="40" y1="0" x2="0" y2="40" stroke="#1e293b" stroke-width="4"/></g>`;
-            svg += `<g class="overlay-rrx"><path d="M 5 10 L 20 35 L 35 10" stroke="#ef4444" stroke-width="4" fill="none"/></g>`;
+            svg += `<g class="overlay-mis" style="pointer-events:none; display:none;"><line x1="0" y1="10" x2="40" y2="50" stroke="#1e293b" stroke-width="4"/><line x1="40" y1="10" x2="0" y2="50" stroke="#1e293b" stroke-width="4"/></g>`;
+            svg += `<g class="overlay-cfr" style="pointer-events:none; display:none;"><line x1="12" y1="5" x2="12" y2="55" stroke="#1e293b" stroke-width="2"/><line x1="28" y1="5" x2="28" y2="55" stroke="#1e293b" stroke-width="2"/><line x1="-5" y1="22" x2="45" y2="22" stroke="#1e293b" stroke-width="2"/><line x1="-5" y1="38" x2="45" y2="38" stroke="#1e293b" stroke-width="2"/></g>`;
+            svg += `<g class="overlay-poc" style="pointer-events:none; display:none;"><rect x="0" y="10" width="40" height="40" fill="url(#pat-poc)" stroke="#1e293b" stroke-width="2" /></g>`;
+            svg += `<g class="overlay-fmc" style="pointer-events:none; display:none;"><rect x="0" y="10" width="40" height="40" fill="none" stroke="#1e293b" stroke-width="2"/><rect x="6" y="16" width="28" height="28" fill="none" stroke="#1e293b" stroke-width="2"/></g>`;
+            svg += `<g class="overlay-rrx" style="pointer-events:none; display:none;"><path d="M 0 15 L 20 50 L 40 15" stroke="#ef4444" stroke-width="4" fill="none"/></g>`;
+
+            svg += `<polygon class="overlay-nvt" points="10,50 30,50 20,65" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
+            svg += `<polygon class="overlay-rct" points="10,50 30,50 20,65" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
+
             svg += `</svg>`;
             return svg;
         }
@@ -758,13 +825,47 @@
             const svgEl = document.getElementById('svg-' + id);
             const clickedSurface = event.target;
 
-            if (currentOdontoTool === 'mis' || currentOdontoTool === 'rrx') {
-                svgEl.setAttribute('data-whole', currentOdontoTool);
-                svgEl.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
-            } else {
+            let toolType = currentOdontoToolType; 
+            let toolValue = currentOdontoTool;
+
+            if (toolType === 'norm') {
                 svgEl.removeAttribute('data-whole');
-                clickedSurface.setAttribute('data-state', currentOdontoTool);
+                svgEl.removeAttribute('data-root');
+                svgEl.querySelector('.tooth-label').textContent = '';
+                svgEl.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
+            } 
+            else if (toolType === 'surface') {
+                if(clickedSurface.classList.contains('surface')) {
+                    if (clickedSurface.getAttribute('data-state') === toolValue) {
+                        clickedSurface.setAttribute('data-state', 'norm');
+                    } else {
+                        clickedSurface.setAttribute('data-state', toolValue);
+                    }
+                }
             }
+            else if (toolType === 'whole') {
+                if (svgEl.getAttribute('data-whole') === toolValue) {
+                    svgEl.removeAttribute('data-whole');
+                } else {
+                    svgEl.setAttribute('data-whole', toolValue);
+                }
+            }
+            else if (toolType === 'root') {
+                if (svgEl.getAttribute('data-root') === toolValue) {
+                    svgEl.removeAttribute('data-root');
+                } else {
+                    svgEl.setAttribute('data-root', toolValue);
+                }
+            }
+            else if (toolType === 'label') {
+                let textEl = svgEl.querySelector('.tooth-label');
+                if (textEl.textContent === toolValue.toUpperCase()) {
+                    textEl.textContent = '';
+                } else {
+                    textEl.textContent = toolValue.toUpperCase();
+                }
+            }
+            
             generateOdontoTextSummary();
         }
 
@@ -807,33 +908,36 @@
 
             document.querySelectorAll('.tooth-svg').forEach(svg => {
                 let id = parseInt(svg.id.replace('svg-', ''));
-                let wholeState = svg.getAttribute('data-whole');
-                
-                if (wholeState) {
-                    odontoStateJSON[id] = { whole: wholeState };
-                    if (wholeState === 'mis') results.push(`Gigi ${id} (Missing / Hilang)`);
-                    if (wholeState === 'rrx') results.push(`Gigi ${id} (Sisa Akar / Radix)`);
-                } else {
-                    let surfacesArray = Array.from(svg.querySelectorAll('.surface'));
-                    let issues = [];
-                    let surfaceStates = {};
-                    let hasIssue = false;
+                let toothData = {};
+                let hasData = false;
+                let issues = [];
 
-                    surfacesArray.forEach(s => {
-                        let state = s.getAttribute('data-state');
-                        let rawPosition = s.getAttribute('data-pos');
-                        if (state && state !== 'norm') { 
-                            surfaceStates[rawPosition] = state;
-                            hasIssue = true;
-                            let medicalSurfaceName = resolveDentalSurfaceName(id, rawPosition);
-                            issues.push(`${medicalSurfaceName} ${stateLabels[state]}`);
-                        }
-                    });
-                    
-                    if (hasIssue) {
-                        odontoStateJSON[id] = { surfaces: surfaceStates };
-                        results.push(`Gigi ${id} (${issues.join(', ')})`);
+                let labelText = svg.querySelector('.tooth-label').textContent;
+                if (labelText) { toothData.label = labelText; issues.push(`Status: ${labelText}`); hasData = true; }
+
+                let rootState = svg.getAttribute('data-root');
+                if (rootState) { toothData.root = rootState; issues.push(`${labelMapping[rootState]}`); hasData = true; }
+
+                let wholeState = svg.getAttribute('data-whole');
+                if (wholeState) { toothData.whole = wholeState; issues.push(`${labelMapping[wholeState]}`); hasData = true; }
+
+                let surfaceStates = {};
+                svg.querySelectorAll('.surface').forEach(s => {
+                    let state = s.getAttribute('data-state');
+                    let rawPos = s.getAttribute('data-pos');
+                    if (state && state !== 'norm') { 
+                        surfaceStates[rawPos] = state;
+                        let medName = resolveDentalSurfaceName(id, rawPos);
+                        issues.push(`${medName} ${labelMapping[state]}`);
+                        hasData = true;
                     }
+                });
+
+                if (Object.keys(surfaceStates).length > 0) { toothData.surfaces = surfaceStates; }
+
+                if (hasData) {
+                    odontoStateJSON[id] = toothData;
+                    results.push(`Gigi ${id} (${issues.join(', ')})`);
                 }
             });
             
@@ -844,6 +948,8 @@
         function applyPastOdontoState(stateObj) {
             document.querySelectorAll('.tooth-svg').forEach(svg => {
                 svg.removeAttribute('data-whole');
+                svg.removeAttribute('data-root');
+                svg.querySelector('.tooth-label').textContent = '';
                 svg.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
             });
 
@@ -852,9 +958,11 @@
                 if (!svg) continue;
                 let data = stateObj[toothId];
                 
-                if (data.whole) {
-                    svg.setAttribute('data-whole', data.whole);
-                } else if (data.surfaces) {
+                if (data.label) svg.querySelector('.tooth-label').textContent = data.label;
+                if (data.root) svg.setAttribute('data-root', data.root);
+                if (data.whole) svg.setAttribute('data-whole', data.whole);
+
+                if (data.surfaces) {
                     for (let pos in data.surfaces) {
                         let polygon = svg.querySelector(`.surface[data-pos="${pos}"]`);
                         if (polygon) polygon.setAttribute('data-state', data.surfaces[pos]);
@@ -1059,7 +1167,6 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // FETCH API LAMA YANG WORK
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
