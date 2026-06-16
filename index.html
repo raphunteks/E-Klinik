@@ -74,6 +74,7 @@
         label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
+        input[readonly] { background: rgba(226, 232, 240, 0.5); cursor: not-allowed; }
 
         /* BUBBLE UI AUTO-FILL (AESTHETIC) */
         .auto-fill-bubble {
@@ -182,7 +183,7 @@
         /* Modal General */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
         .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 800px; position: relative; max-height: 90vh; overflow-y: auto;} 
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; position: relative; max-height: 90vh; overflow-y: auto;} 
         .close-modal { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-light); }
         .close-modal:hover { color: var(--danger); }
 
@@ -287,8 +288,14 @@
                         <div class="input-group"><label>No RM</label><input type="text" id="inputNoRm" name="noRm" placeholder="Ketik No RM untuk Cek Memori" required></div>
                         <div class="input-group"><label>NIK Pasien</label><input type="number" id="inputNik" name="nik" placeholder="16 Digit NIK" required></div>
                         <div class="input-group"><label>Nama Lengkap</label><input type="text" id="inputNama" name="namaLengkap" placeholder="Nama sesuai KTP" required></div>
-                        <div class="input-group"><label>Tempat, Tanggal Lahir</label><input type="text" name="tempatTanggalLahir" placeholder="Contoh: Kendari, 17 Agustus 1990" required></div>
-                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" name="usia" placeholder="35" required></div>
+                        
+                        <!-- UPGRADE Cerdas Tempat Tgl Lahir -> Usia -->
+                        <div class="input-group">
+                            <label>Tempat, Tanggal Bulan Tahun Lahir</label>
+                            <input type="text" id="inputTtl" name="tempatTanggalLahir" placeholder="Cth: Kendari, 03/03/2002" required>
+                        </div>
+                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required readonly></div>
+                        
                         <div class="input-group">
                             <label>Jenis Kelamin</label>
                             <select name="jenisKelamin" required>
@@ -299,7 +306,8 @@
                         </div>
                     </div>
                     <div class="input-group" style="margin-bottom: 20px;">
-                        <label>Alamat Domisili</label>
+                        <!-- UPGRADE Label Alamat -->
+                        <label>Alamat Sesuai KTP</label>
                         <textarea name="alamat" rows="2" placeholder="Alamat lengkap pasien..." required></textarea>
                     </div>
 
@@ -606,7 +614,7 @@
         
         let allPatientsData = [];
         let tempPasienSks = null;
-        let memoryPatientData = null; // Menyimpan data memori untuk auto-fill
+        let memoryPatientData = null; 
 
         // Panggil saat aplikasi pertama kali dibuka agar data 'allPatientsData' terisi untuk auto-load (Background Load)
         document.addEventListener('DOMContentLoaded', () => {
@@ -632,7 +640,55 @@
         }
 
         // ==================================================================
-        // 2. LOGIKA ODONTOGRAM CERDAS & MEMORI AUTO-LOAD (VISUAL)
+        // 2. LOGIKA KALKULASI USIA OTOMATIS DARI TTL
+        // ==================================================================
+        const inputTtl = document.getElementById('inputTtl');
+        const inputUsia = document.getElementById('inputUsia');
+
+        inputTtl.addEventListener('input', function() {
+            const val = this.value;
+            const parts = val.split(',');
+            if (parts.length > 1) {
+                let dateStr = parts[1].trim();
+                dateStr = dateStr.replace(/[-/]/g, ' '); // Ganti strip atau slash jadi spasi
+                
+                const monthNames = {
+                    'januari': 1, 'jan': 1, 'februari': 2, 'feb': 2, 'maret': 3, 'mar': 3,
+                    'april': 4, 'apr': 4, 'mei': 5, 'juni': 6, 'jun': 6, 'juli': 7, 'jul': 7,
+                    'agustus': 8, 'agu': 8, 'september': 9, 'sep': 9, 'oktober': 10, 'okt': 10,
+                    'november': 11, 'nov': 11, 'desember': 12, 'des': 12
+                };
+
+                let dateParts = dateStr.split(' ').filter(p => p !== '');
+                if (dateParts.length === 3) {
+                    let day = parseInt(dateParts[0]);
+                    let month = dateParts[1].toLowerCase();
+                    let year = parseInt(dateParts[2]);
+
+                    if (isNaN(month)) {
+                        month = monthNames[month];
+                    } else {
+                        month = parseInt(month);
+                    }
+
+                    if (day && month && year) {
+                        let today = new Date();
+                        let birthDate = new Date(year, month - 1, day);
+                        let age = today.getFullYear() - birthDate.getFullYear();
+                        let m = today.getMonth() - birthDate.getMonth();
+                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                            age--;
+                        }
+                        if (age >= 0) {
+                            inputUsia.value = age;
+                        }
+                    }
+                }
+            }
+        });
+
+        // ==================================================================
+        // 3. LOGIKA ODONTOGRAM CERDAS & MEMORI AUTO-LOAD (VISUAL)
         // ==================================================================
         const fiveSurfaces = [
             18,17,16,15,14, 28,27,26,25,24, 
@@ -811,7 +867,7 @@
         renderOdontogram();
 
         // ==================================================================
-        // 3. LOGIKA AUTO-FILL DEMOGRAFI, FISIS & BUBBLE UI ALERT
+        // 4. LOGIKA AUTO-FILL DEMOGRAFI, FISIS & BUBBLE UI ALERT
         // ==================================================================
         document.getElementById('inputNoRm').addEventListener('input', checkPastVisits);
         document.getElementById('inputNik').addEventListener('input', checkPastVisits);
@@ -824,11 +880,10 @@
                 let pastVisits = allPatientsData.filter(i => (i['No RM']||'').toLowerCase() === key || (i['NIK']||'').toString() === key || (i['Nama Lengkap']||'').toLowerCase().includes(key));
                 
                 if (pastVisits.length > 0) {
-                    // Tampilkan BUBBLE UI
                     document.getElementById('autoFillAlert').style.display = 'flex';
                     
                     pastVisits.sort((a,b) => new Date(a['Timestamp']) - new Date(b['Timestamp']));
-                    memoryPatientData = pastVisits[pastVisits.length - 1]; // Ambil data kunjungan PALING BARU untuk autofill
+                    memoryPatientData = pastVisits[pastVisits.length - 1]; 
                     
                     let mergedOdonto = {};
                     pastVisits.forEach(v => {
@@ -850,12 +905,10 @@
             }
         }
 
-        // Fungsi Eksekusi ketika Bubble Button diklik
         function eksekusiAutoFill() {
             if(!memoryPatientData) return;
             const rec = memoryPatientData;
             
-            // Set Nilai Input Dasar
             const setter = (name, val) => { const el = document.querySelector(`[name="${name}"]`); if(el && val && val !== '-') el.value = val; };
             setter('noRm', rec['No RM']);
             setter('nik', rec['NIK']);
@@ -893,7 +946,6 @@
             setter('suhu', rec['Suhu (C)']);
             setter('saturasi', rec['Saturasi (%)']);
 
-            // Setup Ulang Riwayat Penyakit (Checkbox + List)
             const pContainer = document.getElementById('penyakitContainer');
             const pList = document.getElementById('penyakitList');
             if(rec['Riwayat Penyakit'] && rec['Riwayat Penyakit'] !== 'Tidak Ada' && rec['Riwayat Penyakit'] !== '-') {
@@ -910,7 +962,6 @@
                 document.getElementById('chkTidakAdaPenyakit').checked = true; pContainer.style.display = 'none';
             }
 
-            // Setup Ulang Riwayat Alergi (Checkbox + List)
             const aContainer = document.getElementById('alergiContainer');
             const aList = document.getElementById('alergiList');
             if(rec['Riwayat Alergi'] && rec['Riwayat Alergi'] !== 'Tidak Ada' && rec['Riwayat Alergi'] !== '-') {
@@ -927,7 +978,6 @@
                 document.getElementById('chkTidakAdaAlergi').checked = true; aContainer.style.display = 'none';
             }
 
-            // Sembunyikan bubble & tampilkan toast
             document.getElementById('autoFillAlert').style.display = 'none';
             showToast("Berhasil memuat memori data kunjungan masa lalu!", "success");
         }
@@ -950,7 +1000,7 @@
         }
 
         // ==================================================================
-        // 4. LOGIKA E-RESEP DINAMIS
+        // 5. LOGIKA E-RESEP DINAMIS
         // ==================================================================
         function tambahBarisResep() {
             const tbody = document.getElementById('resepBody');
@@ -971,7 +1021,7 @@
         tambahBarisResep(); 
 
         // ==================================================================
-        // 5. PROSES SUBMIT FORM KE GAS
+        // 6. PROSES SUBMIT FORM KE GAS
         // ==================================================================
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1009,7 +1059,6 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // FETCH API LAMA YANG WORK
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
@@ -1032,7 +1081,7 @@
         });
 
         // ==================================================================
-        // 6. GET DATA DARI GAS
+        // 7. GET DATA DARI GAS & PENGATURAN DASBOR
         // ==================================================================
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
@@ -1052,7 +1101,7 @@
         function renderTable(dataArray) {
             const tBody = document.getElementById('tableBody');
             tBody.innerHTML = '';
-            if(dataArray.length === 0) return tBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada arsip.</td></tr>`;
+            if(dataArray.length === 0) return tBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada arsip yang cocok.</td></tr>`;
 
             dataArray.forEach((item, index) => {
                 const tr = document.createElement('tr');
@@ -1061,7 +1110,8 @@
 
                 tr.innerHTML = `
                     <td style="white-space:nowrap;">
-                        <strong>${item['Tanggal Pelayanan'] || '-'}</strong><br>
+                        <i class="fa-regular fa-clock" style="color:var(--text-light)"></i> <strong>${item['Timestamp'] || '-'}</strong><br>
+                        <span style="font-size:0.75rem; color:var(--text-light);">Tgl Pelayanan: ${item['Tanggal Pelayanan'] || '-'}</span><br>
                         <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
                     </td>
                     <td><strong>${item['No RM'] || '-'}</strong></td>
@@ -1088,12 +1138,16 @@
         }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
-            const k = e.target.value.toLowerCase();
-            renderTable(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
+            const k = e.target.value.toLowerCase().trim();
+            if(k === "") {
+                renderTable(allPatientsData);
+            } else {
+                renderTable(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
+            }
         });
 
         // ==================================================================
-        // 7. LOGIKA RIWAYAT KUNJUNGAN PASIEN KOMPREHENSIF (DOUBLE CLICK)
+        // 8. LOGIKA RIWAYAT KUNJUNGAN PASIEN KOMPREHENSIF (DOUBLE CLICK)
         // ==================================================================
         function bukaRiwayatKunjungan(rmFilter, nama) {
             document.getElementById('histRm').innerText = rmFilter;
@@ -1109,7 +1163,6 @@
             } else {
                 visits.forEach(v => {
                     
-                    // Ekstrak Resep Obat JSON ke HTML Table
                     let resepHTML = '';
                     try {
                         let rs = JSON.parse(v['Resep Obat']);
@@ -1123,11 +1176,10 @@
                         } else { resepHTML = '<p style="color:#64748b; margin-top:5px;">Tidak ada resep obat.</p>'; }
                     } catch(e) { resepHTML = `<p>${v['Resep Obat']}</p>`; }
 
-                    // Template HTML Detail Card
                     timeline.innerHTML += `
                         <div class="timeline-item">
                             <div class="tl-header">
-                                <div class="tl-date"><i class="fa-regular fa-calendar-check"></i> ${v['Tanggal Pelayanan']}</div>
+                                <div class="tl-date"><i class="fa-regular fa-calendar-check"></i> ${v['Timestamp']}</div>
                                 <strong style="color:var(--text-dark);">${v['Elemen Gigi'] && v['Elemen Gigi'] !== '-' ? 'Odontogram: ' + v['Elemen Gigi'] : 'Pemeriksaan Umum'}</strong>
                             </div>
                             <div class="tl-body">
@@ -1178,7 +1230,7 @@
         }
 
         // ==================================================================
-        // 8. MODUL SKS - LOGIKA OTOMATIS TANGGAL & PRINT
+        // 9. MODUL SKS - LOGIKA OTOMATIS TANGGAL & PRINT
         // ==================================================================
         const inputHari = document.getElementById('sksHari');
         const inputMulai = document.getElementById('sksMulai');
