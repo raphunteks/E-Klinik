@@ -883,7 +883,9 @@
         }
 
         function generateToothSVG(id, position) {
-            let svg = `<svg viewBox="0 0 40 40" class="tooth-svg" id="svg-${id}">`;
+            let isFive = posteriorTeeth.includes(id);
+            // ViewBox diperbesar untuk mencegah SVG terpotong
+            let svg = `<svg viewBox="-5 -20 50 90" class="tooth-svg" id="svg-${id}">`;
             
             let labelY = position === 'top' ? -15 : 55;
             let rootPath = position === 'top' ? "M 0 5 L 20 -25 L 40 5" : "M 0 35 L 20 65 L 40 35";
@@ -891,16 +893,25 @@
 
             svg += `<text x="20" y="${labelY}" class="tooth-label" text-anchor="middle" font-size="14" font-weight="bold" fill="#1e293b"></text>`;
 
-            svg += `<polygon data-pos="Top" points="0,0 40,0 30,10 10,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-            svg += `<polygon data-pos="Right" points="40,0 40,40 30,30 30,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-            svg += `<polygon data-pos="Bottom" points="0,40 40,40 30,30 10,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-            svg += `<polygon data-pos="Left" points="0,0 0,40 10,30 10,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
-            svg += `<rect data-pos="Center" x="10" y="10" width="20" height="20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+            if (isFive) {
+                // Gigi Posterior (5 Permukaan)
+                svg += `<polygon data-pos="Top" points="0,10 40,10 30,20 10,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Right" points="40,10 40,50 30,40 30,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Bottom" points="0,50 40,50 30,40 10,40" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Left" points="0,10 0,50 10,40 10,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<rect data-pos="Center" x="10" y="20" width="20" height="20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+            } else {
+                // UPDATE: Desain Gigi Anterior (4 Permukaan) Sesuai Gbr 1
+                svg += `<polygon data-pos="Top" points="0,10 40,10 28,30 12,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Right" points="40,10 40,50 28,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Bottom" points="0,50 40,50 28,30 12,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+                svg += `<polygon data-pos="Left" points="0,10 0,50 12,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
+            }
 
-            svg += `<g class="overlay-mis" style="pointer-events:none; display:none;"><line x1="0" y1="0" x2="40" y2="40" stroke="#1e293b" stroke-width="4"/><line x1="40" y1="0" x2="0" y2="40" stroke="#1e293b" stroke-width="4"/></g>`;
-            svg += `<g class="overlay-cfr" style="pointer-events:none; display:none;"><line x1="12" y1="-2" x2="12" y2="42" stroke="#1e293b" stroke-width="2"/><line x1="28" y1="-2" x2="28" y2="42" stroke="#1e293b" stroke-width="2"/><line x1="-2" y1="12" x2="42" y2="12" stroke="#1e293b" stroke-width="2"/><line x1="-2" y1="28" x2="42" y2="28" stroke="#1e293b" stroke-width="2"/></g>`;
-            svg += `<g class="overlay-poc" style="pointer-events:none; display:none;"><rect x="0" y="0" width="40" height="40" fill="url(#pat-poc)" stroke="#1e293b" stroke-width="2" /></g>`;
-            svg += `<g class="overlay-fmc" style="pointer-events:none; display:none;"><rect x="0" y="0" width="40" height="40" fill="none" stroke="#1e293b" stroke-width="2"/><rect x="6" y="6" width="28" height="28" fill="none" stroke="#1e293b" stroke-width="2"/></g>`;
+            svg += `<g class="overlay-mis" style="pointer-events:none; display:none;"><line x1="0" y1="10" x2="40" y2="50" stroke="#1e293b" stroke-width="4"/><line x1="40" y1="10" x2="0" y2="50" stroke="#1e293b" stroke-width="4"/></g>`;
+            svg += `<g class="overlay-cfr" style="pointer-events:none; display:none;"><line x1="12" y1="8" x2="12" y2="52" stroke="#1e293b" stroke-width="2"/><line x1="28" y1="8" x2="28" y2="52" stroke="#1e293b" stroke-width="2"/><line x1="-5" y1="22" x2="45" y2="22" stroke="#1e293b" stroke-width="2"/><line x1="-5" y1="38" x2="45" y2="38" stroke="#1e293b" stroke-width="2"/></g>`;
+            svg += `<g class="overlay-poc" style="pointer-events:none; display:none;"><rect x="0" y="10" width="40" height="40" fill="url(#pat-poc)" stroke="#1e293b" stroke-width="2" /></g>`;
+            svg += `<g class="overlay-fmc" style="pointer-events:none; display:none;"><rect x="0" y="10" width="40" height="40" fill="none" stroke="#1e293b" stroke-width="2"/><rect x="6" y="16" width="28" height="28" fill="none" stroke="#1e293b" stroke-width="2"/></g>`;
             svg += `<g class="overlay-rrx" style="pointer-events:none; display:none;"><path d="${rootPath}" stroke="#ef4444" stroke-width="4" fill="none"/></g>`;
 
             svg += `<polygon class="overlay-nvt" points="${rootTri}" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
@@ -962,6 +973,7 @@
             let q = Math.floor(id / 10); 
             let isPosterior = posteriorTeeth.includes(id);
 
+            // Perbaikan penamaan Oklusal vs Insisal
             if (position === 'Center') return isPosterior ? 'Oklusal' : 'Insisal';
 
             if (q === 1 || q === 5) {
