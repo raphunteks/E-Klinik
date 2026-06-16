@@ -294,7 +294,7 @@
                             <label>Tempat, Tanggal Bulan Tahun Lahir</label>
                             <input type="text" id="inputTtl" name="tempatTanggalLahir" placeholder="Cth: Kendari, 03/03/2002" required>
                         </div>
-                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required readonly></div>
+                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required></div>
                         
                         <div class="input-group">
                             <label>Jenis Kelamin</label>
@@ -609,7 +609,7 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS VERSI 5 ANDA DISINI (PASTIKAN SUDAH NEW DEPLOYMENT)
+        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI
         const API_URL = "https://script.google.com/macros/s/AKfycbyIVmMKZKTWbJXQ7QBP7zgqRgEZqjT2pPsHmaneqUz44XIvn7U3FleQrdJY-zwI8p8/exec"; 
         
         let allPatientsData = [];
@@ -650,7 +650,7 @@
             const parts = val.split(',');
             if (parts.length > 1) {
                 let dateStr = parts[1].trim();
-                dateStr = dateStr.replace(/[-/]/g, ' '); // Ganti strip atau slash jadi spasi
+                dateStr = dateStr.replace(/[-/]/g, ' '); 
                 
                 const monthNames = {
                     'januari': 1, 'jan': 1, 'februari': 2, 'feb': 2, 'maret': 3, 'mar': 3,
@@ -1059,6 +1059,7 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
+                // FETCH API LAMA YANG WORK
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
