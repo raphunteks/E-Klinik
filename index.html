@@ -9,6 +9,10 @@
     <link rel="icon" type="image/png" href="axalogo.png">
     <link rel="apple-touch-icon" href="axalogo.png">
     <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis pasien terintegrasi.">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Sistem E-RM | Klinik Pribadi">
+    <meta property="og:description" content="Manajemen pencatatan klinis pasien berbasis SOAP.">
+    <meta property="og:image" content="axalogo.png">
 
     <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -811,7 +815,7 @@
         }
         tambahBarisResep(); 
 
-        // 5. Proses Submit Form ke GAS (PENCEGAHAN BLOKIR CORS VIA TEXT/PLAIN)
+        // 5. Proses Submit Form ke GAS (PENCEGAHAN BLOKIR CORS)
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             generateOdontoTextSummary(); 
@@ -848,7 +852,7 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // MENGHILANGKAN HEADER application/json AGAR BROWSER MENGIRIM SEBAGAI text/plain (BYPASS CORS)
+                // FIXED POST: MENGIRIM TANPA HEADER "application/json" AGAR OTOMATIS MENJADI text/plain (LOLOS CORS)
                 await fetch(API_URL, { 
                     method: 'POST', 
                     body: JSON.stringify(dataObj) 
@@ -867,21 +871,18 @@
             }
         });
 
-        // 6. GET Data dari GAS (FIXED FETCH MENCEGAH REDIRECT ERROR)
+        // 6. GET Data dari GAS (FIXED CORS & REDIRECT ERROR)
         async function loadDashboardData() {
             const tBody = document.getElementById('tableBody');
             tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data dari server...</td></tr>`;
             
             try {
-                // Menambahkan parameter 'ts' (timestamp) menghindari cache respons Google yang lama.
-                const response = await fetch(API_URL + "?action=read&ts=" + new Date().getTime(), {
-                    method: "GET",
-                    headers: { "Accept": "application/json" }
-                });
+                // FIXED GET: Menghapus deklarasi header custom untuk mencegah "Preflight OPTIONS" ditolak Google.
+                const response = await fetch(API_URL + "?action=read&ts=" + new Date().getTime());
                 
-                if (!response.ok) throw new Error("HTTP " + response.status);
+                if (!response.ok) throw new Error("HTTP Status " + response.status);
 
-                // Membaca sbg teks terlebih dahulu sebelum parsing ke JSON
+                // Baca teks murni dulu untuk mencegah crash jika Google mengirim halaman Login HTML
                 const textResponse = await response.text(); 
                 
                 try {
@@ -893,18 +894,18 @@
                         tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">Error Server: ${result.message}</td></tr>`;
                     }
                 } catch (parseError) {
-                    console.error("Respon bukan JSON:", textResponse);
+                    console.error("Format data bukan JSON (Tautan kedaluwarsa atau akses ditolak):", textResponse);
                     tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">
-                        <strong>Gagal membaca database.</strong><br>
-                        <small>Hak akses Web App terblokir oleh Google. Pastikan saat Deploy "Execute as" adalah "Me", dan "Who has access" adalah "Anyone".</small>
+                        <strong>Gagal membaca format database.</strong><br>
+                        <small>Kemungkinan akses ditolak Google. Pastikan "Who has access" adalah "Anyone".</small>
                     </td></tr>`;
                 }
 
             } catch (error) {
-                console.error("Kesalahan Jaringan:", error);
+                console.error("Kesalahan Jaringan (CORS):", error);
                 tBody.innerHTML = `<tr><td colspan="4" style="color:var(--danger); text-align:center;">
                     <strong>Koneksi ke database terputus.</strong><br>
-                    <small>Periksa koneksi internet Anda atau pastikan URL API sudah benar.</small>
+                    <small>Permintaan diblokir browser. Pastikan URL API adalah hasil deploy terbaru.</small>
                 </td></tr>`;
             }
         }
@@ -917,7 +918,7 @@
 
             dataArray.forEach((item, index) => {
                 const tr = document.createElement('tr');
-                tr.style.cursor = 'pointer'; // Hint for clicking
+                tr.style.cursor = 'pointer'; 
                 const safeItem = encodeURIComponent(JSON.stringify(item));
                 const safeRm = item['No RM'].replace(/'/g, "\\'");
 
@@ -944,7 +945,6 @@
                         <p style="font-size:0.85rem;"><strong>P:</strong> ${item['Plan']||'-'}</p>
                     </td>
                 `;
-                // Implementasi Double Click Buka Riwayat Lengkap
                 tr.ondblclick = () => bukaRiwayatKunjungan(item['No RM'], item['Nama Lengkap']);
                 tBody.appendChild(tr);
             });
@@ -965,7 +965,6 @@
             const timeline = document.getElementById('historyTimeline');
             timeline.innerHTML = '';
 
-            // Ambil semua kunjungan atas No RM ini, urutkan dari terbaru ke terlama
             let visits = allPatientsData.filter(i => i['No RM'] === rmFilter).sort((a,b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
             
             if(visits.length === 0) {
