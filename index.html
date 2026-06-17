@@ -120,10 +120,6 @@
         .accordion-header:hover { background: rgba(255,255,255,0.7); }
         .accordion-body { padding: 15px 20px; display: none; border-top: 1px solid var(--glass-border); background: #fdfdfd; }
         .accordion-body.open { display: block; }
-        
-        .riwayat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .riwayat-table th { background: #e2e8f0; padding: 10px; text-align: left; color: #475569; }
-        .riwayat-table td { padding: 10px; border-bottom: 1px solid #cbd5e1; }
 
         /* Tools UI Grid & Kategori */
         .odonto-tools-container { background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--glass-border); }
@@ -270,12 +266,15 @@
         .soap-badge { display: inline-block; width: 28px; height: 28px; line-height: 28px; text-align: center; border-radius: 6px; color: white; font-weight: bold; margin-right: 8px; font-size: 0.85rem;}
         .bg-s { background: #f59e0b; } .bg-o { background: #3b82f6; } .bg-a { background: #ef4444; } .bg-p { background: #10b981; }
 
-        /* Tabel e-Resep Custom */
+        /* Tabel Universal (Resep & Dasbor Admin) FIX BUG RESEP HILANG */
         .table-responsive { overflow-x: auto; border-radius: 8px; -webkit-overflow-scrolling: touch; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.3); margin-bottom: 15px;}
-        .custom-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        .custom-table th { background: #e2e8f0; color: #475569; padding: 12px; font-size: 0.85rem; text-align: left; }
-        .custom-table td { padding: 10px 12px; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem;}
-        .custom-table input, .custom-table select { padding: 8px; font-size: 0.85rem; background: #fff; border: 1px solid #cbd5e1; }
+        .dash-table { width: 100%; border-collapse: collapse; min-width: 900px; } /* Semua tabel disatukan menggunakan .dash-table agar tampil konsisten */
+        .dash-table th, .dash-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .dash-table th { background: rgba(255, 255, 255, 0.5); font-weight: 600; white-space: nowrap; color: #475569; font-size: 0.85rem;}
+        .dash-table td { background: rgba(255, 255, 255, 0.2); font-size: 0.85rem; vertical-align: top; }
+        .dash-table tr { transition: background 0.2s; }
+        .dash-table tr:hover td { background: rgba(255, 255, 255, 0.7); }
+        .dash-table input, .dash-table select { padding: 8px; font-size: 0.85rem; background: #fff; border: 1px solid #cbd5e1; width: 100%; border-radius: 6px;}
         
         /* Dasbor Admin & Riwayat Kunjungan Modal */
         .dashboard-container { padding: 25px; }
@@ -284,20 +283,13 @@
         .search-box i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-light); }
         .search-box input { padding-left: 45px; }
 
-        .dash-table { width: 100%; border-collapse: collapse; min-width: 1000px; }
-        .dash-table th, .dash-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--glass-border); }
-        .dash-table th { background: rgba(255, 255, 255, 0.5); font-weight: 600; white-space: nowrap;}
-        .dash-table td { background: rgba(255, 255, 255, 0.2); font-size: 0.85rem; vertical-align: top; }
-        .dash-table tr { cursor: pointer; transition: background 0.2s; }
-        .dash-table tr:hover td { background: rgba(255, 255, 255, 0.7); }
-
         .spinner { border: 3px solid rgba(255,255,255,0.3); border-top: 3px solid white; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
         /* Modal General */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; padding: 20px;}
         .modal.active { display: flex; }
-        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 95%; max-width: 900px; position: relative; max-height: 90vh; overflow-y: auto;} 
+        .modal-content { background: white; padding: 30px; border-radius: 12px; width: 100%; max-width: 900px; position: relative; max-height: 90vh; overflow-y: auto;} 
         .close-modal { position: absolute; top: 20px; right: 20px; font-size: 1.5rem; cursor: pointer; color: var(--text-light); z-index: 100;}
         .close-modal:hover { color: var(--danger); }
 
@@ -340,7 +332,7 @@
         #toast.info { background: #3b82f6; }
 
         @media(max-width: 850px) {
-            .form-container { padding: 20px; }
+            .form-container, .dashboard-container { padding: 15px; }
             .btn { width: 100%; }
             .auto-fill-bubble { flex-direction: column; text-align: center; gap: 15px; }
             #toast { left: 50%; right: auto; transform: translateX(-50%) translateY(150%); bottom: 20px; width: 90%; }
@@ -641,10 +633,10 @@
                         <textarea name="plan" id="fPlan" rows="3" placeholder="Rencana perawatan & tindakan yang dilakukan hari ini, instruksi pulang, rencana kontrol..." required></textarea>
                     </div>
 
-                    <!-- 6. E-Resep Obat -->
+                    <!-- 6. E-Resep Obat FIX BUG HILANG (Ganti Class Jadi dash-table) -->
                     <h3 class="module-title"><i class="fa-solid fa-pills"></i> Resep Obat Dokter</h3>
                     <div class="table-responsive" style="margin-bottom: 15px;">
-                        <table class="custom-table" id="tblResep">
+                        <table class="dash-table" id="tblResep">
                             <thead>
                                 <tr>
                                     <th>Racikan</th>
@@ -803,6 +795,36 @@
                         </form>
                     </div>
                 </div>
+
+                <!-- TAMPILAN TABEL DAFTAR MASTER DATA REALTIME -->
+                <div style="margin-top: 40px;">
+                    <h3 style="margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-list"></i> Daftar Lengkap Master Data</h3>
+                    
+                    <div class="table-responsive">
+                        <table class="dash-table">
+                            <thead>
+                                <tr>
+                                    <th>Kategori Master Data</th>
+                                    <th>Daftar Item (Realtime dari Database)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="font-weight: bold; color: var(--primary);">1. Operator & Tenaga Medis</td>
+                                    <td><ul id="listMasterOp" style="margin-left: 20px; color: #475569;"><li>Memuat data...</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: var(--success);">2. Obat-obatan (Farmasi)</td>
+                                    <td><ul id="listMasterObat" style="margin-left: 20px; color: #475569;"><li>Memuat data...</li></ul></td>
+                                </tr>
+                                <tr>
+                                    <td style="font-weight: bold; color: #6366f1;">3. Tindakan Klinik</td>
+                                    <td><ul id="listMasterTindakan" style="margin-left: 20px; color: #475569;"><li>Memuat data...</li></ul></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
@@ -887,6 +909,8 @@
         
         let allPatientsData = [];
         let masterOperators = [];
+        let masterObats = [];
+        let masterTindakans = [];
         let tempPasienSks = null;
         let memoryPatientData = null; 
 
@@ -934,6 +958,7 @@
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
             const fBody = document.getElementById('farmasiBody');
+            
             if(!silent) {
                 tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik arsip...</td></tr>`;
                 fBody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Mengecek resep masuk...</td></tr>`;
@@ -946,10 +971,13 @@
                 if(result.status === 'success') {
                     allPatientsData = result.dataRM.reverse(); 
                     masterOperators = result.dataOperator;
+                    masterObats = result.dataObat;
+                    masterTindakans = result.dataTindakan;
                     
                     renderTableArsip(allPatientsData);
                     renderTableFarmasi(allPatientsData);
                     populateMasterDropdowns();
+                    renderMasterLists();
                 }
             } catch (error) {
                 if(!silent) {
@@ -972,6 +1000,23 @@
                 if(op['Role'].toLowerCase() === 'dokter') selectDokter.innerHTML += opt;
                 else selectPerawat.innerHTML += opt;
             });
+        }
+
+        // Tampilkan Master Data di Dasbor Admin
+        function renderMasterLists() {
+            const listOp = document.getElementById('listMasterOp');
+            const listObat = document.getElementById('listMasterObat');
+            const listTindakan = document.getElementById('listMasterTindakan');
+            
+            listOp.innerHTML = ''; listObat.innerHTML = ''; listTindakan.innerHTML = '';
+            
+            masterOperators.forEach(o => listOp.innerHTML += `<li>[${o['Role']}] ${o['Nama Lengkap']}</li>`);
+            masterObats.forEach(o => listObat.innerHTML += `<li>${o['Nama Obat']} - Stok: ${o['Stok Tersedia']} - Rp ${o['Harga (Rp)']}</li>`);
+            masterTindakans.forEach(t => listTindakan.innerHTML += `<li>${t['Nama Tindakan']} - Rp ${t['Tarif (Rp)']}</li>`);
+            
+            if(masterOperators.length === 0) listOp.innerHTML = "<li>Belum ada data.</li>";
+            if(masterObats.length === 0) listObat.innerHTML = "<li>Belum ada data.</li>";
+            if(masterTindakans.length === 0) listTindakan.innerHTML = "<li>Belum ada data.</li>";
         }
 
         // ==================================================================
@@ -1100,7 +1145,7 @@
                 
                 showToast("Master Data berhasil ditambahkan!", "success");
                 e.target.reset();
-                loadDashboardData(true); // Refresh data di background agar Select terupdate
+                loadDashboardData(true); // Refresh data di background agar Select & List terupdate
             } catch (error) {
                 showToast("Gagal menyimpan ke server.", "error");
             } finally {
@@ -1605,6 +1650,7 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
+                // FETCH API LAMA YANG WORK
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
