@@ -120,10 +120,6 @@
         .accordion-header:hover { background: rgba(255,255,255,0.7); }
         .accordion-body { padding: 15px 20px; display: none; border-top: 1px solid var(--glass-border); background: #fdfdfd; }
         .accordion-body.open { display: block; }
-        
-        .riwayat-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .riwayat-table th { background: #e2e8f0; padding: 10px; text-align: left; color: #475569; }
-        .riwayat-table td { padding: 10px; border-bottom: 1px solid #cbd5e1; }
 
         /* Tools UI Grid & Kategori */
         .odonto-tools-container { background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--glass-border); }
@@ -135,7 +131,7 @@
         .tool-btn:hover { background: #f8fafc; transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.05);}
         .tool-btn.active { border-color: var(--primary); background: #e0f2fe; color: var(--primary); box-shadow: 0 2px 5px rgba(2,132,199,0.15); }
         
-        /* Tool Colors Indicators (Visualisasi Indikator Tombol) */
+        /* Tool Colors Indicators */
         .tc-norm { width: 16px; height: 16px; border-radius: 3px; background: #ffffff; border: 1px solid #94a3b8; }
         .tc-car { width: 16px; height: 16px; border-radius: 3px; background: #8b0000; border: 1px solid #1e293b; }
         .tc-amf { width: 16px; height: 16px; border-radius: 3px; background: #1e293b; }
@@ -157,7 +153,7 @@
         .tc-lbl { font-size: 9px; font-weight: bold; background: #f1f5f9; border: 1px solid #cbd5e1; padding: 2px 4px; border-radius: 3px; color: #1e293b; letter-spacing: 0.5px;}
 
         /* ==================================================================
-           ODONTO GRID LAYOUT (BIG UPGRADE - SCROLL FRIENDLY & NO CLIPPING)
+           ODONTO GRID LAYOUT
            ================================================================== */
         .odonto-grid-container {
             background: #f8fafc;
@@ -264,10 +260,9 @@
         .bg-s { background: #f59e0b; } .bg-o { background: #3b82f6; } .bg-a { background: #ef4444; } .bg-p { background: #10b981; }
 
         /* ==================================================================
-           TABEL RESEP (DIKEMBALIKAN KE VERSI YANG WORK 100%)
+           TABEL RESEP AUTOCOMPLETE
            ================================================================== */
         .table-responsive { overflow-x: auto; border-radius: 8px; -webkit-overflow-scrolling: touch; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.3); margin-bottom: 15px;}
-        
         .resep-table { width: 100%; border-collapse: collapse; min-width: 900px; }
         .resep-table th { background: #e2e8f0; color: #475569; padding: 12px; font-size: 0.85rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
         .resep-table td { padding: 8px; border-bottom: 1px solid #cbd5e1; }
@@ -542,7 +537,6 @@
                         <span><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</span>
                     </h3>
                     
-                    <!-- KEMBALIKAN ACCORDION BOX HISTORY -->
                     <div class="accordion-box">
                         <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
                             <span><i class="fa-solid fa-clock-rotate-left"></i> Ringkasan Riwayat Odontogram Lama</span>
@@ -662,21 +656,35 @@
                         <textarea name="plan" id="fPlan" rows="3" placeholder="Rencana perawatan & tindakan yang dilakukan hari ini, instruksi pulang, rencana kontrol..." required></textarea>
                     </div>
 
-                    <!-- 6. E-Resep Obat (BUG FIX: KEMBALI MENGGUNAKAN resep-table AGAR WORK) -->
+                    <!-- 6. E-Resep Obat AUTOCOMPLETE -->
                     <h3 class="module-title"><i class="fa-solid fa-pills"></i> Resep Obat Dokter</h3>
+                    
+                    <!-- Datalist Tersembunyi untuk Autocomplete -->
+                    <datalist id="listJenisRacikan">
+                        <option value="Tablet">
+                        <option value="Kapsul">
+                        <option value="Sirup">
+                        <option value="Salep / Krim">
+                        <option value="Serbuk / Puyer">
+                        <option value="Injeksi">
+                    </datalist>
+                    <datalist id="listDataObatServer">
+                        <!-- Otomatis diisi oleh JS -->
+                    </datalist>
+
                     <div class="table-responsive" style="margin-bottom: 15px;">
                         <table class="resep-table" id="tblResep">
                             <thead>
                                 <tr>
-                                    <th>Racikan</th>
-                                    <th>Jml Permintaan</th>
-                                    <th>Jenis Racikan</th>
-                                    <th>Nama Obat</th>
-                                    <th>Jumlah</th>
-                                    <th>Signa (Sehari)</th>
-                                    <th>Aturan Pakai</th>
-                                    <th>Keterangan</th>
-                                    <th>Aksi</th>
+                                    <th style="min-width: 100px;">Racikan</th>
+                                    <th style="min-width: 80px;">Jml Permintaan</th>
+                                    <th style="min-width: 120px;">Jenis Racikan</th>
+                                    <th style="min-width: 200px;">Nama Obat (Stok)</th>
+                                    <th style="min-width: 80px;">Jumlah</th>
+                                    <th style="min-width: 120px;">Signa (Sehari)</th>
+                                    <th style="min-width: 140px;">Aturan Pakai</th>
+                                    <th style="min-width: 150px;">Keterangan</th>
+                                    <th style="min-width: 50px;">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody id="resepBody">
@@ -739,7 +747,7 @@
                         <input type="text" id="searchFarmasi" placeholder="Cari Pasien...">
                     </div>
                 </div>
-                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar pasien yang telah diberikan resep obat oleh Dokter.</p>
+                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar antrean resep. Klik 2x untuk melihat rincian resep dan mengubah status pemberian.</p>
 
                 <div class="table-responsive">
                     <table class="dash-table">
@@ -747,7 +755,7 @@
                             <tr>
                                 <th>Waktu Masuk</th>
                                 <th>Pasien & Dokter</th>
-                                <th>Rincian Resep Obat</th>
+                                <th>Status Farmasi</th>
                             </tr>
                         </thead>
                         <tbody id="farmasiBody">
@@ -825,7 +833,7 @@
                     </div>
                 </div>
 
-                <!-- TAMPILAN TABEL DAFTAR MASTER DATA REALTIME (EDIT/HAPUS FEATURE) -->
+                <!-- TAMPILAN TABEL DAFTAR MASTER DATA REALTIME -->
                 <div style="margin-top: 40px;">
                     <h3 style="margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-list"></i> Daftar Lengkap Master Data</h3>
                     <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">*Gunakan tombol Edit untuk memperbarui data, atau Hapus untuk menghilangkan dari database secara realtime.</p>
@@ -886,7 +894,7 @@
         </div>
     </div>
 
-    <!-- Modal Riwayat Kunjungan Pasien LENGKAP (Double Click) -->
+    <!-- Modal Riwayat Kunjungan Pasien LENGKAP -->
     <div id="modalRiwayatPasien" class="modal">
         <div class="modal-content">
             <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalRiwayatPasien').classList.remove('active')"></i>
@@ -930,10 +938,10 @@
     <div id="toast"><span id="toastMsg">Sukses!</span></div>
 
     <!-- ==================================================================
-         JAVASCRIPT LOGIC (ROUTING, FARMASI, & MASTER DATA)
+         JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS VERSI 6 ANDA DISINI
+        // MASUKKAN URL DEPLOYMENT GAS VERSI 7 ANDA DISINI
         const API_URL = "https://script.google.com/macros/s/AKfycbyIVmMKZKTWbJXQ7QBP7zgqRgEZqjT2pPsHmaneqUz44XIvn7U3FleQrdJY-zwI8p8/exec"; 
         
         let allPatientsData = [];
@@ -943,7 +951,6 @@
         let tempPasienSks = null;
         let memoryPatientData = null; 
         
-        // State untuk fitur EDIT Master Data
         let editModeAdmin = { active: false, sheetName: '', rowIndex: null };
 
         // ==================================================================
@@ -952,19 +959,17 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData(true); 
             
-            // Render UI Components
             renderOdontogram();
             tambahBarisResep();
             document.getElementById('tanggalPelayanan').valueAsDate = new Date();
             
-            // Routing Handle
             let path = window.location.pathname.substring(1);
             if(path === '' || path === 'index.html') path = 'beranda';
             navTo(path, false);
         });
 
         // ==================================================================
-        // 1. ROUTING SPA PROFESIONAL DENGAN HISTORY API
+        // 1. ROUTING SPA
         // ==================================================================
         window.onpopstate = function(event) {
             if(event.state && event.state.page) navTo(event.state.page, false);
@@ -986,7 +991,7 @@
         }
 
         // ==================================================================
-        // 2. LOAD DATA BACKEND (TERMASUK MASTER DATA)
+        // 2. LOAD DATA BACKEND 
         // ==================================================================
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
@@ -1023,14 +1028,23 @@
         function populateMasterDropdowns() {
             const selectDokter = document.getElementById('selectDokter');
             const selectPerawat = document.getElementById('selectPerawat');
+            const dataListObat = document.getElementById('listDataObatServer');
             
             selectDokter.innerHTML = '<option value="" disabled selected>- Pilih Dokter -</option>';
             selectPerawat.innerHTML = '<option value="" selected>- Tidak Ada / Pilih Perawat -</option>';
+            dataListObat.innerHTML = '';
 
             masterOperators.forEach(op => {
                 let opt = `<option value="${op['Nama Lengkap']}">${op['Nama Lengkap']}</option>`;
                 if(op['Role'].toLowerCase() === 'dokter') selectDokter.innerHTML += opt;
                 else selectPerawat.innerHTML += opt;
+            });
+
+            // Populate Datalist Autocomplete Obat (Hanya yang stok > 0)
+            masterObats.forEach(ob => {
+                if(parseInt(ob['Stok Tersedia']) > 0) {
+                    dataListObat.innerHTML += `<option value="${ob['Nama Obat']}">Stok: ${ob['Stok Tersedia']}</option>`;
+                }
             });
         }
 
@@ -1069,7 +1083,6 @@
             if(masterTindakans.length === 0) listTindakan.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
         }
 
-        // FITUR EDIT MASTER DATA (Memasukkan data lama ke form)
         function editMasterData(sheetName, rowIndex) {
             editModeAdmin.active = true;
             editModeAdmin.sheetName = sheetName;
@@ -1152,11 +1165,16 @@
                     }
                 } catch(e) { resepHTML = item['Resep Obat']; }
 
+                let isDone = item['Status Farmasi'] === 'Selesai Diberikan';
+                let badgeClass = isDone ? 'status-done' : 'status-wait';
+                let statusText = isDone ? 'Selesai Diberikan' : 'Menunggu Proses';
+
                 const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
                 tr.innerHTML = `
                     <td style="white-space:nowrap; vertical-align: top;">
                         <strong>${item['Timestamp']}</strong><br>
-                        <span class="status-badge status-wait" style="display:inline-block; margin-top:8px;">Menunggu Proses</span>
+                        <span class="status-badge ${badgeClass}" style="display:inline-block; margin-top:8px;">${statusText}</span>
                     </td>
                     <td style="vertical-align: top;">
                         <strong style="color:var(--primary); font-size:1.05rem;">${item['Nama Lengkap']}</strong><br>
@@ -1168,9 +1186,17 @@
                         ${resepHTML}
                     </td>
                 `;
+                const safeItem = encodeURIComponent(JSON.stringify(item));
+                tr.ondblclick = () => bukaRiwayatKunjunganFarmasi(item['No RM'], item['Nama Lengkap'], item['rowIndex'], isDone);
                 fBody.appendChild(tr);
             });
         }
+
+        document.getElementById('searchFarmasi').addEventListener('input', (e) => {
+            const k = e.target.value.toLowerCase().trim();
+            if(k === "") renderTableFarmasi(allPatientsData);
+            else renderTableFarmasi(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
+        });
 
         // ==================================================================
         // 4. RENDER TABEL ARSIP (DASHBOARD)
@@ -1230,7 +1256,6 @@
 
             let payload = {};
             
-            // Cek apakah mode Edit sedang aktif
             if(editModeAdmin.active) {
                 payload.action = 'updateData';
                 payload.sheetName = editModeAdmin.sheetName;
@@ -1239,7 +1264,6 @@
                 payload.action = actionType;
             }
 
-            // Kumpulkan Value
             if(actionType === 'addOperator') {
                 payload.role = document.getElementById('adminOpRole').value;
                 payload.nama = document.getElementById('adminOpNama').value;
@@ -1263,7 +1287,6 @@
                 showToast(editModeAdmin.active ? "Data berhasil diupdate!" : "Master Data berhasil ditambahkan!", "success");
                 e.target.reset();
 
-                // Reset Mode Edit kembali ke bentuk Form Normal
                 if(editModeAdmin.active) {
                     if(actionType === 'addOperator') {
                         btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Operator';
@@ -1292,51 +1315,8 @@
         }
 
         // ==================================================================
-        // LOGIKA E-RM (USIA, AUTOFILL, ODONTOGRAM, SKS) TETAP SAMA
+        // LOGIKA ODONTOGRAM SVG INTERAKTIF
         // ==================================================================
-        function toggleAccordion(id) {
-            const body = document.getElementById(id);
-            body.classList.toggle('open');
-        }
-
-        const inputTtl = document.getElementById('inputTtl');
-        const inputUsia = document.getElementById('inputUsia');
-
-        inputTtl.addEventListener('input', function() {
-            const val = this.value;
-            const parts = val.split(',');
-            if (parts.length > 1) {
-                let dateStr = parts[1].trim();
-                dateStr = dateStr.replace(/[-/]/g, ' '); 
-                
-                const monthNames = {
-                    'januari': 1, 'jan': 1, 'februari': 2, 'feb': 2, 'maret': 3, 'mar': 3,
-                    'april': 4, 'apr': 4, 'mei': 5, 'juni': 6, 'jun': 6, 'juli': 7, 'jul': 7,
-                    'agustus': 8, 'agu': 8, 'september': 9, 'sep': 9, 'oktober': 10, 'okt': 10,
-                    'november': 11, 'nov': 11, 'desember': 12, 'des': 12
-                };
-
-                let dateParts = dateStr.split(' ').filter(p => p !== '');
-                if (dateParts.length === 3) {
-                    let day = parseInt(dateParts[0]);
-                    let month = dateParts[1].toLowerCase();
-                    let year = parseInt(dateParts[2]);
-
-                    if (isNaN(month)) month = monthNames[month];
-                    else month = parseInt(month);
-
-                    if (day && month && year) {
-                        let today = new Date();
-                        let birthDate = new Date(year, month - 1, day);
-                        let age = today.getFullYear() - birthDate.getFullYear();
-                        let m = today.getMonth() - birthDate.getMonth();
-                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
-                        if (age >= 0) inputUsia.value = age;
-                    }
-                }
-            }
-        });
-
         const anteriorTeeth = [13, 12, 11, 21, 22, 23, 53, 52, 51, 61, 62, 63, 83, 82, 81, 71, 72, 73, 43, 42, 41, 31, 32, 33];
         const posteriorTeeth = [18, 17, 16, 15, 14, 24, 25, 26, 27, 28, 55, 54, 64, 65, 85, 84, 74, 75, 48, 47, 46, 45, 44, 34, 35, 36, 37, 38];
 
@@ -1743,20 +1723,34 @@
         }
 
         // ==================================================================
-        // 5. LOGIKA E-RESEP DINAMIS
+        // 5. LOGIKA E-RESEP DINAMIS (FIX BUG AUTOCMPLETE & TAMBAH R1-R6)
         // ==================================================================
         function tambahBarisResep() {
             const tbody = document.getElementById('resepBody');
             if(!tbody) return;
             const tr = document.createElement('tr');
+            
+            // Penggunaan datalist autocomplete untuk Jenis Racikan dan Nama Obat
             tr.innerHTML = `
-                <td><select class="res-racikan" style="min-width: 80px;"><option value="Non-Racik">Non-Racik</option><option value="R1">R1</option><option value="R2">R2</option><option value="R3">R3</option></select></td>
+                <td><select class="res-racikan" style="min-width: 80px;">
+                    <option value="Non-Racik">Non-Racik</option>
+                    <option value="R1">R1</option><option value="R2">R2</option>
+                    <option value="R3">R3</option><option value="R4">R4</option>
+                    <option value="R5">R5</option><option value="R6">R6</option>
+                </select></td>
                 <td><input type="number" class="res-jml-minta" placeholder="Qty"></td>
-                <td><input type="text" class="res-jenis-racik" placeholder="Bentuk"></td>
-                <td><input type="text" class="res-nama-obat" placeholder="Nama Obat"></td>
+                <td><input type="text" class="res-jenis-racik" list="listJenisRacikan" placeholder="Bentuk"></td>
+                <td><input type="text" class="res-nama-obat" list="listDataObatServer" placeholder="Pilih Obat..."></td>
                 <td><input type="number" class="res-jumlah" placeholder="Jml"></td>
                 <td><input type="text" class="res-signa" placeholder="Contoh: 3x1"></td>
-                <td><select class="res-aturan" style="min-width: 140px;"><option value="- PILIH -">- PILIH -</option><option value="Sebelum Makan">Sebelum Makan</option><option value="Sesudah Makan">Sesudah Makan</option><option value="Saat Makan">Saat Makan</option><option value="Pemakaian Luar">Pemakaian Luar</option><option value="Jika Diperlukan">Jika Diperlukan</option></select></td>
+                <td><select class="res-aturan" style="min-width: 140px;">
+                    <option value="- PILIH -">- PILIH -</option>
+                    <option value="Sebelum Makan">Sebelum Makan</option>
+                    <option value="Sesudah Makan">Sesudah Makan</option>
+                    <option value="Saat Makan">Saat Makan</option>
+                    <option value="Pemakaian Luar">Pemakaian Luar</option>
+                    <option value="Jika Diperlukan">Jika Diperlukan</option>
+                </select></td>
                 <td><input type="text" class="res-ket" placeholder="Ket"></td>
                 <td><button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button></td>
             `;
@@ -1824,7 +1818,7 @@
             }
         });
 
-        // BUKA RIWAYAT KLINIS (MODAL)
+        // BUKA RIWAYAT KLINIS (MODAL DASBOR)
         function bukaRiwayatKunjungan(rmFilter, nama) {
             document.getElementById('histRm').innerText = rmFilter;
             document.getElementById('histNama').innerText = nama;
@@ -1917,6 +1911,44 @@
                 });
             }
             document.getElementById('modalRiwayatPasien').classList.add('active');
+        }
+
+        // BUKA RIWAYAT KLINIS FARMASI (TOMBOL TANDAI SELESAI)
+        function bukaRiwayatKunjunganFarmasi(rmFilter, nama, rowIndex, isDone) {
+            bukaRiwayatKunjungan(rmFilter, nama); // Re-use fungsi dasar
+            
+            // Tambahkan tombol aksi khusus Farmasi di header Modal
+            const timeline = document.getElementById('historyTimeline');
+            if(!isDone) {
+                let btnHtml = `<div style="background:#fff3cd; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #fde047; text-align:center;">
+                                  <p style="color:#b45309; margin-bottom:10px; font-weight:600;">Resep ini masih dalam status Menunggu Proses.</p>
+                                  <button class="btn btn-success" onclick="tandaiFarmasiSelesai(${rowIndex})"><i class="fa-solid fa-check-circle"></i> Tandai Resep Selesai Diberikan</button>
+                               </div>`;
+                timeline.insertAdjacentHTML('afterbegin', btnHtml);
+            } else {
+                let btnHtml = `<div style="background:#d1fae5; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #6ee7b7; text-align:center;">
+                                  <p style="color:#047857; margin:0; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Resep ini telah Selesai Diberikan kepada pasien.</p>
+                               </div>`;
+                timeline.insertAdjacentHTML('afterbegin', btnHtml);
+            }
+        }
+
+        async function tandaiFarmasiSelesai(rowIndex) {
+            if(!confirm("Anda yakin resep obat telah selesai diserahkan ke pasien?")) return;
+            showToast("Memperbarui status...", "info");
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'updateFarmasi', rowIndex: rowIndex })
+                });
+                showToast("Status berhasil diperbarui!", "success");
+                document.getElementById('modalRiwayatPasien').classList.remove('active');
+                loadDashboardData(true);
+            } catch (error) {
+                showToast("Gagal update status.", "error");
+            }
         }
 
         // CETAK SKS
