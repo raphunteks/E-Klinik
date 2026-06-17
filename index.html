@@ -427,9 +427,9 @@
                         
                         <div class="input-group">
                             <label>Tempat, Tanggal Bulan Tahun Lahir</label>
-                            <input type="text" id="inputTtl" name="tempatTanggalLahir" placeholder="Cth: Kendari, 03/03/2002" required>
+                            <input type="text" id="inputTtl" name="tempatTanggalLahir" placeholder="Cth: Kendari, 20 Januari 2002" required>
                         </div>
-                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required readonly></div>
+                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required></div>
                         
                         <div class="input-group">
                             <label>Jenis Kelamin</label>
@@ -454,7 +454,7 @@
                         <div class="input-group"><label>Ada yang merawat dirumah?</label><select name="perawatDiRumah"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
                         <div class="input-group"><label>Butuh bantuan orang lain saat beraktifitas?</label><select name="bantuanAktifitas"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
                         
-                        <!-- Ekspresi dan Emosi (Updated) -->
+                        <!-- Ekspresi dan Emosi -->
                         <div class="input-group">
                             <label>Ekspresi dan Emosi</label>
                             <select name="ekspresiEmosi">
@@ -467,7 +467,7 @@
                             </select>
                         </div>
 
-                        <!-- Bahasa yang digunakan (Updated Dynamic) -->
+                        <!-- Bahasa yang digunakan -->
                         <div class="input-group">
                             <label>Bahasa yang digunakan</label>
                             <select name="bahasa" id="selBahasa" onchange="toggleLainnya(this, 'inputBahasaLain')">
@@ -480,7 +480,7 @@
 
                         <div class="input-group"><label>Pekerjaan</label><input type="text" name="pekerjaan" placeholder="Pekerjaan pasien"></div>
                         
-                        <!-- Tinggal Dengan (Updated Dynamic) -->
+                        <!-- Tinggal Dengan -->
                         <div class="input-group">
                             <label>Tinggal Dengan</label>
                             <select name="tinggalDengan" id="selTinggal" onchange="toggleLainnya(this, 'inputTinggalLain')">
@@ -495,7 +495,7 @@
 
                         <div class="input-group"><label>Sosial Ekonomi</label><select name="sosialEkonomi"><option value="Baik" selected>Baik</option><option value="Cukup">Cukup</option><option value="Kurang">Kurang</option></select></div>
                         
-                        <!-- Jaminan (Updated Dynamic) -->
+                        <!-- Jaminan -->
                         <div class="input-group">
                             <label>Jaminan</label>
                             <select name="jaminan" id="selJaminan" onchange="toggleLainnya(this, 'inputJaminanLain', 'Asuransi Lain')">
@@ -510,7 +510,7 @@
                         <div class="input-group"><label>Status Perkawinan</label><select name="statusPerkawinan"><option value="BELUM KAWIN" selected>BELUM KAWIN</option><option value="KAWIN">KAWIN</option><option value="CERAI">CERAI</option></select></div>
                         <div class="input-group"><label>Status Ekonomi</label><select name="statusEkonomi"><option value="Baik" selected>Baik</option><option value="Cukup">Cukup</option><option value="Kurang">Kurang</option></select></div>
                         
-                        <!-- Hubungan dengan keluarga (Updated) -->
+                        <!-- Hubungan dengan keluarga -->
                         <div class="input-group">
                             <label>Hubungan dengan keluarga</label>
                             <select name="hubunganKeluarga">
@@ -1137,6 +1137,9 @@
         </div>
     </div>
 
+    <!-- AUDIO ELEMENT UNTUK SFX NOTIFIKASI -->
+    <audio id="notifAudio" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+
     <div id="toast"><span id="toastMsg">Sukses!</span></div>
 
     <!-- ==================================================================
@@ -1154,6 +1157,8 @@
         let memoryPatientData = null; 
         
         let editModeAdmin = { active: false, sheetName: '', rowIndex: null };
+        let lastRawDataRM = ""; // State tracking untuk Farmasi Real-time
+        let autoRefreshInterval = null;
 
         // ==================================================================
         // Custom Modal Confirm (Penyesuaian Canvas)
@@ -1187,6 +1192,16 @@
                 modal.classList.remove('active');
                 callback(false);
             };
+        }
+
+        // ==================================================================
+        // LOGIKA BARU: SFX Notification
+        // ==================================================================
+        function playNotifSound() {
+            const audio = document.getElementById('notifAudio');
+            if(audio) {
+                audio.play().catch(e => console.log("Audio diblokir oleh browser auto-play policy.", e));
+            }
         }
 
         // ==================================================================
@@ -1248,6 +1263,11 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData(true); 
             
+            // Start Background Polling for Realtime updates Farmasi & Arsip
+            autoRefreshInterval = setInterval(() => {
+                loadDashboardData(true); // Memanggil fetch data secara silent di background
+            }, 15000); // Polling setiap 15 Detik
+
             renderOdontogram();
             tambahBarisResep();
             document.getElementById('tanggalPelayanan').valueAsDate = new Date();
@@ -1280,7 +1300,7 @@
         }
 
         // ==================================================================
-        // 2. LOAD DATA BACKEND 
+        // 2. LOAD DATA BACKEND (DENGAN REAL-TIME CHECK)
         // ==================================================================
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
@@ -1296,15 +1316,35 @@
                 const result = await response.json();
                 
                 if(result.status === 'success') {
-                    allPatientsData = result.dataRM.reverse(); 
-                    masterOperators = result.dataOperator;
-                    masterObats = result.dataObat;
-                    masterTindakans = result.dataTindakan;
+                    // Stringify data mentah untuk mendeteksi perubahan state
+                    const currentRawRM = JSON.stringify(result.dataRM);
                     
-                    renderTableArsip(allPatientsData);
-                    renderTableFarmasi(allPatientsData);
-                    populateMasterDropdowns();
-                    renderMasterLists();
+                    // Cek perubahan data (Optimasi agar DOM tidak di-render terus menerus jika data sama)
+                    if (currentRawRM !== lastRawDataRM) {
+                        
+                        // Deteksi Farmasi Baru: Jika polling background memiliki "Menunggu Proses" lebih banyak dari sebelumnya
+                        if (lastRawDataRM !== "") {
+                            const currentPending = result.dataRM.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
+                            const pastPending = allPatientsData.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
+                            
+                            if (currentPending.length > pastPending.length) {
+                                playNotifSound();
+                                showToast("🛎️ Ada antrean resep obat baru masuk!", "info");
+                            }
+                        }
+
+                        allPatientsData = result.dataRM.reverse(); 
+                        masterOperators = result.dataOperator;
+                        masterObats = result.dataObat;
+                        masterTindakans = result.dataTindakan;
+                        
+                        renderTableArsip(allPatientsData);
+                        renderTableFarmasi(allPatientsData);
+                        populateMasterDropdowns();
+                        renderMasterLists();
+
+                        lastRawDataRM = currentRawRM;
+                    }
                 }
             } catch (error) {
                 if(!silent) {
