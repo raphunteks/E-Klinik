@@ -780,7 +780,7 @@
                             <button type="button" class="tool-btn" onclick="setOdontoTool('ano', 'label', this, 'ANO (Anomali): Terdapat kelainan bentuk pada gigi (Peg shape, rudimeter, supernumerary, dll).')"><div class="tc-lbl">ANO</div> ANO (Anomali)</button>
                             <button type="button" class="tool-btn" onclick="setOdontoTool('dia', 'label', this, 'DIA (Diastema): Terdapat jarak/celah yang tidak normal antar gigi.')"><div class="tc-lbl">DIA</div> DIA (Diastema)</button>
                             <button type="button" class="tool-btn" onclick="setOdontoTool('att', 'label', this, 'ATT (Atrisi): Terdapat keausan gigi akibat gesekan antar gigi.')"><div class="tc-lbl">ATT</div> ATT (Atrisi)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('abr', 'label', this, 'ABR (Abrasi): Terdapat keausan gigi akibat proses mekanis (misal: sikat gigi terlalu keras).')"><div class="tc-lbl">ABU</div> ABR (Abrasi)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('abr', 'label', this, 'ABR (Abrasi): Terdapat keausan gigi akibat proses mekanis (misal: sikat gigi terlalu keras).')"><div class="tc-lbl">ABR</div> ABR (Abrasi)</button>
                             <button type="button" class="tool-btn" onclick="setOdontoTool('cfr', 'whole', this, 'CFR (Crown Fracture): Terjadi fraktur/patah pada mahkota gigi.')"><div class="tc-cfr"></div> CFR (Fracture)</button>
                             <button type="button" class="tool-btn" onclick="setOdontoTool('nvt', 'root', this, 'NVT (Non-Vital): Gigi sudah mati/non-vital (biasanya diikuti kondisi karies/tumpatan).')"><div class="tc-nvt"></div> NVT (Non Vital)</button>
                             <button type="button" class="tool-btn" onclick="setOdontoTool('rrx', 'whole', this, 'RRX (Radix): Mahkota habis, hanya tersisa akar gigi.')"><div class="tc-rrx"></div> RRX (Sisa Akar)</button>
@@ -989,7 +989,7 @@
                         <input type="text" id="searchFarmasi" placeholder="Cari Pasien...">
                     </div>
                 </div>
-                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar antrean resep. Klik 2x untuk melihat rincian resep klinis dan mengubah status pemberian.</p>
+                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar antrean resep. Klik 2x untuk melihat rincian resep dan mengubah status pemberian.</p>
 
                 <div class="table-responsive">
                     <table class="dash-table">
@@ -1305,7 +1305,7 @@
         let masterObats = [];
         let masterTindakans = [];
         let masterAdmins = []; 
-        let dataKeuangan = []; 
+        let dataKeuangan = []; // NEW: Array Laporan Keuangan
         let isAdminLoggedIn = false; 
         
         let tempPasienSks = null;
@@ -1315,6 +1315,7 @@
         let lastRawDataRM = ""; 
         let autoRefreshInterval = null;
 
+        // Instance Chart.js untuk dihancurkan sebelum render ulang
         let chartLineInst = null;
         let chartBarInst = null;
         let chartPieInst = null;
@@ -1329,16 +1330,17 @@
         }
 
         // ==================================================================
-        // FORMATTING: TANGGAL & RUPIAH
+        // FORMATTING: TANGGAL & RUPIAH (NEW)
         // ==================================================================
         function formatRupiah(angka) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
         }
 
+        // Fungsi parsing tanggal yang robust untuk mengatasi masalah zona waktu RAW JS
         function formatIndoDateTime(rawDateStr) {
             if(!rawDateStr || rawDateStr === '-') return '-';
             const d = new Date(rawDateStr);
-            if(isNaN(d.getTime())) return rawDateStr; 
+            if(isNaN(d.getTime())) return rawDateStr; // Kembalikan string asli jika format gagal
             
             const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
             return d.toLocaleDateString('id-ID', options);
@@ -1371,6 +1373,7 @@
 
             const btnCancel = document.getElementById('btnConfirmCancel');
 
+            // Clone to remove old event listeners
             const newBtnOk = btnOk.cloneNode(true);
             const newBtnCancel = btnCancel.cloneNode(true);
             btnOk.parentNode.replaceChild(newBtnOk, btnOk);
@@ -1437,12 +1440,12 @@
             
             autoRefreshInterval = setInterval(() => {
                 loadDashboardData(true); 
-            }, 15000); 
+            }, 15000); // Polling setiap 15 Detik
 
             renderOdontogram();
             tambahBarisResep();
-            tambahBarisTindakan(); 
-            document.getElementById('tanggalPelayanan').value = new Date().toISOString().split('T')[0];
+            tambahBarisTindakan(); // Init tabel tindakan
+            document.getElementById('tanggalPelayanan').valueAsDate = new Date();
             
             let path = window.location.pathname.substring(1);
             if(path === '' || path === 'index.html') path = 'beranda';
@@ -1467,14 +1470,9 @@
             const btn = document.getElementById('btn-' + targetId);
             if(btn) btn.classList.add('active');
 
-            if (pushState) {
-                try {
-                    history.pushState({page: targetId}, '', '#' + targetId);
-                } catch (e) {
-                    // Abaikan error pada lingkungan iFrame/Blob
-                }
-            }
+            if (pushState) history.pushState({page: targetId}, '', '/' + targetId);
             
+            // Render ulang chart jika masuk tab admin keuangan
             if(targetId === 'dashboardadmin') {
                 if(!isAdminLoggedIn) {
                     document.getElementById('adminLoginBox').style.display = 'block';
@@ -1491,6 +1489,7 @@
             }
         }
 
+        // TABS DALAM DASHBOARD ADMIN
         function switchAdminTab(tabId) {
             document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
@@ -1530,7 +1529,7 @@
         }
 
         // ==================================================================
-        // 2. LOAD DATA BACKEND
+        // 2. LOAD DATA BACKEND (DENGAN REAL-TIME CHECK)
         // ==================================================================
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
@@ -1565,7 +1564,7 @@
                         masterObats = result.dataObat;
                         masterTindakans = result.dataTindakan;
                         masterAdmins = result.dataAdmin; 
-                        dataKeuangan = result.dataKeuangan || []; 
+                        dataKeuangan = result.dataKeuangan || []; // Load Laporan Keuangan
                         
                         if(document.getElementById('arsip').classList.contains('active')) renderTableArsip(allPatientsData);
                         if(document.getElementById('farmasi').classList.contains('active')) renderTableFarmasi(allPatientsData);
@@ -1573,6 +1572,7 @@
                         populateMasterDropdowns();
                         renderMasterLists();
 
+                        // Jika tab keuangan terbuka, update grafiknya saat narik data baru
                         if(isAdminLoggedIn && document.getElementById('tab-keuangan').classList.contains('active')) {
                             renderFinancialCharts();
                         }
@@ -1607,6 +1607,7 @@
 
             masterObats.forEach(ob => {
                 if(parseInt(ob['Stok Tersedia']) > 0) {
+                    // Gunakan format khusus di value agar bisa diekstrak datanya oleh JS nanti
                     dataListObat.innerHTML += `<option value="${ob['Nama Obat']} | Rp ${ob['Harga (Rp)']} (Stok: ${ob['Stok Tersedia']})"></option>`;
                 }
             });
@@ -1623,45 +1624,42 @@
             const listTindakan = document.getElementById('listMasterTindakan');
             const listAdmin = document.getElementById('listMasterAdmin'); 
             
-            let htmlOp = '';
+            listOp.innerHTML = ''; listObat.innerHTML = ''; listTindakan.innerHTML = ''; listAdmin.innerHTML = '';
+            
             masterOperators.forEach(o => {
-                htmlOp += `<tr><td>${o['ID']}</td><td>${o['Role']}</td><td>${o['Nama Lengkap']}</td>
+                listOp.innerHTML += `<tr><td>${o['ID']}</td><td>${o['Role']}</td><td>${o['Nama Lengkap']}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editMasterData('Master_Operator', ${o['rowIndex']})"><i class="fa-solid fa-edit"></i> Edit</button>
                     <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="hapusMasterData('Master_Operator', ${o['rowIndex']})"><i class="fa-solid fa-trash"></i> Hapus</button>
                 </td></tr>`;
             });
-            listOp.innerHTML = htmlOp || '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
-
-            let htmlObat = '';
             masterObats.forEach(o => {
-                htmlObat += `<tr><td>${o['ID Obat']}</td><td>${o['Nama Obat']}</td><td>Rp ${o['Harga (Rp)']}</td><td>${o['Stok Tersedia']}</td>
+                listObat.innerHTML += `<tr><td>${o['ID Obat']}</td><td>${o['Nama Obat']}</td><td>Rp ${o['Harga (Rp)']}</td><td>${o['Stok Tersedia']}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editMasterData('Master_Obat', ${o['rowIndex']})"><i class="fa-solid fa-edit"></i> Edit</button>
                     <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="hapusMasterData('Master_Obat', ${o['rowIndex']})"><i class="fa-solid fa-trash"></i> Hapus</button>
                 </td></tr>`;
             });
-            listObat.innerHTML = htmlObat || '<tr><td colspan="5" style="text-align:center;">Belum ada data.</td></tr>';
-
-            let htmlTind = '';
             masterTindakans.forEach(t => {
-                htmlTind += `<tr><td>${t['ID Tindakan']}</td><td>${t['Nama Tindakan']}</td><td>Rp ${t['Tarif (Rp)']}</td>
+                listTindakan.innerHTML += `<tr><td>${t['ID Tindakan']}</td><td>${t['Nama Tindakan']}</td><td>Rp ${t['Tarif (Rp)']}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editMasterData('Master_Tindakan', ${t['rowIndex']})"><i class="fa-solid fa-edit"></i> Edit</button>
                     <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="hapusMasterData('Master_Tindakan', ${t['rowIndex']})"><i class="fa-solid fa-trash"></i> Hapus</button>
                 </td></tr>`;
             });
-            listTindakan.innerHTML = htmlTind || '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
             
-            let htmlAdm = '';
             masterAdmins.forEach(a => {
-                htmlAdm += `<tr><td>${a['ID Admin']}</td><td>${a['Username']}</td><td>*****</td><td>${a['Role']}</td>
+                listAdmin.innerHTML += `<tr><td>${a['ID Admin']}</td><td>${a['Username']}</td><td>*****</td><td>${a['Role']}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editMasterData('Master_Admin', ${a['rowIndex']})"><i class="fa-solid fa-edit"></i> Edit</button>
                     <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="hapusMasterData('Master_Admin', ${a['rowIndex']})"><i class="fa-solid fa-trash"></i> Hapus</button>
                 </td></tr>`;
             });
-            listAdmin.innerHTML = htmlAdm || '<tr><td colspan="5" style="text-align:center;">Belum ada data admin.</td></tr>';
+
+            if(masterOperators.length === 0) listOp.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
+            if(masterObats.length === 0) listObat.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data.</td></tr>';
+            if(masterTindakans.length === 0) listTindakan.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
+            if(masterAdmins.length === 0) listAdmin.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data admin.</td></tr>';
         }
 
         function editMasterData(sheetName, rowIndex) {
@@ -1738,11 +1736,12 @@
         }
 
         // ==================================================================
-        // LOGIKA CHART.JS AKUNTANSI / KEUANGAN
+        // 2B. LOGIKA CHART.JS AKUNTANSI / KEUANGAN (NEW)
         // ==================================================================
         function renderFinancialCharts() {
             if(!dataKeuangan || dataKeuangan.length === 0) return;
 
+            // Variabel agregasi
             let totalTindakanBulanIni = 0;
             let totalObatBulanIni = 0;
             let totalPendapatanBulanIni = 0;
@@ -1751,8 +1750,8 @@
             const curMonth = now.getMonth();
             const curYear = now.getFullYear();
 
-            const dailyData = {}; 
-            const monthlyData = {}; 
+            const dailyData = {}; // Format: "DD-MM-YYYY" -> Total
+            const monthlyData = {}; // Format: "MM YYYY" -> Total
 
             let grandTotalTindakan = 0;
             let grandTotalObat = 0;
@@ -1769,32 +1768,39 @@
                 grandTotalTindakan += tTindakan;
                 grandTotalObat += tObat;
 
+                // KPI Bulan Ini
                 if(d.getMonth() === curMonth && d.getFullYear() === curYear) {
                     totalTindakanBulanIni += tTindakan;
                     totalObatBulanIni += tObat;
                     totalPendapatanBulanIni += grand;
                 }
 
+                // Agregasi Harian (Format YYYY-MM-DD agar mudah disortir)
                 const dayKey = d.toISOString().split('T')[0]; 
                 if(!dailyData[dayKey]) dailyData[dayKey] = 0;
                 dailyData[dayKey] += grand;
 
+                // Agregasi Bulanan (Format YYYY-MM)
                 const m = (d.getMonth() + 1).toString().padStart(2, '0');
                 const monthKey = `${d.getFullYear()}-${m}`;
                 if(!monthlyData[monthKey]) monthlyData[monthKey] = 0;
                 monthlyData[monthKey] += grand;
             });
 
+            // Update KPI Box
             document.getElementById('kpiTotalBulan').innerText = formatRupiah(totalPendapatanBulanIni);
             document.getElementById('kpiTotalTindakan').innerText = formatRupiah(totalTindakanBulanIni);
             document.getElementById('kpiTotalObat').innerText = formatRupiah(totalObatBulanIni);
 
+            // Menyiapkan Data Chart
+            // 1. Chart Harian (Sort & Ambil 30 hari terakhir)
             const sortedDailyKeys = Object.keys(dailyData).sort().slice(-30);
             const labelHarian = sortedDailyKeys.map(k => {
-                let p = k.split('-'); return `${p[2]}/${p[1]}`; 
+                let p = k.split('-'); return `${p[2]}/${p[1]}`; // Render jadi DD/MM
             });
             const dataHarian = sortedDailyKeys.map(k => dailyData[k]);
 
+            // 2. Chart Bulanan (Sort & Ambil 12 bulan terakhir)
             const sortedMonthlyKeys = Object.keys(monthlyData).sort().slice(-12);
             const labelBulanan = sortedMonthlyKeys.map(k => {
                 let p = k.split('-'); 
@@ -1803,10 +1809,12 @@
             });
             const dataBulanan = sortedMonthlyKeys.map(k => monthlyData[k]);
 
+            // Hancurkan instance chart lama jika ada sebelum membuat baru
             if(chartLineInst) chartLineInst.destroy();
             if(chartBarInst) chartBarInst.destroy();
             if(chartPieInst) chartPieInst.destroy();
 
+            // RENDER GRAFIK GARIS (HARIAN)
             const ctxHarian = document.getElementById('chartHarian').getContext('2d');
             chartLineInst = new Chart(ctxHarian, {
                 type: 'line',
@@ -1825,6 +1833,7 @@
                 options: { responsive: true, plugins: { legend: { display: false } } }
             });
 
+            // RENDER GRAFIK BATANG (BULANAN)
             const ctxBulanan = document.getElementById('chartBulanan').getContext('2d');
             chartBarInst = new Chart(ctxBulanan, {
                 type: 'bar',
@@ -1840,6 +1849,7 @@
                 options: { responsive: true, plugins: { legend: { display: false } } }
             });
 
+            // RENDER GRAFIK LINGKARAN (PIE RATIO)
             const ctxPie = document.getElementById('chartPie').getContext('2d');
             chartPieInst = new Chart(ctxPie, {
                 type: 'doughnut',
@@ -1858,18 +1868,15 @@
 
 
         // ==================================================================
-        // 3. RENDER TABEL FARMASI (FAST DOM)
+        // 3. RENDER TABEL FARMASI
         // ==================================================================
         function renderTableFarmasi(dataArray) {
             const fBody = document.getElementById('farmasiBody');
+            fBody.innerHTML = '';
             const pasienBerobat = dataArray.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]');
 
-            if(pasienBerobat.length === 0) {
-                fBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px;">Tidak ada antrean resep obat.</td></tr>`;
-                return;
-            }
+            if(pasienBerobat.length === 0) return fBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px;">Tidak ada antrean resep obat.</td></tr>`;
 
-            let html = '';
             pasienBerobat.forEach(item => {
                 let resepHTML = '';
                 try {
@@ -1878,6 +1885,7 @@
                         resepHTML = '<ul style="margin-left: 15px; margin-top:5px; font-size:0.85rem; color: #334155;">';
                         rs.forEach(r => {
                             let labelRacik = r.racikan !== 'Non-Racik' ? `<b>[${r.racikan}]</b> ` : '';
+                            // NEW: Render dengan info satuan yang dipecah dari Datalist jika ada
                             let obatNamaBersih = r.namaObat.split('|')[0].trim();
                             resepHTML += `<li>${labelRacik}${obatNamaBersih} (Jml: ${r.jumlah}) - Signa: ${r.signa} (${r.aturanPakai})</li>`;
                         });
@@ -1888,30 +1896,30 @@
                 let isDone = item['Status Farmasi'] === 'Selesai Diberikan';
                 let badgeClass = isDone ? 'status-done' : 'status-wait';
                 let statusText = isDone ? 'Selesai Diberikan' : 'Menunggu Proses';
+                
+                // Gunakan format Indo
                 let formattedTime = formatIndoDateTime(item['Timestamp']);
 
-                let safeRm = (item['No RM'] || '').toString().replace(/'/g, "\\'");
-                let safeNama = (item['Nama Lengkap'] || '').toString().replace(/'/g, "\\'");
-
-                html += `
-                    <tr style="cursor: pointer;" ondblclick="bukaRiwayatKunjunganFarmasi('${safeRm}', '${safeNama}', ${item['rowIndex']}, ${isDone})">
-                        <td style="white-space:nowrap; vertical-align: top;">
-                            <strong>${formattedTime}</strong><br>
-                            <span class="status-badge ${badgeClass}" style="display:inline-block; margin-top:8px;">${statusText}</span>
-                        </td>
-                        <td style="vertical-align: top;">
-                            <strong style="color:var(--primary); font-size:1.05rem;">${item['Nama Lengkap']}</strong><br>
-                            <small>No RM: ${item['No RM']} | Usia: ${item['Usia']} Thn</small><br>
-                            <small style="color:#64748b; margin-top:5px; display:block;">Dokter: ${item['Dokter Penanggung Jawab']}</small>
-                        </td>
-                        <td style="vertical-align: top;">
-                            <strong>Daftar Obat:</strong>
-                            ${resepHTML}
-                        </td>
-                    </tr>
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                tr.innerHTML = `
+                    <td style="white-space:nowrap; vertical-align: top;">
+                        <strong>${formattedTime}</strong><br>
+                        <span class="status-badge ${badgeClass}" style="display:inline-block; margin-top:8px;">${statusText}</span>
+                    </td>
+                    <td style="vertical-align: top;">
+                        <strong style="color:var(--primary); font-size:1.05rem;">${item['Nama Lengkap']}</strong><br>
+                        <small>No RM: ${item['No RM']} | Usia: ${item['Usia']} Thn</small><br>
+                        <small style="color:#64748b; margin-top:5px; display:block;">Dokter: ${item['Dokter Penanggung Jawab']}</small>
+                    </td>
+                    <td style="vertical-align: top;">
+                        <strong>Daftar Obat:</strong>
+                        ${resepHTML}
+                    </td>
                 `;
+                tr.ondblclick = () => bukaRiwayatKunjunganFarmasi(item['No RM'], item['Nama Lengkap'], item['rowIndex'], isDone);
+                fBody.appendChild(tr);
             });
-            fBody.innerHTML = html;
         }
 
         document.getElementById('searchFarmasi').addEventListener('input', (e) => {
@@ -1921,51 +1929,48 @@
         });
 
         // ==================================================================
-        // 4. RENDER TABEL ARSIP (FAST DOM)
+        // 4. RENDER TABEL ARSIP (DASHBOARD)
         // ==================================================================
         function renderTableArsip(dataArray) {
             const tBody = document.getElementById('tableBody');
-            if(dataArray.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada arsip yang cocok.</td></tr>`;
-                return;
-            }
+            tBody.innerHTML = '';
+            if(dataArray.length === 0) return tBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada arsip yang cocok.</td></tr>`;
 
-            let html = '';
             dataArray.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer'; 
                 const safeItem = encodeURIComponent(JSON.stringify(item));
+                
+                // Gunakan format Indo
                 let fTime = formatIndoDateTime(item['Timestamp']);
                 let fTglPelayanan = formatIndoDateOnly(item['Tanggal Pelayanan']);
 
-                let safeRm = (item['No RM'] || '').toString().replace(/'/g, "\\'");
-                let safeNama = (item['Nama Lengkap'] || '').toString().replace(/'/g, "\\'");
-
-                html += `
-                    <tr style="cursor: pointer;" ondblclick="bukaRiwayatKunjungan('${safeRm}', '${safeNama}', false)">
-                        <td style="white-space:nowrap;">
-                            <i class="fa-regular fa-clock" style="color:var(--text-light)"></i> <strong>${fTime}</strong><br>
-                            <span style="font-size:0.75rem; color:var(--text-light);">Tgl Pelayanan: ${fTglPelayanan}</span><br>
-                            <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
-                        </td>
-                        <td><strong>${item['No RM'] || '-'}</strong></td>
-                        <td>
-                            <strong>${item['Nama Lengkap'] || '-'}</strong><br>
-                            <small>Usia: ${item['Usia'] || '-'} Thn (${item['Jenis Kelamin']})</small><br>
-                            <small style="color:#ef4444;">Penyakit: ${item['Riwayat Penyakit'] || 'Tidak Ada'}</small><br>
-                            <small style="color:#ef4444;">Alergi: ${item['Riwayat Alergi'] || 'Tidak Ada'}</small>
-                        </td>
-                        <td>
-                            <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
-                                <strong>Elemen Gigi: ${item['Elemen Gigi']||'-'}</strong><br>
-                                <strong>TD:</strong> ${item['Sistole']||'-'}/${item['Diastole']||'-'} | <strong>N:</strong> ${item['Detak Nadi (x/Mnt)']||'-'} | <strong>S:</strong> ${item['Suhu (C)']||'-'}°C
-                            </div>
-                            <p style="font-size:0.85rem;"><strong>S:</strong> ${item['Subjective']||'-'}</p>
-                            <p style="font-size:0.85rem;"><strong>A:</strong> ${item['Assessment']||'-'}</p>
-                            <p style="font-size:0.85rem;"><strong>P:</strong> ${item['Plan']||'-'}</p>
-                        </td>
-                    </tr>
+                tr.innerHTML = `
+                    <td style="white-space:nowrap;">
+                        <i class="fa-regular fa-clock" style="color:var(--text-light)"></i> <strong>${fTime}</strong><br>
+                        <span style="font-size:0.75rem; color:var(--text-light);">Tgl Pelayanan: ${fTglPelayanan}</span><br>
+                        <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
+                    </td>
+                    <td><strong>${item['No RM'] || '-'}</strong></td>
+                    <td>
+                        <strong>${item['Nama Lengkap'] || '-'}</strong><br>
+                        <small>Usia: ${item['Usia'] || '-'} Thn (${item['Jenis Kelamin']})</small><br>
+                        <small style="color:#ef4444;">Penyakit: ${item['Riwayat Penyakit'] || 'Tidak Ada'}</small><br>
+                        <small style="color:#ef4444;">Alergi: ${item['Riwayat Alergi'] || 'Tidak Ada'}</small>
+                    </td>
+                    <td>
+                        <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
+                            <strong>Elemen Gigi: ${item['Elemen Gigi']||'-'}</strong><br>
+                            <strong>TD:</strong> ${item['Sistole']||'-'}/${item['Diastole']||'-'} | <strong>N:</strong> ${item['Detak Nadi (x/Mnt)']||'-'} | <strong>S:</strong> ${item['Suhu (C)']||'-'}°C
+                        </div>
+                        <p style="font-size:0.85rem;"><strong>S:</strong> ${item['Subjective']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>A:</strong> ${item['Assessment']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>P:</strong> ${item['Plan']||'-'}</p>
+                    </td>
                 `;
+                tr.ondblclick = () => bukaRiwayatKunjungan(item['No RM'], item['Nama Lengkap']);
+                tBody.appendChild(tr);
             });
-            tBody.innerHTML = html;
         }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -2333,6 +2338,7 @@
             setter('bantuanAktifitas', rec['Bantuan Aktifitas']);
             setter('ekspresiEmosi', rec['Ekspresi Emosi']);
             
+            // Dynamic Selects
             setter('bahasa', rec['Bahasa']); setter('bahasaLain', rec['Bahasa (Lainnya)']);
             setter('pekerjaan', rec['Pekerjaan']);
             setter('tinggalDengan', rec['Tinggal Dengan']); setter('tinggalLain', rec['Tinggal Dengan (Lainnya)']);
@@ -2398,7 +2404,7 @@
         }
 
         // ==================================================================
-        // 5. LOGIKA TINDAKAN MEDIS DINAMIS & PERHITUNGAN
+        // 5. LOGIKA TINDAKAN MEDIS DINAMIS & PERHITUNGAN (NEW)
         // ==================================================================
         function tambahBarisTindakan() {
             const tbody = document.getElementById('tindakanBody');
@@ -2425,12 +2431,8 @@
             if(parts.length > 1) {
                 let harga = parseInt(parts[1].replace(/,/g, '').trim()) || 0;
                 hargaEl.value = harga;
+                // Bersihkan input nama tindakan
                 inputEl.value = parts[0].trim();
-            } else {
-                // Pencarian manual jika tidak diklik dari dropdown
-                let matched = masterTindakans.find(t => t['Nama Tindakan'].toLowerCase() === val.toLowerCase());
-                if (matched) hargaEl.value = matched['Tarif (Rp)'];
-                else hargaEl.value = 0;
             }
             kalkulasiBarisTindakan(inputEl);
         }
@@ -2450,7 +2452,7 @@
         }
 
         // ==================================================================
-        // 5B. LOGIKA E-RESEP DINAMIS & PERHITUNGAN
+        // 5B. LOGIKA E-RESEP DINAMIS & PERHITUNGAN (NEW UPDATE)
         // ==================================================================
         function tambahBarisResep() {
             const tbody = document.getElementById('resepBody');
@@ -2479,6 +2481,7 @@
                     <option value="Jika Diperlukan">Jika Diperlukan</option>
                 </select></td>
                 <td><button type="button" class="btn btn-danger" onclick="hapusBarisObat(this)"><i class="fa-solid fa-trash"></i></button>
+                    <!-- Sembunyikan Subtotal tapi hitung di background -->
                     <input type="hidden" class="res-sub">
                 </td>
             `;
@@ -2496,10 +2499,6 @@
                 let harga = parseInt(hargaRaw.replace(/,/g, '').trim()) || 0;
                 hargaEl.value = harga;
                 inputEl.value = parts[0].trim();
-            } else {
-                let matched = masterObats.find(ob => ob['Nama Obat'].toLowerCase() === val.toLowerCase());
-                if (matched) hargaEl.value = matched['Harga (Rp)'];
-                else hargaEl.value = 0;
             }
             kalkulasiBarisObat(inputEl);
         }
@@ -2533,10 +2532,12 @@
 
             let grand = totalTindakan + totalObat;
 
+            // Update UI Labels
             document.getElementById('labelTotalTindakan').innerText = formatRupiah(totalTindakan);
             document.getElementById('labelTotalObat').innerText = formatRupiah(totalObat);
             document.getElementById('labelGrandTotal').innerText = formatRupiah(grand);
 
+            // Update Hidden Inputs to Send to GAS
             document.getElementById('inputTotalBiayaTindakan').value = totalTindakan;
             document.getElementById('inputTotalBiayaObat').value = totalObat;
             document.getElementById('inputGrandTotalBiaya').value = grand;
@@ -2550,17 +2551,18 @@
             generateOdontoTextSummary(); 
 
             let strPenyakit = "Tidak Ada";
-            if(!document.getElementById('chkTidakAdaPenyakit').checked) {
+            if(!chkTidakAdaPenyakit.checked) {
                 let values = []; document.querySelectorAll('.penyakit-input').forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
                 if(values.length > 0) strPenyakit = values.join("; ");
             }
 
             let strAlergi = "Tidak Ada";
-            if(!document.getElementById('chkTidakAdaAlergi').checked) {
+            if(!chkTidakAdaAlergi.checked) {
                 let values = []; document.querySelectorAll('.alergi-input').forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
                 if(values.length > 0) strAlergi = values.join("; ");
             }
 
+            // Kumpulkan Data Tindakan
             let tindakanArray = [];
             document.querySelectorAll('#tindakanBody tr').forEach(row => {
                 const nama = row.querySelector('.tnd-nama').value.trim();
@@ -2575,6 +2577,7 @@
                 }
             });
 
+            // Kumpulkan Data Resep Obat
             let resepArray = [];
             document.querySelectorAll('#resepBody tr').forEach(row => {
                 const obat = row.querySelector('.res-nama-obat').value.trim();
@@ -2596,6 +2599,7 @@
             dataObj.riwayatPenyakit = strPenyakit; 
             dataObj.riwayatAlergi = strAlergi; 
             
+            // Masukkan data JSON Array
             dataObj.detailTindakan = JSON.stringify(tindakanArray);
             dataObj.resepObat = JSON.stringify(resepArray);
             dataObj.action = "saveRM";
@@ -2612,14 +2616,14 @@
                 });
                 
                 showToast("Rekam Medis & Finansial Berhasil Disimpan!", "success");
-                e.target.reset(); document.getElementById('tanggalPelayanan').value = new Date().toISOString().split('T')[0];
+                e.target.reset(); document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
                 
                 document.getElementById('tindakanBody').innerHTML = ""; tambahBarisTindakan();
                 document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); 
                 kalkulasiGrandTotal();
 
-                document.getElementById('chkTidakAdaPenyakit').checked = true; document.getElementById('penyakitContainer').style.display = 'none'; 
-                document.getElementById('chkTidakAdaAlergi').checked = true; document.getElementById('alergiContainer').style.display = 'none';
+                chkTidakAdaPenyakit.checked = true; document.getElementById('penyakitContainer').style.display = 'none'; 
+                chkTidakAdaAlergi.checked = true; document.getElementById('alergiContainer').style.display = 'none';
                 
                 document.querySelectorAll('input[name="bahasaLain"], input[name="tinggalLain"], input[name="jaminanLain"]').forEach(el => { el.style.display = 'none'; el.removeAttribute('required'); });
 
@@ -2633,56 +2637,33 @@
             }
         });
 
-        // BUKA RIWAYAT KLINIS (MODAL DASBOR) DENGAN SISTEM PRIVASI FARMASI
-        function bukaRiwayatKunjungan(rmFilter, nama, isFarmasi = false) {
+        // BUKA RIWAYAT KLINIS (MODAL DASBOR)
+        function bukaRiwayatKunjungan(rmFilter, nama) {
             document.getElementById('histRm').innerText = rmFilter;
             document.getElementById('histNama').innerText = nama;
             
             const timeline = document.getElementById('historyTimeline');
-            
+            timeline.innerHTML = '';
+
             let visits = allPatientsData.filter(i => i['No RM'] === rmFilter).sort((a,b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
             
             if(visits.length === 0) {
                 timeline.innerHTML = '<p style="color:var(--text-light)">Tidak ada riwayat ditemukan.</p>';
             } else {
-                let timelineHTML = '';
-
                 visits.forEach(v => {
                     let fTime = formatIndoDateTime(v['Timestamp']);
 
                     let tindakanHTML = '';
-                    let headerTagihanHTML = '';
-                    let detailTindakanHTML = '';
-
-                    // HANYA RENDER TINDAKAN JIKA BUKAN DARI TAB FARMASI (PRIVASI APOTEKER)
-                    if(!isFarmasi) {
-                        try {
-                            let tn = JSON.parse(v['Detail Tindakan']);
-                            if(tn && tn.length > 0) {
-                                tindakanHTML = '<table style="width:100%; border-collapse:collapse; margin-top:10px; font-size: 0.85rem;"><tr><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Tindakan</th><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Regio</th><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Sub Total</th></tr>';
-                                tn.forEach(t => {
-                                    tindakanHTML += `<tr><td style="border-bottom:1px solid #eee; padding:4px;">${t.nama} (x${t.qty})</td><td style="border-bottom:1px solid #eee; padding:4px;">${t.gigi}</td><td style="border-bottom:1px solid #eee; padding:4px;">${formatRupiah(t.subTotal)}</td></tr>`;
-                                });
-                                tindakanHTML += '</table>';
-                            } else { tindakanHTML = '<p style="color:#64748b; margin-top:5px;">Tidak ada tindakan tercatat.</p>'; }
-                        } catch(e) { tindakanHTML = `<p>${v['Detail Tindakan']}</p>`; }
-
-                        headerTagihanHTML = `
-                            <div style="text-align:right;">
-                                <span style="font-size: 0.75rem; color: var(--text-light);">Grand Total</span><br>
-                                <strong style="color: var(--danger); font-size: 1.1rem;">${formatRupiah(v['Total Biaya (Rp)'] || 0)}</strong>
-                            </div>
-                        `;
-
-                        detailTindakanHTML = `
-                            <details class="tl-accordion">
-                                <summary><i class="fa-solid fa-hand-holding-medical"></i> Tindakan Medis & Tagihan</summary>
-                                <div class="details-content">
-                                    ${tindakanHTML}
-                                </div>
-                            </details>
-                        `;
-                    }
+                    try {
+                        let tn = JSON.parse(v['Detail Tindakan']);
+                        if(tn && tn.length > 0) {
+                            tindakanHTML = '<table style="width:100%; border-collapse:collapse; margin-top:10px; font-size: 0.85rem;"><tr><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Tindakan</th><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Regio</th><th style="border-bottom:1px solid #ccc; text-align:left; padding:4px;">Sub Total</th></tr>';
+                            tn.forEach(t => {
+                                tindakanHTML += `<tr><td style="border-bottom:1px solid #eee; padding:4px;">${t.nama} (x${t.qty})</td><td style="border-bottom:1px solid #eee; padding:4px;">${t.gigi}</td><td style="border-bottom:1px solid #eee; padding:4px;">${formatRupiah(t.subTotal)}</td></tr>`;
+                            });
+                            tindakanHTML += '</table>';
+                        } else { tindakanHTML = '<p style="color:#64748b; margin-top:5px;">Tidak ada tindakan tercatat.</p>'; }
+                    } catch(e) { tindakanHTML = `<p>${v['Detail Tindakan']}</p>`; }
 
                     let resepHTML = '';
                     try {
@@ -2709,14 +2690,17 @@
                         `;
                     }
 
-                    timelineHTML += `
+                    timeline.innerHTML += `
                         <div class="timeline-item">
                             <div class="tl-header" style="display:flex; justify-content:space-between;">
                                 <div>
                                     <div class="tl-date"><i class="fa-regular fa-calendar-check"></i> ${fTime}</div>
                                     <strong style="color:var(--text-dark);">${v['Elemen Gigi'] && v['Elemen Gigi'] !== '-' ? 'Odontogram: ' + v['Elemen Gigi'] : 'Pemeriksaan Umum'}</strong>
                                 </div>
-                                ${headerTagihanHTML}
+                                <div style="text-align:right;">
+                                    <span style="font-size: 0.75rem; color: var(--text-light);">Grand Total</span><br>
+                                    <strong style="color: var(--danger); font-size: 1.1rem;">${formatRupiah(v['Total Biaya (Rp)'] || 0)}</strong>
+                                </div>
                             </div>
                             <div class="tl-body">
                                 
@@ -2753,7 +2737,12 @@
                                     </div>
                                 </details>
 
-                                ${detailTindakanHTML}
+                                <details class="tl-accordion">
+                                    <summary><i class="fa-solid fa-hand-holding-medical"></i> Tindakan Medis & Tagihan</summary>
+                                    <div class="details-content">
+                                        ${tindakanHTML}
+                                    </div>
+                                </details>
 
                                 <details class="tl-accordion">
                                     <summary><i class="fa-solid fa-pills"></i> Resep Obat Diberikan</summary>
@@ -2766,14 +2755,13 @@
                         </div>
                     `;
                 });
-                timeline.innerHTML = timelineHTML;
             }
             document.getElementById('modalRiwayatPasien').classList.add('active');
         }
 
         // BUKA RIWAYAT KLINIS FARMASI (TOMBOL TANDAI SELESAI)
         function bukaRiwayatKunjunganFarmasi(rmFilter, nama, rowIndex, isDone) {
-            bukaRiwayatKunjungan(rmFilter, nama, true); 
+            bukaRiwayatKunjungan(rmFilter, nama); 
             
             const timeline = document.getElementById('historyTimeline');
             if(!isDone) {
@@ -2829,7 +2817,7 @@
         function bukaModalSks(encodedItem) {
             tempPasienSks = JSON.parse(decodeURIComponent(encodedItem));
             document.getElementById('modalSks').classList.add('active');
-            inputHari.value = 3; inputMulai.value = new Date().toISOString().split('T')[0]; hitungTanggalSelesai(); 
+            inputHari.value = 3; inputMulai.valueAsDate = new Date(); hitungTanggalSelesai(); 
         }
 
         function angkaKeTeks(angka) { const teks = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas", "Dua Belas", "Tiga Belas", "Empat Belas", "Lima Belas"]; return teks[angka] || angka.toString(); }
