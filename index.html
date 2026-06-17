@@ -429,7 +429,7 @@
                             <label>Tempat, Tanggal Bulan Tahun Lahir</label>
                             <input type="text" id="inputTtl" name="tempatTanggalLahir" placeholder="Cth: Kendari, 03/03/2002" required>
                         </div>
-                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required></div>
+                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required readonly></div>
                         
                         <div class="input-group">
                             <label>Jenis Kelamin</label>
@@ -453,16 +453,73 @@
                         <div class="input-group"><label>Kendala Komunikasi</label><select name="kendalaKomunikasi"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
                         <div class="input-group"><label>Ada yang merawat dirumah?</label><select name="perawatDiRumah"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
                         <div class="input-group"><label>Butuh bantuan orang lain saat beraktifitas?</label><select name="bantuanAktifitas"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
-                        <div class="input-group"><label>Ekspresi dan Emosi</label><select name="ekspresiEmosi"><option value="Tenang" selected>Tenang</option><option value="Cemas">Cemas</option><option value="Takut">Takut</option></select></div>
-                        <div class="input-group"><label>Bahasa yang digunakan</label><select name="bahasa"><option value="Indonesia" selected>Indonesia</option><option value="Daerah">Daerah</option><option value="Asing">Asing</option></select></div>
+                        
+                        <!-- Ekspresi dan Emosi (Updated) -->
+                        <div class="input-group">
+                            <label>Ekspresi dan Emosi</label>
+                            <select name="ekspresiEmosi">
+                                <option value="Tenang" selected>Tenang</option>
+                                <option value="Cemas">Cemas</option>
+                                <option value="Takut">Takut</option>
+                                <option value="Gelisah">Gelisah</option>
+                                <option value="Sedih">Sedih</option>
+                                <option value="Marah">Marah</option>
+                            </select>
+                        </div>
+
+                        <!-- Bahasa yang digunakan (Updated Dynamic) -->
+                        <div class="input-group">
+                            <label>Bahasa yang digunakan</label>
+                            <select name="bahasa" id="selBahasa" onchange="toggleLainnya(this, 'inputBahasaLain')">
+                                <option value="Indonesia" selected>Indonesia</option>
+                                <option value="Daerah">Daerah</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                            <input type="text" id="inputBahasaLain" name="bahasaLain" placeholder="Sebutkan bahasa..." style="display:none; margin-top:6px;">
+                        </div>
+
                         <div class="input-group"><label>Pekerjaan</label><input type="text" name="pekerjaan" placeholder="Pekerjaan pasien"></div>
-                        <div class="input-group"><label>Tinggal Dengan</label><select name="tinggalDengan"><option value="Orangtua" selected>Orangtua</option><option value="Suami/Istri">Suami/Istri</option><option value="Anak">Anak</option><option value="Sendiri">Sendiri</option></select></div>
+                        
+                        <!-- Tinggal Dengan (Updated Dynamic) -->
+                        <div class="input-group">
+                            <label>Tinggal Dengan</label>
+                            <select name="tinggalDengan" id="selTinggal" onchange="toggleLainnya(this, 'inputTinggalLain')">
+                                <option value="Orangtua" selected>Orangtua</option>
+                                <option value="Suami/Istri">Suami/Istri</option>
+                                <option value="Anak">Anak</option>
+                                <option value="Sendiri">Sendiri</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                            <input type="text" id="inputTinggalLain" name="tinggalLain" placeholder="Sebutkan tinggal dengan siapa..." style="display:none; margin-top:6px;">
+                        </div>
+
                         <div class="input-group"><label>Sosial Ekonomi</label><select name="sosialEkonomi"><option value="Baik" selected>Baik</option><option value="Cukup">Cukup</option><option value="Kurang">Kurang</option></select></div>
-                        <div class="input-group"><label>Jaminan</label><select name="jaminan"><option value="Mandiri" selected>Mandiri</option><option value="BPJS Kesehatan">BPJS Kesehatan</option><option value="Asuransi Lain">Asuransi Lain</option></select></div>
+                        
+                        <!-- Jaminan (Updated Dynamic) -->
+                        <div class="input-group">
+                            <label>Jaminan</label>
+                            <select name="jaminan" id="selJaminan" onchange="toggleLainnya(this, 'inputJaminanLain', 'Asuransi Lain')">
+                                <option value="Mandiri" selected>Mandiri</option>
+                                <option value="BPJS Kesehatan">BPJS Kesehatan</option>
+                                <option value="Asuransi Lain">Lainnya (Asuransi Lain)</option>
+                            </select>
+                            <input type="text" id="inputJaminanLain" name="jaminanLain" placeholder="Sebutkan nama asuransi..." style="display:none; margin-top:6px;">
+                        </div>
+
                         <div class="input-group"><label>Gangguan jiwa dimasa lalu</label><select name="gangguanJiwa"><option value="Tidak" selected>Tidak</option><option value="Ya">Ya</option></select></div>
                         <div class="input-group"><label>Status Perkawinan</label><select name="statusPerkawinan"><option value="BELUM KAWIN" selected>BELUM KAWIN</option><option value="KAWIN">KAWIN</option><option value="CERAI">CERAI</option></select></div>
                         <div class="input-group"><label>Status Ekonomi</label><select name="statusEkonomi"><option value="Baik" selected>Baik</option><option value="Cukup">Cukup</option><option value="Kurang">Kurang</option></select></div>
-                        <div class="input-group"><label>Hubungan dengan keluarga</label><select name="hubunganKeluarga"><option value="Harmonis" selected>Harmonis</option><option value="Tidak Harmonis">Tidak Harmonis</option></select></div>
+                        
+                        <!-- Hubungan dengan keluarga (Updated) -->
+                        <div class="input-group">
+                            <label>Hubungan dengan keluarga</label>
+                            <select name="hubunganKeluarga">
+                                <option value="Harmonis" selected>Harmonis</option>
+                                <option value="Kurang Harmonis">Kurang Harmonis</option>
+                                <option value="Tidak harmonis">Tidak harmonis</option>
+                                <option value="Konflik besar">Konflik besar</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- 3. Riwayat Penyakit & Alergi -->
@@ -503,7 +560,7 @@
 
                     <!-- 4. Pemeriksaan Fisik Terpadu -->
                     <h3 class="module-title"><i class="fa-solid fa-stethoscope"></i> Pemeriksaan Fisik Tanda Vital</h3>
-                    <div class="form-grid-small">
+                    <div class="form-grid-small" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 25px;">
                         <div class="input-group">
                             <label>1. Kesadaran</label>
                             <select name="kesadaran">
@@ -530,6 +587,139 @@
                         <div class="input-group"><label>8. Nafas (x/mnt)</label><input type="number" name="nafas" placeholder="20"></div>
                         <div class="input-group"><label>9. Suhu (°C)</label><input type="number" step="0.1" name="suhu" placeholder="36.5"></div>
                         <div class="input-group"><label>10. Saturasi (%)</label><input type="number" name="saturasi" placeholder="98"></div>
+                    </div>
+
+                    <!-- FITUR BARU: Pemeriksaan Dasar Gigi -->
+                    <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Pemeriksaan Dasar Gigi</h3>
+                    <div class="form-grid-3" style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 25px;">
+                        
+                        <!-- Kolom 1: Extraoral -->
+                        <div>
+                            <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border);">A. Pemeriksaan Extraoral</h4>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Bengkak</label>
+                                <select name="pdgBengkak">
+                                    <option value="" disabled selected></option>
+                                    <option value="Ya">Ya</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Konsistensi</label>
+                                <select name="pdgKonsistensi">
+                                    <option value="" disabled selected></option>
+                                    <option value="Lunak">Lunak</option>
+                                    <option value="Kenyal">Kenyal</option>
+                                    <option value="Keras">Keras</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Warna Kulit</label>
+                                <select name="pdgWarnaKulit">
+                                    <option value="" disabled selected></option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Kemerahan">Kemerahan</option>
+                                    <option value="Merah Kebiruan">Merah Kebiruan</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Suhu Kulit</label>
+                                <select name="pdgSuhuKulit">
+                                    <option value="" disabled selected></option>
+                                    <option value="Panas">Panas</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Kolom 2: Intraoral 1 -->
+                        <div>
+                            <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border);">B. Pemeriksaan Intraoral</h4>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Goyang</label>
+                                <select name="pdgGoyang">
+                                    <option value="" disabled selected></option>
+                                    <option value="Ya">Ya</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Warna Gusi</label>
+                                <select name="pdgWarnaGusi">
+                                    <option value="" disabled selected></option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Kemerahan">Kemerahan</option>
+                                    <option value="Merah Kebiruan">Merah Kebiruan</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Karies Gigi</label>
+                                <select name="pdgKaries">
+                                    <option value="" selected></option>
+                                    <option value="Insisal">Insisal</option>
+                                    <option value="Mesial">Mesial</option>
+                                    <option value="Distal">Distal</option>
+                                    <option value="Oklusal">Oklusal</option>
+                                    <option value="Disto Oklusal">Disto Oklusal</option>
+                                    <option value="Mesio Oklusal">Mesio Oklusal</option>
+                                    <option value="Bukal">Bukal</option>
+                                    <option value="Disto Bukal">Disto Bukal</option>
+                                    <option value="Mesio Bukal">Mesio Bukal</option>
+                                    <option value="Labial">Labial</option>
+                                    <option value="Palatal">Palatal</option>
+                                    <option value="Disto Palatal">Disto Palatal</option>
+                                    <option value="Mesio Palatal">Mesio Palatal</option>
+                                    <option value="Lingual">Lingual</option>
+                                    <option value="Mod">Mod</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Pembengkakan</label>
+                                <select name="pdgPembengkakan">
+                                    <option value="" disabled selected></option>
+                                    <option value="Ada">Ada</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Kolom 3: Intraoral 2 (Lanjutan) -->
+                        <div>
+                            <h4 style="font-size: 0.95rem; color: transparent; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border); user-select: none;">C. Lanjutan</h4>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Perkusi</label>
+                                <select name="pdgPerkusi">
+                                    <option value="" disabled selected></option>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Druk</label>
+                                <select name="pdgDruk">
+                                    <option value="" disabled selected></option>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Palpasi</label>
+                                <select name="pdgPalpasi">
+                                    <option value="" disabled selected></option>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Status Karies</label>
+                                <select name="pdgStatusKaries">
+                                    <option value="" disabled selected></option>
+                                    <option value="+">+</option>
+                                    <option value="-">-</option>
+                                </select>
+                            </div>
+                        </div>
+
                     </div>
 
                     <!-- 5. Data Klinis, ODONTOGRAM & SOAP -->
@@ -909,6 +1099,18 @@
         </div>
     </div>
 
+    <!-- Modal Konfirmasi Custom (Pengganti alert/confirm browser) -->
+    <div id="customConfirm" class="modal">
+        <div class="modal-content" style="max-width:400px; text-align:center;">
+            <h3 style="margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-circle-exclamation" style="color: #f59e0b;"></i> Konfirmasi</h3>
+            <p id="confirmMessage" style="margin-bottom: 25px; color: var(--text-light); line-height: 1.5;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="btnConfirmCancel" class="btn btn-outline" style="flex:1;">Batal</button>
+                <button id="btnConfirmOk" class="btn btn-danger" style="flex:1;">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
     <!-- AREA CETAK SKS (HIDDEN DI LAYAR, MUNCUL SAAT DI-PRINT) -->
     <div id="printArea">
         <div class="kop-surat">
@@ -952,6 +1154,93 @@
         let memoryPatientData = null; 
         
         let editModeAdmin = { active: false, sheetName: '', rowIndex: null };
+
+        // ==================================================================
+        // Custom Modal Confirm (Penyesuaian Canvas)
+        // ==================================================================
+        function showCustomConfirm(msg, callback, isDanger = true) {
+            const modal = document.getElementById('customConfirm');
+            document.getElementById('confirmMessage').innerText = msg;
+            
+            const btnOk = document.getElementById('btnConfirmOk');
+            if(isDanger) {
+                btnOk.className = 'btn btn-danger';
+            } else {
+                btnOk.className = 'btn btn-success';
+            }
+
+            modal.classList.add('active');
+
+            const btnCancel = document.getElementById('btnConfirmCancel');
+
+            // Clone to remove old event listeners
+            const newBtnOk = btnOk.cloneNode(true);
+            const newBtnCancel = btnCancel.cloneNode(true);
+            btnOk.parentNode.replaceChild(newBtnOk, btnOk);
+            btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+            newBtnOk.onclick = () => {
+                modal.classList.remove('active');
+                callback(true);
+            };
+            newBtnCancel.onclick = () => {
+                modal.classList.remove('active');
+                callback(false);
+            };
+        }
+
+        // ==================================================================
+        // LOGIKA BARU: Toggle Tampilkan Input "Lainnya"
+        // ==================================================================
+        function toggleLainnya(selectObj, inputId, triggerValue = 'Lainnya') {
+            const input = document.getElementById(inputId);
+            if(selectObj.value === triggerValue || selectObj.value === 'Lainnya') {
+                input.style.display = 'block';
+                input.setAttribute('required', 'true');
+            } else {
+                input.style.display = 'none';
+                input.removeAttribute('required');
+                input.value = ''; // Kosongkan nilai jika ditutup
+            }
+        }
+
+        // ==================================================================
+        // LOGIKA BARU: Kalkulasi Usia Otomatis dari Input Text
+        // ==================================================================
+        document.getElementById('inputTtl').addEventListener('input', function(e) {
+            let val = e.target.value;
+            // Deteksi format (Contoh: "Makassar, 20 Januari 2002")
+            if(val.includes(',')) {
+                let dateStr = val.split(',')[1].trim();
+                let parts = dateStr.split(' ');
+                
+                if(parts.length >= 3) {
+                    let day = parseInt(parts[0]);
+                    let monthStr = parts[1].toLowerCase();
+                    let year = parseInt(parts[2]);
+
+                    const months = { 
+                        'januari':0, 'februari':1, 'maret':2, 'april':3, 'mei':4, 'juni':5, 
+                        'juli':6, 'agustus':7, 'september':8, 'oktober':9, 'november':10, 'desember':11 
+                    };
+
+                    if(!isNaN(day) && !isNaN(year) && months[monthStr] !== undefined) {
+                        let birthDate = new Date(year, months[monthStr], day);
+                        let today = new Date();
+                        let age = today.getFullYear() - birthDate.getFullYear();
+                        let m = today.getMonth() - birthDate.getMonth();
+                        
+                        // Koreksi jika bulan lahir belum lewat atau hari lahir belum lewat
+                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                            age--;
+                        }
+                        if(age >= 0) {
+                            document.getElementById('inputUsia').value = age;
+                        }
+                    }
+                }
+            }
+        });
 
         // ==================================================================
         // DOM CONTENT LOADED - MASTER INIT
@@ -1124,21 +1413,23 @@
         }
 
         async function hapusMasterData(sheetName, rowIndex) {
-            if(!confirm("Apakah Anda yakin ingin menghapus data ini secara permanen?")) return;
-            
-            showToast("Memproses penghapusan...", "info");
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'deleteData', sheetName: sheetName, rowIndex: rowIndex })
-                });
-                showToast("Data berhasil dihapus!", "success");
-                loadDashboardData(true);
-            } catch (error) {
-                showToast("Gagal menghapus data.", "error");
-            }
+            showCustomConfirm("Apakah Anda yakin ingin menghapus data ini secara permanen?", async (confirmed) => {
+                if(!confirmed) return;
+                
+                showToast("Memproses penghapusan...", "info");
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'deleteData', sheetName: sheetName, rowIndex: rowIndex })
+                    });
+                    showToast("Data berhasil dihapus!", "success");
+                    loadDashboardData(true);
+                } catch (error) {
+                    showToast("Gagal menghapus data.", "error");
+                }
+            });
         }
 
         // ==================================================================
@@ -1664,11 +1955,14 @@
             setter('perawatDiRumah', rec['Perawat di Rumah']);
             setter('bantuanAktifitas', rec['Bantuan Aktifitas']);
             setter('ekspresiEmosi', rec['Ekspresi Emosi']);
-            setter('bahasa', rec['Bahasa']);
+            
+            // Dynamic Selects
+            setter('bahasa', rec['Bahasa']); setter('bahasaLain', rec['Bahasa (Lainnya)']);
             setter('pekerjaan', rec['Pekerjaan']);
-            setter('tinggalDengan', rec['Tinggal Dengan']);
+            setter('tinggalDengan', rec['Tinggal Dengan']); setter('tinggalLain', rec['Tinggal Dengan (Lainnya)']);
             setter('sosialEkonomi', rec['Sosial Ekonomi']);
-            setter('jaminan', rec['Jaminan']);
+            setter('jaminan', rec['Jaminan']); setter('jaminanLain', rec['Jaminan (Lainnya)']);
+            
             setter('gangguanJiwa', rec['Gangguan Jiwa']);
             setter('statusPerkawinan', rec['Status Perkawinan']);
             setter('statusEkonomi', rec['Status Ekonomi']);
@@ -1685,6 +1979,12 @@
             setter('nafas', rec['Nafas (x/Mnt)']);
             setter('suhu', rec['Suhu (C)']);
             setter('saturasi', rec['Saturasi (%)']);
+
+            // Memicu event change agar box 'Lainnya' muncul jika nilainya Lainnya
+            ['selBahasa', 'selTinggal', 'selJaminan'].forEach(id => {
+                 let el = document.getElementById(id);
+                 if(el) el.dispatchEvent(new Event('change'));
+            });
 
             const pContainer = document.getElementById('penyakitContainer');
             const pList = document.getElementById('penyakitList');
@@ -1808,6 +2108,10 @@
                 e.target.reset(); document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
                 document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); 
                 chkTidakAdaPenyakit.checked = true; penyakitContainer.style.display = 'none'; chkTidakAdaAlergi.checked = true; alergiContainer.style.display = 'none';
+                
+                // Sembunyikan field 'Lainnya' jika terbuka
+                document.querySelectorAll('input[name="bahasaLain"], input[name="tinggalLain"], input[name="jaminanLain"]').forEach(el => { el.style.display = 'none'; el.removeAttribute('required'); });
+
                 applyPastOdontoState({}); document.getElementById('autoFillAlert').style.display = 'none'; memoryPatientData = null;
                 
                 setTimeout(() => navTo('arsip'), 1500);
@@ -1934,21 +2238,24 @@
         }
 
         async function tandaiFarmasiSelesai(rowIndex) {
-            if(!confirm("Anda yakin resep obat telah selesai diserahkan ke pasien?")) return;
-            showToast("Memperbarui status...", "info");
-            try {
-                await fetch(API_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'updateFarmasi', rowIndex: rowIndex })
-                });
-                showToast("Status berhasil diperbarui!", "success");
-                document.getElementById('modalRiwayatPasien').classList.remove('active');
-                loadDashboardData(true);
-            } catch (error) {
-                showToast("Gagal update status.", "error");
-            }
+            showCustomConfirm("Anda yakin resep obat telah selesai diserahkan ke pasien?", async (confirmed) => {
+                if(!confirmed) return;
+                
+                showToast("Memperbarui status...", "info");
+                try {
+                    await fetch(API_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'updateFarmasi', rowIndex: rowIndex })
+                    });
+                    showToast("Status berhasil diperbarui!", "success");
+                    document.getElementById('modalRiwayatPasien').classList.remove('active');
+                    loadDashboardData(true);
+                } catch (error) {
+                    showToast("Gagal update status.", "error");
+                }
+            }, false); // use false to display the ok button green instead of red
         }
 
         // CETAK SKS
