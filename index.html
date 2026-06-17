@@ -264,25 +264,24 @@
         .bg-s { background: #f59e0b; } .bg-o { background: #3b82f6; } .bg-a { background: #ef4444; } .bg-p { background: #10b981; }
 
         /* ==================================================================
-           TABEL RESEP & DASHBOARD UNIVERSAL (FIX BUG HILANG)
+           TABEL RESEP (DIKEMBALIKAN KE VERSI YANG WORK 100%)
            ================================================================== */
         .table-responsive { overflow-x: auto; border-radius: 8px; -webkit-overflow-scrolling: touch; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.3); margin-bottom: 15px;}
         
+        .resep-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        .resep-table th { background: #e2e8f0; color: #475569; padding: 12px; font-size: 0.85rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .resep-table td { padding: 8px; border-bottom: 1px solid #cbd5e1; }
+        .resep-table input, .resep-table select { padding: 8px; font-size: 0.85rem; background: #fff; border: 1px solid #cbd5e1; width: 100%; box-sizing: border-box; border-radius: 6px; outline: none; transition: border-color 0.2s;}
+        .resep-table input:focus, .resep-table select:focus { border-color: var(--primary); }
+
+        /* Dasbor Admin & Riwayat Kunjungan Modal (Universal Table) */
         .dash-table { width: 100%; border-collapse: collapse; min-width: 900px; } 
         .dash-table th, .dash-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--glass-border); }
         .dash-table th { background: rgba(255, 255, 255, 0.5); font-weight: 600; white-space: nowrap; color: #475569; font-size: 0.85rem;}
         .dash-table td { background: rgba(255, 255, 255, 0.2); font-size: 0.85rem; vertical-align: top; }
         .dash-table tr { transition: background 0.2s; }
         .dash-table tr:hover td { background: rgba(255, 255, 255, 0.7); }
-        .dash-table input, .dash-table select { padding: 8px; font-size: 0.85rem; background: #fff; border: 1px solid #cbd5e1; width: 100%; border-radius: 6px;}
         
-        /* Kembalikan Format Asli Tabel Resep Agar Input Padat Tersusun Rapi */
-        .resep-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        .resep-table th { background: #e2e8f0; color: #475569; padding: 12px; font-size: 0.85rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
-        .resep-table td { padding: 8px; border-bottom: 1px solid #cbd5e1; }
-        .resep-table input, .resep-table select { padding: 8px; font-size: 0.85rem; background: #fff; border: 1px solid #cbd5e1; width: 100%; box-sizing: border-box; border-radius: 6px;}
-        
-        /* Dasbor Admin & Riwayat Kunjungan Modal */
         .dashboard-container { padding: 25px; }
         .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;}
         .search-box { position: relative; width: 100%; max-width: 350px; }
@@ -542,6 +541,30 @@
                     <h3 class="module-title" style="justify-content: space-between;">
                         <span><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</span>
                     </h3>
+                    
+                    <!-- KEMBALIKAN ACCORDION BOX HISTORY -->
+                    <div class="accordion-box">
+                        <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
+                            <span><i class="fa-solid fa-clock-rotate-left"></i> Ringkasan Riwayat Odontogram Lama</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="riwayatOdontoBody">
+                            <div class="table-responsive">
+                                <table class="dash-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal Kunjungan</th>
+                                            <th>Teks Detail Perawatan Elemen Gigi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="riwayatOdontoList">
+                                        <!-- Data riwayat akan dimuat otomatis -->
+                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Isi No RM / NIK / Nama pasien di atas untuk melacak memori riwayat.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
@@ -639,7 +662,7 @@
                         <textarea name="plan" id="fPlan" rows="3" placeholder="Rencana perawatan & tindakan yang dilakukan hari ini, instruksi pulang, rencana kontrol..." required></textarea>
                     </div>
 
-                    <!-- 6. E-Resep Obat (BUG FIX: Kembali menggunakan resep-table agar format input sejajar rapi) -->
+                    <!-- 6. E-Resep Obat (BUG FIX: KEMBALI MENGGUNAKAN resep-table AGAR WORK) -->
                     <h3 class="module-title"><i class="fa-solid fa-pills"></i> Resep Obat Dokter</h3>
                     <div class="table-responsive" style="margin-bottom: 15px;">
                         <table class="resep-table" id="tblResep">
@@ -924,16 +947,25 @@
         let editModeAdmin = { active: false, sheetName: '', rowIndex: null };
 
         // ==================================================================
-        // 1. ROUTING SPA PROFESIONAL DENGAN HISTORY API
+        // DOM CONTENT LOADED - MASTER INIT
         // ==================================================================
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData(true); 
             
+            // Render UI Components
+            renderOdontogram();
+            tambahBarisResep();
+            document.getElementById('tanggalPelayanan').valueAsDate = new Date();
+            
+            // Routing Handle
             let path = window.location.pathname.substring(1);
             if(path === '' || path === 'index.html') path = 'beranda';
             navTo(path, false);
         });
 
+        // ==================================================================
+        // 1. ROUTING SPA PROFESIONAL DENGAN HISTORY API
+        // ==================================================================
         window.onpopstate = function(event) {
             if(event.state && event.state.page) navTo(event.state.page, false);
         };
@@ -1262,8 +1294,6 @@
         // ==================================================================
         // LOGIKA E-RM (USIA, AUTOFILL, ODONTOGRAM, SKS) TETAP SAMA
         // ==================================================================
-        document.getElementById('tanggalPelayanan').valueAsDate = new Date();
-
         function toggleAccordion(id) {
             const body = document.getElementById(id);
             body.classList.toggle('open');
@@ -1713,6 +1743,27 @@
         }
 
         // ==================================================================
+        // 5. LOGIKA E-RESEP DINAMIS
+        // ==================================================================
+        function tambahBarisResep() {
+            const tbody = document.getElementById('resepBody');
+            if(!tbody) return;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><select class="res-racikan" style="min-width: 80px;"><option value="Non-Racik">Non-Racik</option><option value="R1">R1</option><option value="R2">R2</option><option value="R3">R3</option></select></td>
+                <td><input type="number" class="res-jml-minta" placeholder="Qty"></td>
+                <td><input type="text" class="res-jenis-racik" placeholder="Bentuk"></td>
+                <td><input type="text" class="res-nama-obat" placeholder="Nama Obat"></td>
+                <td><input type="number" class="res-jumlah" placeholder="Jml"></td>
+                <td><input type="text" class="res-signa" placeholder="Contoh: 3x1"></td>
+                <td><select class="res-aturan" style="min-width: 140px;"><option value="- PILIH -">- PILIH -</option><option value="Sebelum Makan">Sebelum Makan</option><option value="Sesudah Makan">Sesudah Makan</option><option value="Saat Makan">Saat Makan</option><option value="Pemakaian Luar">Pemakaian Luar</option><option value="Jika Diperlukan">Jika Diperlukan</option></select></td>
+                <td><input type="text" class="res-ket" placeholder="Ket"></td>
+                <td><button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // ==================================================================
         // 6. PROSES SUBMIT FORM KE GAS
         // ==================================================================
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
@@ -1752,7 +1803,6 @@
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // FETCH API LAMA YANG WORK
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
