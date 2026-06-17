@@ -56,12 +56,12 @@
 
         .glass { background: var(--glass-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--glass-border); border-radius: 16px; box-shadow: var(--glass-shadow); }
 
-        /* Navbar */
-        nav { position: sticky; top: 0; z-index: 100; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); }
+        /* Navbar & Routing Tabs */
+        nav { position: sticky; top: 0; z-index: 100; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; background: rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border-bottom: 1px solid var(--glass-border); flex-wrap: wrap; gap: 15px;}
         .brand { display: flex; align-items: center; gap: 12px; font-size: 1.5rem; font-weight: 700; color: var(--primary); cursor: pointer; }
         .brand img { height: 40px; }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-btn { background: none; border: none; font-size: 0.95rem; font-weight: 600; color: var(--text-dark); cursor: pointer; padding: 8px 14px; border-radius: 8px; transition: all 0.3s; }
+        .nav-links { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;}
+        .nav-btn { background: none; border: none; font-size: 0.9rem; font-weight: 600; color: var(--text-dark); cursor: pointer; padding: 8px 12px; border-radius: 8px; transition: all 0.3s; white-space: nowrap; }
         .nav-btn:hover, .nav-btn.active { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); color: var(--primary); }
 
         main { padding: 30px 5%; max-width: 1400px; margin: auto; position: relative; }
@@ -86,6 +86,7 @@
         
         .input-group { display: flex; flex-direction: column; gap: 6px; }
         label { font-weight: 600; font-size: 0.85rem; color: var(--text-dark); }
+        label .req { color: var(--danger); margin-left: 2px;}
         input, select, textarea { width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.8); border-radius: 8px; font-size: 0.95rem; outline: none; transition: all 0.3s; }
         input:focus, select:focus, textarea:focus { background: #fff; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.1); }
         input[readonly] { background: rgba(226, 232, 240, 0.5); }
@@ -270,11 +271,11 @@
         .bg-s { background: #f59e0b; } .bg-o { background: #3b82f6; } .bg-a { background: #ef4444; } .bg-p { background: #10b981; }
 
         /* Tabel e-Resep Custom */
-        .table-responsive { overflow-x: auto; border-radius: 8px; -webkit-overflow-scrolling: touch; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.3);}
-        .resep-table { width: 100%; border-collapse: collapse; min-width: 900px; }
-        .resep-table th { background: #e2e8f0; color: #475569; padding: 12px; font-size: 0.85rem; text-align: left; }
-        .resep-table td { padding: 8px; border-bottom: 1px solid #cbd5e1; }
-        .resep-table input, .resep-table select { padding: 8px; font-size: 0.85rem; background: #fff; border: 1px solid #cbd5e1; }
+        .table-responsive { overflow-x: auto; border-radius: 8px; -webkit-overflow-scrolling: touch; border: 1px solid var(--glass-border); background: rgba(255,255,255,0.3); margin-bottom: 15px;}
+        .custom-table { width: 100%; border-collapse: collapse; min-width: 900px; }
+        .custom-table th { background: #e2e8f0; color: #475569; padding: 12px; font-size: 0.85rem; text-align: left; }
+        .custom-table td { padding: 10px 12px; border-bottom: 1px solid #cbd5e1; font-size: 0.9rem;}
+        .custom-table input, .custom-table select { padding: 8px; font-size: 0.85rem; background: #fff; border: 1px solid #cbd5e1; }
         
         /* Dasbor Admin & Riwayat Kunjungan Modal */
         .dashboard-container { padding: 25px; }
@@ -312,6 +313,11 @@
         details.tl-accordion summary { font-weight: 600; cursor: pointer; padding: 10px; background: #f1f5f9; outline: none; }
         details.tl-accordion .details-content { padding: 10px; border-top: 1px solid #e2e8f0; }
 
+        /* Badge Status Farmasi */
+        .status-badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
+        .status-wait { background: #fef08a; color: #b45309; }
+        .status-done { background: #d1fae5; color: #047857; }
+
         /* CUMA MUNCUL SAAT DI CETAK / PRINT */
         #printArea { display: none; }
         @media print {
@@ -334,7 +340,6 @@
         #toast.info { background: #3b82f6; }
 
         @media(max-width: 850px) {
-            .nav-links span { display: none; } 
             .form-container { padding: 20px; }
             .btn { width: 100%; }
             .auto-fill-bubble { flex-direction: column; text-align: center; gap: 15px; }
@@ -349,32 +354,38 @@
     <div class="blob blob-2"></div>
 
     <nav>
-        <div class="brand" onclick="navTo('landing')">
+        <div class="brand" onclick="navTo('beranda')">
             <img src="axalogo.png" alt="Logo" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fa-solid fa-tooth\'></i>')">
             <span>Klinik<span style="color:var(--text-dark)">Care</span></span>
         </div>
         <div class="nav-links">
-            <button class="nav-btn active" onclick="navTo('landing')" id="btn-landing"><i class="fa-solid fa-house"></i> <span>Beranda</span></button>
-            <button class="nav-btn" onclick="navTo('form-section')" id="btn-form-section"><i class="fa-solid fa-notes-medical"></i> <span>Input E-RM</span></button>
-            <button class="nav-btn" onclick="navTo('dashboard')" id="btn-dashboard"><i class="fa-solid fa-chart-line"></i> <span>Dasbor</span></button>
+            <button class="nav-btn active" onclick="navTo('beranda')" id="btn-beranda"><i class="fa-solid fa-house"></i> <span>Beranda</span></button>
+            <button class="nav-btn" onclick="navTo('inputrm')" id="btn-inputrm"><i class="fa-solid fa-notes-medical"></i> <span>Input E-RM</span></button>
+            <button class="nav-btn" onclick="navTo('arsip')" id="btn-arsip"><i class="fa-solid fa-folder-open"></i> <span>Arsip</span></button>
+            <button class="nav-btn" onclick="navTo('farmasi')" id="btn-farmasi"><i class="fa-solid fa-pills"></i> <span>Farmasi</span></button>
+            <button class="nav-btn" onclick="navTo('dashboardadmin')" id="btn-dashboardadmin"><i class="fa-solid fa-cog"></i> <span>Admin</span></button>
         </div>
     </nav>
 
     <main>
-        <!-- BERANDA -->
-        <section id="landing" class="section active">
+        <!-- ==============================================
+             1. BERANDA (beranda)
+             ============================================== -->
+        <section id="beranda" class="section active">
             <div class="glass" style="text-align: center; padding: 60px 20px; max-width: 800px; margin: auto; margin-top: 5vh;">
                 <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Sistem E-RM Terpadu</h1>
-                <p style="color: var(--text-light); margin-bottom: 30px; line-height: 1.6;">Solusi cerdas rekam medis digital berbasis SOAP, lengkap dengan e-Resep dan penerbitan Surat Keterangan Sakit otomatis.</p>
+                <p style="color: var(--text-light); margin-bottom: 30px; line-height: 1.6;">Solusi cerdas rekam medis digital berbasis SOAP, lengkap dengan e-Resep Farmasi otomatis.</p>
                 <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
-                    <button class="btn btn-primary" onclick="navTo('form-section')"><i class="fa-solid fa-plus"></i> Pasien Baru / Lama</button>
-                    <button class="btn" style="background: white; border: 1px solid var(--glass-border);" onclick="navTo('dashboard')"><i class="fa-solid fa-folder-open"></i> Buka Arsip Database</button>
+                    <button class="btn btn-primary" onclick="navTo('inputrm')" style="width: auto;"><i class="fa-solid fa-plus"></i> Pasien Baru / Lama</button>
+                    <button class="btn" style="background: white; border: 1px solid var(--glass-border); width: auto;" onclick="navTo('arsip')"><i class="fa-solid fa-folder-open"></i> Buka Arsip Database</button>
                 </div>
             </div>
         </section>
 
-        <!-- FORMULIR INPUT E-RM -->
-        <section id="form-section" class="section">
+        <!-- ==============================================
+             2. FORMULIR INPUT E-RM (inputrm)
+             ============================================== -->
+        <section id="inputrm" class="section">
             <div class="glass form-container">
                 <h2 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-file-medical"></i> Formulir Rekam Medis</h2>
                 
@@ -384,7 +395,7 @@
                         <i class="fa-solid fa-wand-magic-sparkles"></i>
                         <div class="auto-fill-text">
                             <strong>Halo! Data Pasien Ditemukan.</strong><br>
-                            Mengingat ini adalah pasien lama, Anda dapat memuat riwayat Demografi, Fisik, Sosial, dan Tanda Vital sebelumnya untuk menghemat waktu. (SOAP & Resep dikosongkan untuk diisi baru).
+                            Mengingat ini adalah pasien lama, Anda dapat memuat riwayat Demografi, Fisik, Sosial, dan Tanda Vital sebelumnya untuk menghemat waktu.
                         </div>
                     </div>
                     <button type="button" class="btn btn-success" onclick="eksekusiAutoFill()"><i class="fa-solid fa-bolt"></i> Ya, Muat Otomatis</button>
@@ -392,6 +403,23 @@
 
                 <form id="ermForm">
                     
+                    <!-- NEW: 0. Operator & Perawat -->
+                    <h3 class="module-title" style="margin-top: 0;"><i class="fa-solid fa-user-doctor"></i> Operator Pelaksana</h3>
+                    <div class="form-grid" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
+                        <div class="input-group">
+                            <label>Dokter / Tenaga Medis <span class="req">*</span></label>
+                            <select name="dokter" id="selectDokter" required>
+                                <option value="" disabled selected>Memuat data...</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Perawat / Bidan / Nutrisionist / Sanitarian</label>
+                            <select name="perawat" id="selectPerawat">
+                                <option value="" disabled selected>Memuat data...</option>
+                            </select>
+                        </div>
+                    </div>
+
                     <!-- 1. Demografi -->
                     <h3 class="module-title"><i class="fa-solid fa-id-card"></i> Demografi Pasien</h3>
                     <div class="form-grid">
@@ -517,10 +545,10 @@
                         <span><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</span>
                     </h3>
 
-                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF (BIG UPGRADE - UI GRID BARU) -->
+                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
                         <label style="margin: 0;">Pemetaan Odontogram Interaktif</label>
-                        <a href="https://drive.google.com/file/d/1kv2sd6zHcW7sL-Oo2xtY8d5WBVgKIjd6/view?usp=sharing" target="_blank" class="btn btn-primary" style="font-size: 0.75rem; padding: 5px 10px;"><i class="fa-solid fa-file-pdf"></i> Lihat Panduan Odontogram</a>
+                        <a href="https://drive.google.com/file/d/1kv2sd6zHcW7sL-Oo2xtY8d5WBVgKIjd6/view?usp=sharing" target="_blank" class="btn btn-primary" style="font-size: 0.75rem; padding: 5px 10px; width: auto;"><i class="fa-solid fa-file-pdf"></i> Lihat Panduan</a>
                     </div>
                     <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">
                         *Pilih Alat (Tool) pada kategori di bawah ini, lalu klik kotak area gigi untuk menerapkan tindakan.
@@ -616,7 +644,7 @@
                     <!-- 6. E-Resep Obat -->
                     <h3 class="module-title"><i class="fa-solid fa-pills"></i> Resep Obat Dokter</h3>
                     <div class="table-responsive" style="margin-bottom: 15px;">
-                        <table class="resep-table" id="tblResep">
+                        <table class="custom-table" id="tblResep">
                             <thead>
                                 <tr>
                                     <th>Racikan</th>
@@ -635,7 +663,7 @@
                             </tbody>
                         </table>
                     </div>
-                    <button type="button" class="btn btn-outline" onclick="tambahBarisResep()" style="margin-bottom: 30px;"><i class="fa-solid fa-plus"></i> Tambah Obat ke Resep</button>
+                    <button type="button" class="btn btn-outline" onclick="tambahBarisResep()" style="margin-bottom: 30px; width: auto;"><i class="fa-solid fa-plus"></i> Tambah Obat ke Resep</button>
 
                     <!-- Tombol Submit Utama -->
                     <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;" id="submitBtn">
@@ -646,17 +674,19 @@
             </div>
         </section>
 
-        <!-- DASBOR ADMIN & SKS -->
-        <section id="dashboard" class="section">
+        <!-- ==============================================
+             3. ARSIP DATABASE (arsip)
+             ============================================== -->
+        <section id="arsip" class="section">
             <div class="glass dashboard-container">
                 <div class="dash-header">
-                    <h2><i class="fa-solid fa-server"></i> Basis Data Pasien</h2>
+                    <h2><i class="fa-solid fa-server"></i> Arsip Basis Data Pasien</h2>
                     <div class="search-box">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="searchInput" placeholder="Cari Nama, No RM...">
                     </div>
                 </div>
-                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Klik 2x (Double-Click) pada baris pasien untuk melihat seluruh histori kunjungan.</p>
+                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Klik 2x (Double-Click) pada baris pasien untuk melihat seluruh histori kunjungan terperinci.</p>
 
                 <div class="table-responsive">
                     <table class="dash-table">
@@ -672,6 +702,106 @@
                             <tr><td colspan="4" style="text-align: center; padding: 30px;">Mengambil data...</td></tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================
+             4. MODUL FARMASI (farmasi) - BARU!
+             ============================================== -->
+        <section id="farmasi" class="section">
+            <div class="glass dashboard-container">
+                <div class="dash-header">
+                    <h2><i class="fa-solid fa-pills"></i> Antrean Resep Farmasi</h2>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchFarmasi" placeholder="Cari Pasien...">
+                    </div>
+                </div>
+                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar pasien yang telah diberikan resep obat oleh Dokter.</p>
+
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Waktu Masuk</th>
+                                <th>Pasien & Dokter</th>
+                                <th>Rincian Resep Obat</th>
+                            </tr>
+                        </thead>
+                        <tbody id="farmasiBody">
+                            <tr><td colspan="3" style="text-align: center; padding: 30px;">Menarik data resep...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================
+             5. DASHBOARD ADMIN (dashboardadmin) - BARU!
+             ============================================== -->
+        <section id="dashboardadmin" class="section">
+            <div class="glass dashboard-container">
+                <h2 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-cog"></i> Pengaturan Master Data</h2>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                    
+                    <!-- Tambah Operator -->
+                    <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-user-plus"></i> Tambah Tenaga Medis</h3>
+                        <form onsubmit="simpanMasterData(event, 'addOperator')">
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Peran (Role)</label>
+                                <select id="adminOpRole" required>
+                                    <option value="Dokter">Dokter</option>
+                                    <option value="Perawat">Perawat / Bidan</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Nama Lengkap & Gelar</label>
+                                <input type="text" id="adminOpNama" placeholder="Cth: drg. Budi Santoso" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Operator</button>
+                        </form>
+                    </div>
+
+                    <!-- Tambah Obat -->
+                    <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-capsules"></i> Tambah Master Obat</h3>
+                        <form onsubmit="simpanMasterData(event, 'addObat')">
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Nama Obat</label>
+                                <input type="text" id="adminObatNama" placeholder="Cth: Amoxicillin 500mg" required>
+                            </div>
+                            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                <div class="input-group" style="flex: 1;">
+                                    <label>Harga (Rp)</label>
+                                    <input type="number" id="adminObatHarga" placeholder="5000" required>
+                                </div>
+                                <div class="input-group" style="flex: 1;">
+                                    <label>Stok Awal</label>
+                                    <input type="number" id="adminObatStok" placeholder="100" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-success" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Obat</button>
+                        </form>
+                    </div>
+
+                    <!-- Tambah Tindakan -->
+                    <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-hand-holding-medical"></i> Tambah Tindakan Klinik</h3>
+                        <form onsubmit="simpanMasterData(event, 'addTindakan')">
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Nama Tindakan</label>
+                                <input type="text" id="adminTindakanNama" placeholder="Cth: Cabut Gigi Anterior" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Tarif (Rp)</label>
+                                <input type="number" id="adminTindakanHarga" placeholder="150000" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; background: #6366f1;"><i class="fa-solid fa-save"></i> Simpan Tindakan</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </section>
@@ -707,7 +837,7 @@
 
     <!-- Modal Riwayat Kunjungan Pasien LENGKAP (Double Click) -->
     <div id="modalRiwayatPasien" class="modal">
-        <div class="modal-content" style="width: 95%; max-width: 900px;">
+        <div class="modal-content">
             <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalRiwayatPasien').classList.remove('active')"></i>
             <h3 style="margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-book-medical"></i> Rekam Jejak Medis Komprehensif</h3>
             <p style="font-size:0.95rem; color:var(--text-light); margin-bottom: 20px; border-bottom: 2px solid var(--glass-border); padding-bottom: 10px;">
@@ -749,32 +879,240 @@
     <div id="toast"><span id="toastMsg">Sukses!</span></div>
 
     <!-- ==================================================================
-         JAVASCRIPT LOGIC
+         JAVASCRIPT LOGIC (ROUTING, FARMASI, & MASTER DATA)
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS ANDA DISINI (PASTIKAN MENGGUNAKAN LINK TERBARU)
+        // MASUKKAN URL DEPLOYMENT GAS VERSI 6 ANDA DISINI (PASTIKAN SUDAH NEW DEPLOYMENT DENGAN CODE.GS TERBARU)
         const API_URL = "https://script.google.com/macros/s/AKfycbyIVmMKZKTWbJXQ7QBP7zgqRgEZqjT2pPsHmaneqUz44XIvn7U3FleQrdJY-zwI8p8/exec"; 
         
         let allPatientsData = [];
+        let masterOperators = [];
         let tempPasienSks = null;
         let memoryPatientData = null; 
 
-        // Panggil saat aplikasi pertama kali dibuka agar data 'allPatientsData' terisi untuk auto-load (Background Load)
+        // ==================================================================
+        // 1. ROUTING SPA PROFESIONAL DENGAN HISTORY API
+        // ==================================================================
         document.addEventListener('DOMContentLoaded', () => {
             loadDashboardData(true); 
+            
+            // Baca routing dari URL saat reload
+            let path = window.location.pathname.substring(1);
+            if(path === '' || path === 'index.html') path = 'beranda';
+            navTo(path, false);
         });
 
-        // 1. SPA Navigation
-        function navTo(sectionId) {
+        // Tangkap event saat tombol Back/Forward browser ditekan
+        window.onpopstate = function(event) {
+            if(event.state && event.state.page) {
+                navTo(event.state.page, false);
+            }
+        };
+
+        function navTo(sectionId, pushState = true) {
+            let targetId = sectionId;
+            // Pengecekan aman jika target tidak ada
+            if(!document.getElementById(targetId)) targetId = 'beranda';
+
             document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(sectionId).classList.add('active');
-            const btn = document.getElementById('btn-' + sectionId);
+            document.getElementById(targetId).classList.add('active');
+            
+            const btn = document.getElementById('btn-' + targetId);
             if(btn) btn.classList.add('active');
 
-            if(sectionId === 'dashboard') loadDashboardData(false);
+            if (pushState) {
+                history.pushState({page: targetId}, '', '/' + targetId);
+            }
+
+            if(targetId === 'arsip' || targetId === 'farmasi') loadDashboardData(false);
         }
 
+        // ==================================================================
+        // 2. LOAD DATA BACKEND (TERMASUK MASTER DATA)
+        // ==================================================================
+        async function loadDashboardData(silent = false) {
+            const tBody = document.getElementById('tableBody');
+            const fBody = document.getElementById('farmasiBody');
+            if(!silent) {
+                tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik arsip...</td></tr>`;
+                fBody.innerHTML = `<tr><td colspan="3" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Mengecek resep masuk...</td></tr>`;
+            }
+
+            try {
+                const response = await fetch(API_URL);
+                const result = await response.json();
+                
+                if(result.status === 'success') {
+                    allPatientsData = result.dataRM.reverse(); 
+                    masterOperators = result.dataOperator;
+                    
+                    renderTableArsip(allPatientsData);
+                    renderTableFarmasi(allPatientsData);
+                    populateMasterDropdowns();
+                }
+            } catch (error) {
+                if(!silent) {
+                    tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip. Pastikan URL GAS benar.</td></tr>`;
+                    fBody.innerHTML = `<tr><td colspan="3" style="color:red; text-align:center;">Gagal memuat resep.</td></tr>`;
+                }
+            }
+        }
+
+        // Isi Dropdown Dokter & Perawat di Input E-RM
+        function populateMasterDropdowns() {
+            const selectDokter = document.getElementById('selectDokter');
+            const selectPerawat = document.getElementById('selectPerawat');
+            
+            selectDokter.innerHTML = '<option value="" disabled selected>- Pilih Dokter -</option>';
+            selectPerawat.innerHTML = '<option value="" selected>- Tidak Ada / Pilih Perawat -</option>';
+
+            masterOperators.forEach(op => {
+                let opt = `<option value="${op['Nama Lengkap']}">${op['Nama Lengkap']}</option>`;
+                if(op['Role'].toLowerCase() === 'dokter') selectDokter.innerHTML += opt;
+                else selectPerawat.innerHTML += opt;
+            });
+        }
+
+        // ==================================================================
+        // 3. RENDER TABEL FARMASI
+        // ==================================================================
+        function renderTableFarmasi(dataArray) {
+            const fBody = document.getElementById('farmasiBody');
+            fBody.innerHTML = '';
+            
+            // Filter pasien yang memiliki Resep
+            const pasienBerobat = dataArray.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]');
+
+            if(pasienBerobat.length === 0) return fBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px;">Tidak ada antrean resep obat.</td></tr>`;
+
+            pasienBerobat.forEach(item => {
+                let resepHTML = '';
+                try {
+                    let rs = JSON.parse(item['Resep Obat']);
+                    if(rs && rs.length > 0) {
+                        resepHTML = '<ul style="margin-left: 15px; margin-top:5px; font-size:0.85rem; color: #334155;">';
+                        rs.forEach(r => {
+                            let labelRacik = r.racikan !== 'Non-Racik' ? `<b>[${r.racikan}]</b> ` : '';
+                            resepHTML += `<li>${labelRacik}${r.namaObat} (Jml: ${r.jumlah}) - Signa: ${r.signa} (${r.aturanPakai})</li>`;
+                        });
+                        resepHTML += '</ul>';
+                    }
+                } catch(e) { resepHTML = item['Resep Obat']; }
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td style="white-space:nowrap; vertical-align: top;">
+                        <strong>${item['Timestamp']}</strong><br>
+                        <span class="status-badge status-wait" style="display:inline-block; margin-top:8px;">Menunggu Proses</span>
+                    </td>
+                    <td style="vertical-align: top;">
+                        <strong style="color:var(--primary); font-size:1.05rem;">${item['Nama Lengkap']}</strong><br>
+                        <small>No RM: ${item['No RM']} | Usia: ${item['Usia']} Thn</small><br>
+                        <small style="color:#64748b; margin-top:5px; display:block;">Dokter: ${item['Dokter Penanggung Jawab']}</small>
+                    </td>
+                    <td style="vertical-align: top;">
+                        <strong>Daftar Obat:</strong>
+                        ${resepHTML}
+                    </td>
+                `;
+                fBody.appendChild(tr);
+            });
+        }
+
+        // ==================================================================
+        // 4. RENDER TABEL ARSIP (DASHBOARD)
+        // ==================================================================
+        function renderTableArsip(dataArray) {
+            const tBody = document.getElementById('tableBody');
+            tBody.innerHTML = '';
+            if(dataArray.length === 0) return tBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada arsip yang cocok.</td></tr>`;
+
+            dataArray.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer'; 
+                const safeItem = encodeURIComponent(JSON.stringify(item));
+
+                tr.innerHTML = `
+                    <td style="white-space:nowrap;">
+                        <i class="fa-regular fa-clock" style="color:var(--text-light)"></i> <strong>${item['Timestamp'] || '-'}</strong><br>
+                        <span style="font-size:0.75rem; color:var(--text-light);">Tgl Pelayanan: ${item['Tanggal Pelayanan'] || '-'}</span><br>
+                        <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
+                    </td>
+                    <td><strong>${item['No RM'] || '-'}</strong></td>
+                    <td>
+                        <strong>${item['Nama Lengkap'] || '-'}</strong><br>
+                        <small>Usia: ${item['Usia'] || '-'} Thn (${item['Jenis Kelamin']})</small><br>
+                        <small style="color:#ef4444;">Penyakit: ${item['Riwayat Penyakit'] || 'Tidak Ada'}</small><br>
+                        <small style="color:#ef4444;">Alergi: ${item['Riwayat Alergi'] || 'Tidak Ada'}</small>
+                    </td>
+                    <td>
+                        <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
+                            <strong>Elemen Gigi: ${item['Elemen Gigi']||'-'}</strong><br>
+                            <strong>TD:</strong> ${item['Sistole']||'-'}/${item['Diastole']||'-'} | <strong>N:</strong> ${item['Detak Nadi (x/Mnt)']||'-'} | <strong>S:</strong> ${item['Suhu (C)']||'-'}°C
+                        </div>
+                        <p style="font-size:0.85rem;"><strong>S:</strong> ${item['Subjective']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>A:</strong> ${item['Assessment']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>P:</strong> ${item['Plan']||'-'}</p>
+                    </td>
+                `;
+                tr.ondblclick = () => bukaRiwayatKunjungan(item['No RM'], item['Nama Lengkap']);
+                tBody.appendChild(tr);
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const k = e.target.value.toLowerCase().trim();
+            if(k === "") renderTableArsip(allPatientsData);
+            else renderTableArsip(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
+        });
+
+        // ==================================================================
+        // 5. POST DATA ADMIN (OPERATOR, OBAT, TINDAKAN)
+        // ==================================================================
+        async function simpanMasterData(e, actionType) {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+            let payload = { action: actionType };
+
+            if(actionType === 'addOperator') {
+                payload.role = document.getElementById('adminOpRole').value;
+                payload.nama = document.getElementById('adminOpNama').value;
+            } else if (actionType === 'addObat') {
+                payload.namaObat = document.getElementById('adminObatNama').value;
+                payload.harga = document.getElementById('adminObatHarga').value;
+                payload.stok = document.getElementById('adminObatStok').value;
+            } else if (actionType === 'addTindakan') {
+                payload.namaTindakan = document.getElementById('adminTindakanNama').value;
+                payload.harga = document.getElementById('adminTindakanHarga').value;
+            }
+
+            try {
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                showToast("Master Data berhasil ditambahkan!", "success");
+                e.target.reset();
+                loadDashboardData(true); // Refresh data di background agar Select terupdate
+            } catch (error) {
+                showToast("Gagal menyimpan ke server.", "error");
+            } finally {
+                btn.disabled = false; btn.innerHTML = originalText;
+            }
+        }
+
+
+        // ==================================================================
+        // LOGIKA E-RM (USIA, AUTOFILL, ODONTOGRAM, SKS) TETAP SAMA
+        // ==================================================================
+        
         document.getElementById('tanggalPelayanan').valueAsDate = new Date();
 
         function toggleAccordion(id) {
@@ -782,9 +1120,6 @@
             body.classList.toggle('open');
         }
 
-        // ==================================================================
-        // 2. LOGIKA KALKULASI USIA OTOMATIS DARI TTL
-        // ==================================================================
         const inputTtl = document.getElementById('inputTtl');
         const inputUsia = document.getElementById('inputUsia');
 
@@ -808,31 +1143,22 @@
                     let month = dateParts[1].toLowerCase();
                     let year = parseInt(dateParts[2]);
 
-                    if (isNaN(month)) {
-                        month = monthNames[month];
-                    } else {
-                        month = parseInt(month);
-                    }
+                    if (isNaN(month)) month = monthNames[month];
+                    else month = parseInt(month);
 
                     if (day && month && year) {
                         let today = new Date();
                         let birthDate = new Date(year, month - 1, day);
                         let age = today.getFullYear() - birthDate.getFullYear();
                         let m = today.getMonth() - birthDate.getMonth();
-                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                            age--;
-                        }
-                        if (age >= 0) {
-                            inputUsia.value = age;
-                        }
+                        if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                        if (age >= 0) inputUsia.value = age;
                     }
                 }
             }
         });
 
-        // ==================================================================
-        // 3. LOGIKA ODONTOGRAM CERDAS FULL SIMBOL & MEMORI
-        // ==================================================================
+        // ODONTOGRAM
         const anteriorTeeth = [13, 12, 11, 21, 22, 23, 53, 52, 51, 61, 62, 63, 83, 82, 81, 71, 72, 73, 43, 42, 41, 31, 32, 33];
         const posteriorTeeth = [18, 17, 16, 15, 14, 24, 25, 26, 27, 28, 55, 54, 64, 65, 85, 84, 74, 75, 48, 47, 46, 45, 44, 34, 35, 36, 37, 38];
 
@@ -844,7 +1170,6 @@
             currentOdontoToolType = type;
             document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
-            
             showToast(desc, 'info');
         }
 
@@ -872,13 +1197,10 @@
                 let rowClass = row.type === 'top' ? 'top-jaw' : 'bottom-jaw';
                 html += `<div class="odonto-row ${rowClass}">`;
                 row.items.forEach(num => {
-                    if (num === '') {
-                        html += '<div class="odonto-empty"></div>';
-                    } else if (num === 'divider-down') {
-                        html += '<div class="odonto-divider"><i class="fa-solid fa-caret-down"></i></div>';
-                    } else if (num === 'divider-up') {
-                        html += '<div class="odonto-divider"><i class="fa-solid fa-caret-up"></i></div>';
-                    } else {
+                    if (num === '') html += '<div class="odonto-empty"></div>';
+                    else if (num === 'divider-down') html += '<div class="odonto-divider"><i class="fa-solid fa-caret-down"></i></div>';
+                    else if (num === 'divider-up') html += '<div class="odonto-divider"><i class="fa-solid fa-caret-up"></i></div>';
+                    else {
                         html += `<div class="odonto-tooth" id="tooth-wrap-${num}">
                                     <div class="odonto-label" id="label-${num}"></div>
                                     <div class="odonto-num">${num}</div>
@@ -891,7 +1213,6 @@
             document.getElementById('odontogramGrid').innerHTML = html;
         }
 
-        // FUNGSI BARU UNTUK RENDER MODAL HISTORY (ANTI-CLIPPING FIX)
         function generateReadOnlyOdontogram(stateStr) {
             if (!stateStr || stateStr === '-') return '<p style="color:#64748b; font-size:0.85rem;">Tidak ada data visual.</p>';
             let stateObj = {};
@@ -941,9 +1262,7 @@
                 s.style.cursor = 'default';
                 if (data.surfaces) {
                     let pos = s.getAttribute('data-pos');
-                    if (data.surfaces[pos]) {
-                        s.setAttribute('data-state', data.surfaces[pos]);
-                    }
+                    if (data.surfaces[pos]) s.setAttribute('data-state', data.surfaces[pos]);
                 }
             });
 
@@ -956,21 +1275,18 @@
 
         function generateToothSVG(id, position) {
             let isPosterior = posteriorTeeth.includes(id);
-            // ViewBox 40x40 perfectly aligns with our 42px width box
             let svg = `<svg viewBox="0 0 40 40" class="tooth-svg" id="svg-${id}">`;
             
             let rootPath = position === 'top' ? "M 0 10 L 20 -20 L 40 10" : "M 0 30 L 20 60 L 40 30";
             let rootTri = position === 'top' ? "10,0 30,0 20,-20" : "10,40 30,40 20,60";
 
             if (isPosterior) {
-                // Gigi Posterior (5 Permukaan)
                 svg += `<polygon data-pos="Top" points="0,0 40,0 30,10 10,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
                 svg += `<polygon data-pos="Right" points="40,0 40,40 30,30 30,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
                 svg += `<polygon data-pos="Bottom" points="0,40 40,40 30,30 10,30" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
                 svg += `<polygon data-pos="Left" points="0,0 0,40 10,30 10,10" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
                 svg += `<rect data-pos="Center" x="10" y="10" width="20" height="20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
             } else {
-                // Gigi Anterior (4 Permukaan - Akurat dengan Gambar 1)
                 svg += `<polygon data-pos="Top" points="0,0 40,0 28,20 12,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
                 svg += `<polygon data-pos="Right" points="40,0 40,40 28,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
                 svg += `<polygon data-pos="Bottom" points="0,40 40,40 28,20 12,20" class="surface" data-state="norm" onclick="applyOdontoTool(event, ${id})" />`;
@@ -982,7 +1298,6 @@
             svg += `<g class="overlay-poc" style="pointer-events:none; display:none;"><rect x="0" y="0" width="40" height="40" fill="url(#pat-poc)" stroke="#1e293b" stroke-width="2" /></g>`;
             svg += `<g class="overlay-fmc" style="pointer-events:none; display:none;"><rect x="0" y="0" width="40" height="40" fill="none" stroke="#1e293b" stroke-width="2"/><rect x="6" y="6" width="28" height="28" fill="none" stroke="#1e293b" stroke-width="2"/></g>`;
             svg += `<g class="overlay-rrx" style="pointer-events:none; display:none;"><path d="${rootPath}" stroke="#ef4444" stroke-width="4" fill="none"/></g>`;
-
             svg += `<polygon class="overlay-nvt" points="${rootTri}" fill="#ffffff" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
             svg += `<polygon class="overlay-rct" points="${rootTri}" fill="#1e293b" stroke="#1e293b" stroke-width="1.5" style="pointer-events:none; display:none;" />`;
 
@@ -1005,34 +1320,22 @@
             } 
             else if (toolType === 'surface') {
                 if(clickedSurface.classList.contains('surface')) {
-                    if (clickedSurface.getAttribute('data-state') === toolValue) {
-                        clickedSurface.setAttribute('data-state', 'norm');
-                    } else {
-                        clickedSurface.setAttribute('data-state', toolValue);
-                    }
+                    if (clickedSurface.getAttribute('data-state') === toolValue) clickedSurface.setAttribute('data-state', 'norm');
+                    else clickedSurface.setAttribute('data-state', toolValue);
                 }
             }
             else if (toolType === 'whole') {
-                if (svgEl.getAttribute('data-whole') === toolValue) {
-                    svgEl.removeAttribute('data-whole');
-                } else {
-                    svgEl.setAttribute('data-whole', toolValue);
-                }
+                if (svgEl.getAttribute('data-whole') === toolValue) svgEl.removeAttribute('data-whole');
+                else svgEl.setAttribute('data-whole', toolValue);
             }
             else if (toolType === 'root') {
-                if (svgEl.getAttribute('data-root') === toolValue) {
-                    svgEl.removeAttribute('data-root');
-                } else {
-                    svgEl.setAttribute('data-root', toolValue);
-                }
+                if (svgEl.getAttribute('data-root') === toolValue) svgEl.removeAttribute('data-root');
+                else svgEl.setAttribute('data-root', toolValue);
             }
             else if (toolType === 'label') {
                 let textEl = document.getElementById('label-' + id);
-                if (textEl.textContent === toolValue.toUpperCase()) {
-                    textEl.textContent = '';
-                } else {
-                    textEl.textContent = toolValue.toUpperCase();
-                }
+                if (textEl.textContent === toolValue.toUpperCase()) textEl.textContent = '';
+                else textEl.textContent = toolValue.toUpperCase();
             }
             
             generateOdontoTextSummary();
@@ -1113,7 +1416,7 @@
                     }
                 });
 
-                if (Object.keys(surfaceStates).length > 0) { toothData.surfaces = surfaceStates; }
+                if (Object.keys(surfaceStates).length > 0) toothData.surfaces = surfaceStates;
 
                 if (hasData) {
                     odontoStateJSON[id] = toothData;
@@ -1158,22 +1461,12 @@
 
         renderOdontogram();
 
-        // ==================================================================
-        // 4. LOGIKA AUTO-FILL DEMOGRAFI, FISIS & BUBBLE UI ALERT
-        // ==================================================================
-        document.getElementById('inputNoRm').addEventListener('input', checkPastVisits);
-        document.getElementById('inputNik').addEventListener('input', checkPastVisits);
-        document.getElementById('inputNama').addEventListener('input', checkPastVisits);
-
         function checkPastVisits(e) {
             let key = e.target.value.toLowerCase().trim();
             if (key.length > 2 && allPatientsData.length > 0) {
-                
                 let pastVisits = allPatientsData.filter(i => (i['No RM']||'').toLowerCase() === key || (i['NIK']||'').toString() === key || (i['Nama Lengkap']||'').toLowerCase().includes(key));
-                
                 if (pastVisits.length > 0) {
                     document.getElementById('autoFillAlert').style.display = 'flex';
-                    
                     pastVisits.sort((a,b) => new Date(a['Timestamp']) - new Date(b['Timestamp']));
                     memoryPatientData = pastVisits[pastVisits.length - 1]; 
                     
@@ -1274,47 +1567,7 @@
             showToast("Berhasil memuat memori data kunjungan masa lalu!", "success");
         }
 
-        function renderRiwayatOdonto(filteredData) {
-            const tbody = document.getElementById('riwayatOdontoList');
-            if(filteredData.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center; color: var(--text-light);">Tidak ditemukan riwayat.</td></tr>';
-                return;
-            }
-            tbody.innerHTML = '';
-            filteredData.forEach(item => {
-                if(item['Elemen Gigi'] && item['Elemen Gigi'] !== '-') {
-                    tbody.innerHTML += `<tr>
-                        <td style="white-space:nowrap; width:120px;"><strong>${item['Tanggal Pelayanan']}</strong></td>
-                        <td><span style="color:var(--primary); font-weight:600;">${item['Elemen Gigi']}</span><br><small style="color:var(--text-light)">Tindakan: ${item['Plan']}</small></td>
-                    </tr>`;
-                }
-            });
-        }
-
-        // ==================================================================
-        // 5. LOGIKA E-RESEP DINAMIS
-        // ==================================================================
-        function tambahBarisResep() {
-            const tbody = document.getElementById('resepBody');
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td><select class="res-racikan" style="min-width: 80px;"><option value="Non-Racik">Non-Racik</option><option value="R1">R1</option><option value="R2">R2</option><option value="R3">R3</option></select></td>
-                <td><input type="number" class="res-jml-minta" placeholder="Qty"></td>
-                <td><input type="text" class="res-jenis-racik" placeholder="Bentuk"></td>
-                <td><input type="text" class="res-nama-obat" placeholder="Nama Obat"></td>
-                <td><input type="number" class="res-jumlah" placeholder="Jml"></td>
-                <td><input type="text" class="res-signa" placeholder="Contoh: 3x1"></td>
-                <td><select class="res-aturan" style="min-width: 140px;"><option value="- PILIH -">- PILIH -</option><option value="Sebelum Makan">Sebelum Makan</option><option value="Sesudah Makan">Sesudah Makan</option><option value="Saat Makan">Saat Makan</option><option value="Pemakaian Luar">Pemakaian Luar</option><option value="Jika Diperlukan">Jika Diperlukan</option></select></td>
-                <td><input type="text" class="res-ket" placeholder="Ket"></td>
-                <td><button type="button" class="btn btn-danger" onclick="this.closest('tr').remove()"><i class="fa-solid fa-trash"></i></button></td>
-            `;
-            tbody.appendChild(tr);
-        }
-        tambahBarisResep(); 
-
-        // ==================================================================
-        // 6. PROSES SUBMIT FORM KE GAS
-        // ==================================================================
+        // SUBMIT RM KE GAS
         document.getElementById('ermForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             generateOdontoTextSummary(); 
@@ -1346,12 +1599,12 @@
             const formData = new FormData(e.target);
             const dataObj = Object.fromEntries(formData.entries());
             dataObj.riwayatPenyakit = strPenyakit; dataObj.riwayatAlergi = strAlergi; dataObj.resepObat = JSON.stringify(resepArray);
+            dataObj.action = "saveRM";
 
             const btn = document.getElementById('submitBtn'); const btnText = document.getElementById('btnText'); const btnSpinner = document.getElementById('btnSpinner');
             btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
 
             try {
-                // FETCH API LAMA YANG WORK
                 await fetch(API_URL, {
                     method: 'POST',
                     mode: 'no-cors', 
@@ -1365,7 +1618,7 @@
                 chkTidakAdaPenyakit.checked = true; penyakitContainer.style.display = 'none'; chkTidakAdaAlergi.checked = true; alergiContainer.style.display = 'none';
                 applyPastOdontoState({}); document.getElementById('autoFillAlert').style.display = 'none'; memoryPatientData = null;
                 
-                setTimeout(() => navTo('dashboard'), 1500);
+                setTimeout(() => navTo('arsip'), 1500);
             } catch (error) {
                 showToast("Gagal menyambung ke server Google.", "error");
             } finally {
@@ -1373,75 +1626,7 @@
             }
         });
 
-        // ==================================================================
-        // 7. GET DATA DARI GAS & PENGATURAN DASBOR
-        // ==================================================================
-        async function loadDashboardData(silent = false) {
-            const tBody = document.getElementById('tableBody');
-            if(!silent) tBody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:30px;"><i class="fa-solid fa-circle-notch fa-spin"></i> Menarik data...</td></tr>`;
-            try {
-                const response = await fetch(API_URL);
-                const result = await response.json();
-                if(result.status === 'success') {
-                    allPatientsData = result.data.reverse(); 
-                    if(!silent) renderTable(allPatientsData);
-                }
-            } catch (error) {
-                if(!silent) tBody.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Gagal memuat arsip. Pastikan URL GAS benar & telah New Deployment.</td></tr>`;
-            }
-        }
-
-        function renderTable(dataArray) {
-            const tBody = document.getElementById('tableBody');
-            tBody.innerHTML = '';
-            if(dataArray.length === 0) return tBody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada arsip yang cocok.</td></tr>`;
-
-            dataArray.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.style.cursor = 'pointer'; 
-                const safeItem = encodeURIComponent(JSON.stringify(item));
-
-                tr.innerHTML = `
-                    <td style="white-space:nowrap;">
-                        <i class="fa-regular fa-clock" style="color:var(--text-light)"></i> <strong>${item['Timestamp'] || '-'}</strong><br>
-                        <span style="font-size:0.75rem; color:var(--text-light);">Tgl Pelayanan: ${item['Tanggal Pelayanan'] || '-'}</span><br>
-                        <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
-                    </td>
-                    <td><strong>${item['No RM'] || '-'}</strong></td>
-                    <td>
-                        <strong>${item['Nama Lengkap'] || '-'}</strong><br>
-                        <small>Usia: ${item['Usia'] || '-'} Thn (${item['Jenis Kelamin']})</small><br>
-                        <small style="color:#ef4444;">Penyakit: ${item['Riwayat Penyakit'] || 'Tidak Ada'}</small><br>
-                        <small style="color:#ef4444;">Alergi: ${item['Riwayat Alergi'] || 'Tidak Ada'}</small>
-                    </td>
-                    <td>
-                        <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
-                            <strong>Elemen Gigi: ${item['Elemen Gigi']||'-'}</strong><br>
-                            <strong>TD:</strong> ${item['Sistole']||'-'}/${item['Diastole']||'-'} | <strong>N:</strong> ${item['Detak Nadi (x/Mnt)']||'-'} | <strong>S:</strong> ${item['Suhu (C)']||'-'}°C | <strong>TB/BB:</strong> ${item['Tinggi Badan (cm)']||'-'}/${item['Berat Badan (kg)']||'-'}
-                        </div>
-                        <p style="font-size:0.85rem;"><strong>S:</strong> ${item['Subjective']||'-'}</p>
-                        <p style="font-size:0.85rem;"><strong>O:</strong> ${item['Objective']||'-'}</p>
-                        <p style="font-size:0.85rem;"><strong>A:</strong> ${item['Assessment']||'-'}</p>
-                        <p style="font-size:0.85rem;"><strong>P:</strong> ${item['Plan']||'-'}</p>
-                    </td>
-                `;
-                tr.ondblclick = () => bukaRiwayatKunjungan(item['No RM'], item['Nama Lengkap']);
-                tBody.appendChild(tr);
-            });
-        }
-
-        document.getElementById('searchInput').addEventListener('input', (e) => {
-            const k = e.target.value.toLowerCase().trim();
-            if(k === "") {
-                renderTable(allPatientsData);
-            } else {
-                renderTable(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
-            }
-        });
-
-        // ==================================================================
-        // 8. LOGIKA RIWAYAT KUNJUNGAN PASIEN KOMPREHENSIF (DOUBLE CLICK)
-        // ==================================================================
+        // BUKA RIWAYAT KLINIS (MODAL)
         function bukaRiwayatKunjungan(rmFilter, nama) {
             document.getElementById('histRm').innerText = rmFilter;
             document.getElementById('histNama').innerText = nama;
@@ -1455,7 +1640,6 @@
                 timeline.innerHTML = '<p style="color:var(--text-light)">Tidak ada riwayat ditemukan.</p>';
             } else {
                 visits.forEach(v => {
-                    
                     let resepHTML = '';
                     try {
                         let rs = JSON.parse(v['Resep Obat']);
@@ -1469,7 +1653,6 @@
                         } else { resepHTML = '<p style="color:#64748b; margin-top:5px;">Tidak ada resep obat.</p>'; }
                     } catch(e) { resepHTML = `<p>${v['Resep Obat']}</p>`; }
 
-                    // MODUL BARU: Menampilkan Visual Odontogram di Riwayat Dasbor
                     let visualOdontoHTML = '';
                     if (v['Data Odontogram Visual'] && v['Data Odontogram Visual'] !== '-') {
                         visualOdontoHTML = `
@@ -1493,6 +1676,7 @@
                                 <details class="tl-accordion">
                                     <summary><i class="fa-solid fa-user-tag"></i> Info Demografi & Psiko-Sosio-Ekonomi</summary>
                                     <div class="details-content">
+                                        <p><strong>Dokter & Perawat:</strong> ${v['Dokter Penanggung Jawab']||'-'} / ${v['Perawat Pendamping']||'-'}</p>
                                         <p><strong>TTL:</strong> ${v['Tempat, Tanggal Lahir']||'-'} | <strong>Pekerjaan:</strong> ${v['Pekerjaan']||'-'}</p>
                                         <p><strong>Status Bio/Mental:</strong> Kesadaran ${v['Kesadaran']}, Emosi ${v['Ekspresi Emosi']}, Ggn Jiwa: ${v['Gangguan Jiwa']}</p>
                                         <p><strong>Sosial/Ekonomi:</strong> ${v['Sosial Ekonomi']}, Jaminan: ${v['Jaminan']}, Status Kawin: ${v['Status Perkawinan']}</p>
@@ -1537,9 +1721,7 @@
             document.getElementById('modalRiwayatPasien').classList.add('active');
         }
 
-        // ==================================================================
-        // 9. MODUL SKS - LOGIKA OTOMATIS TANGGAL & PRINT
-        // ==================================================================
+        // CETAK SKS
         const inputHari = document.getElementById('sksHari');
         const inputMulai = document.getElementById('sksMulai');
         const inputSelesai = document.getElementById('sksSelesai');
