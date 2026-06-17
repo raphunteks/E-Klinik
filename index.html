@@ -421,9 +421,9 @@
                                 <input type="date" id="tanggalPelayanan" name="tanggalPelayanan" required>
                             </div>
                         </div>
-                        <div class="input-group"><label>No RM</label><input type="text" id="inputNoRm" name="noRm" placeholder="Ketik No RM untuk Cek Memori" required></div>
-                        <div class="input-group"><label>NIK Pasien</label><input type="number" id="inputNik" name="nik" placeholder="16 Digit NIK" required></div>
-                        <div class="input-group"><label>Nama Lengkap</label><input type="text" id="inputNama" name="namaLengkap" placeholder="Nama sesuai KTP" required></div>
+                        <div class="input-group"><label>No RM</label><input type="text" id="inputNoRm" name="noRm" placeholder="Ketik No RM untuk Cek Memori" required oninput="checkPastVisits(event)"></div>
+                        <div class="input-group"><label>NIK Pasien</label><input type="number" id="inputNik" name="nik" placeholder="16 Digit NIK" required oninput="checkPastVisits(event)"></div>
+                        <div class="input-group"><label>Nama Lengkap</label><input type="text" id="inputNama" name="namaLengkap" placeholder="Nama sesuai KTP" required oninput="checkPastVisits(event)"></div>
                         
                         <div class="input-group">
                             <label>Tempat, Tanggal Bulan Tahun Lahir</label>
@@ -528,7 +528,7 @@
                         
                         <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-viruses"></i> A. Riwayat Penyakit Sistemik</h4>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
-                            <input type="checkbox" id="chkTidakAdaPenyakit" checked style="width: 18px; height: 18px;">
+                            <input type="checkbox" id="chkTidakAdaPenyakit" checked style="width: 18px; height: 18px;" onchange="document.getElementById('penyakitContainer').style.display = this.checked ? 'none' : 'block'">
                             Tidak Ada Riwayat Penyakit
                         </label>
                         <div id="penyakitContainer" style="display: none; margin-bottom: 25px;">
@@ -544,7 +544,7 @@
 
                         <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-hand-dots"></i> B. Riwayat Alergi</h4>
                         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
-                            <input type="checkbox" id="chkTidakAdaAlergi" checked style="width: 18px; height: 18px;">
+                            <input type="checkbox" id="chkTidakAdaAlergi" checked style="width: 18px; height: 18px;" onchange="document.getElementById('alergiContainer').style.display = this.checked ? 'none' : 'block'">
                             Tidak Ada Riwayat Alergi
                         </label>
                         <div id="alergiContainer" style="display: none;">
@@ -960,8 +960,29 @@
              5. DASHBOARD ADMIN (dashboardadmin)
              ============================================== -->
         <section id="dashboardadmin" class="section">
-            <div class="glass dashboard-container">
-                <h2 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-cog"></i> Pengaturan Master Data</h2>
+            
+            <!-- A. LOGIN BOX ADMIN -->
+            <div class="glass dashboard-container" id="adminLoginBox" style="max-width: 450px; margin: auto; margin-top: 10vh; text-align: center;">
+                <h2 style="color: var(--primary); margin-bottom: 25px;"><i class="fa-solid fa-lock"></i> Portal Admin Master</h2>
+                <form onsubmit="prosesLoginAdmin(event)">
+                    <div class="input-group" style="margin-bottom: 15px; text-align: left;">
+                        <label>Username</label>
+                        <input type="text" id="loginUser" placeholder="Silahkan masukkan username" required>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 25px; text-align: left;">
+                        <label>Password</label>
+                        <input type="password" id="loginPass" placeholder="Silahkan masukkan password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;"><i class="fa-solid fa-right-to-bracket"></i> Masuk Dasbor</button>
+                </form>
+            </div>
+
+            <!-- B. ISI DASHBOARD ADMIN (DISEMBUNYIKAN SEBELUM LOGIN) -->
+            <div class="glass dashboard-container" id="adminDashboard" style="display: none;">
+                <div class="dash-header">
+                    <h2 style="color: var(--primary);"><i class="fa-solid fa-cog"></i> Pengaturan Master Data</h2>
+                    <button class="btn btn-danger" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Keluar / Logout</button>
+                </div>
                 
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
                     
@@ -1021,6 +1042,30 @@
                             <button type="submit" class="btn btn-primary" id="btnSubmitTindakan" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Tindakan</button>
                         </form>
                     </div>
+                    
+                    <!-- NEW: Form Manajemen Admin -->
+                    <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formAdminData">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-user-shield"></i> <span id="titleAdminData">Tambah Akun Admin</span></h3>
+                        <form onsubmit="simpanMasterData(event, 'addAdmin')">
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Username Login</label>
+                                <input type="text" id="adminDataUser" placeholder="Cth: admin_baru" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Password Login</label>
+                                <input type="text" id="adminDataPass" placeholder="Cth: pass123" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Role Akun</label>
+                                <select id="adminDataRole" required>
+                                    <option value="Super Admin">Super Admin</option>
+                                    <option value="Admin Master">Admin Master</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="btnSubmitAdmin" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Admin</button>
+                        </form>
+                    </div>
+
                 </div>
 
                 <!-- TAMPILAN TABEL DAFTAR MASTER DATA REALTIME -->
@@ -1044,13 +1089,23 @@
                         </table>
                     </div>
 
-                    <div class="table-responsive">
+                    <div class="table-responsive" style="margin-bottom: 25px;">
                         <h4 style="margin: 10px 15px; color: #6366f1;">3. Tindakan Klinik</h4>
                         <table class="dash-table">
                             <thead><tr><th>ID</th><th>Nama Tindakan</th><th>Tarif (Rp)</th><th style="text-align:right;">Aksi</th></tr></thead>
                             <tbody id="listMasterTindakan"><tr><td colspan="4">Memuat data...</td></tr></tbody>
                         </table>
                     </div>
+                    
+                    <!-- NEW: Table Admin -->
+                    <div class="table-responsive">
+                        <h4 style="margin: 10px 15px; color: #f59e0b;">4. Akun Administrator Sistem</h4>
+                        <table class="dash-table">
+                            <thead><tr><th>ID</th><th>Username</th><th>Password</th><th>Role</th><th style="text-align:right;">Aksi</th></tr></thead>
+                            <tbody id="listMasterAdmin"><tr><td colspan="5">Memuat data...</td></tr></tbody>
+                        </table>
+                    </div>
+
                 </div>
             </div>
         </section>
@@ -1153,12 +1208,24 @@
         let masterOperators = [];
         let masterObats = [];
         let masterTindakans = [];
+        let masterAdmins = []; // NEW: State untuk Admin
+        let isAdminLoggedIn = false; // NEW: Status Login Admin
+        
         let tempPasienSks = null;
         let memoryPatientData = null; 
         
         let editModeAdmin = { active: false, sheetName: '', rowIndex: null };
         let lastRawDataRM = ""; // State tracking untuk Farmasi Real-time
         let autoRefreshInterval = null;
+
+        function toggleAccordion(id) {
+            const el = document.getElementById(id);
+            if (el.classList.contains('open')) {
+                el.classList.remove('open');
+            } else {
+                el.classList.add('open');
+            }
+        }
 
         // ==================================================================
         // Custom Modal Confirm (Penyesuaian Canvas)
@@ -1195,7 +1262,7 @@
         }
 
         // ==================================================================
-        // LOGIKA BARU: SFX Notification
+        // SFX Notification
         // ==================================================================
         function playNotifSound() {
             const audio = document.getElementById('notifAudio');
@@ -1205,7 +1272,7 @@
         }
 
         // ==================================================================
-        // LOGIKA BARU: Toggle Tampilkan Input "Lainnya"
+        // Toggle Tampilkan Input "Lainnya"
         // ==================================================================
         function toggleLainnya(selectObj, inputId, triggerValue = 'Lainnya') {
             const input = document.getElementById(inputId);
@@ -1220,7 +1287,7 @@
         }
 
         // ==================================================================
-        // LOGIKA BARU: Kalkulasi Usia Otomatis dari Input Text
+        // Kalkulasi Usia Otomatis dari Input Text
         // ==================================================================
         document.getElementById('inputTtl').addEventListener('input', function(e) {
             let val = e.target.value;
@@ -1278,7 +1345,7 @@
         });
 
         // ==================================================================
-        // 1. ROUTING SPA
+        // 1. ROUTING SPA & SISTEM LOGIN ADMIN
         // ==================================================================
         window.onpopstate = function(event) {
             if(event.state && event.state.page) navTo(event.state.page, false);
@@ -1297,6 +1364,47 @@
 
             if (pushState) history.pushState({page: targetId}, '', '/' + targetId);
             if(targetId === 'arsip' || targetId === 'farmasi' || targetId === 'dashboardadmin') loadDashboardData(false);
+
+            // NEW: Routing Khusus Dashboard Admin
+            if(targetId === 'dashboardadmin') {
+                if(!isAdminLoggedIn) {
+                    document.getElementById('adminLoginBox').style.display = 'block';
+                    document.getElementById('adminDashboard').style.display = 'none';
+                } else {
+                    document.getElementById('adminLoginBox').style.display = 'none';
+                    document.getElementById('adminDashboard').style.display = 'block';
+                }
+            }
+        }
+
+        // NEW: Fungsi Login Admin
+        function prosesLoginAdmin(e) {
+            e.preventDefault();
+            const u = document.getElementById('loginUser').value;
+            const p = document.getElementById('loginPass').value;
+            
+            // Pengecekan via data yang ditarik dari Server GAS
+            const isRegistered = masterAdmins.some(a => a['Username'] === u && a['Password'] === p);
+            // Fallback (apabila script gagal ambil data di awal karena koneksi)
+            const isFallback = (u === 'axaaxyz_01' && p === 'axaxyz999'); 
+
+            if(isRegistered || isFallback) {
+                isAdminLoggedIn = true;
+                showToast('Login Dasbor Admin Berhasil!', 'success');
+                document.getElementById('adminLoginBox').style.display = 'none';
+                document.getElementById('adminDashboard').style.display = 'block';
+                document.getElementById('loginPass').value = ''; // bersihkan kolom password untuk keamanan
+            } else {
+                showToast('Username atau Password Anda salah!', 'error');
+            }
+        }
+
+        // NEW: Fungsi Logout Admin
+        function logoutAdmin() {
+            isAdminLoggedIn = false;
+            document.getElementById('adminDashboard').style.display = 'none';
+            document.getElementById('adminLoginBox').style.display = 'block';
+            showToast('Berhasil keluar dari Dasbor Admin.', 'info');
         }
 
         // ==================================================================
@@ -1337,6 +1445,7 @@
                         masterOperators = result.dataOperator;
                         masterObats = result.dataObat;
                         masterTindakans = result.dataTindakan;
+                        masterAdmins = result.dataAdmin; // NEW: Simpan state Admin
                         
                         renderTableArsip(allPatientsData);
                         renderTableFarmasi(allPatientsData);
@@ -1382,8 +1491,9 @@
             const listOp = document.getElementById('listMasterOp');
             const listObat = document.getElementById('listMasterObat');
             const listTindakan = document.getElementById('listMasterTindakan');
+            const listAdmin = document.getElementById('listMasterAdmin'); // NEW
             
-            listOp.innerHTML = ''; listObat.innerHTML = ''; listTindakan.innerHTML = '';
+            listOp.innerHTML = ''; listObat.innerHTML = ''; listTindakan.innerHTML = ''; listAdmin.innerHTML = '';
             
             masterOperators.forEach(o => {
                 listOp.innerHTML += `<tr><td>${o['ID']}</td><td>${o['Role']}</td><td>${o['Nama Lengkap']}</td>
@@ -1407,9 +1517,19 @@
                 </td></tr>`;
             });
             
+            // NEW: Render Master Admin
+            masterAdmins.forEach(a => {
+                listAdmin.innerHTML += `<tr><td>${a['ID Admin']}</td><td>${a['Username']}</td><td>${a['Password']}</td><td>${a['Role']}</td>
+                <td style="text-align:right; white-space:nowrap;">
+                    <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editMasterData('Master_Admin', ${a['rowIndex']})"><i class="fa-solid fa-edit"></i> Edit</button>
+                    <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="hapusMasterData('Master_Admin', ${a['rowIndex']})"><i class="fa-solid fa-trash"></i> Hapus</button>
+                </td></tr>`;
+            });
+
             if(masterOperators.length === 0) listOp.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
             if(masterObats.length === 0) listObat.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data.</td></tr>';
             if(masterTindakans.length === 0) listTindakan.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
+            if(masterAdmins.length === 0) listAdmin.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data admin.</td></tr>';
         }
 
         function editMasterData(sheetName, rowIndex) {
@@ -1436,6 +1556,7 @@
                 
                 const btn = document.getElementById('btnSubmitObat');
                 btn.innerHTML = '<i class="fa-solid fa-edit"></i> Update Obat';
+                btn.classList.replace('btn-primary', 'btn-success');
                 document.getElementById('titleObat').innerText = "Edit Master Obat";
                 document.getElementById('formObat').scrollIntoView({behavior: 'smooth', block: 'center'});
             } 
@@ -1449,6 +1570,19 @@
                 btn.classList.replace('btn-primary', 'btn-success');
                 document.getElementById('titleTindakan').innerText = "Edit Tindakan Klinik";
                 document.getElementById('formTindakan').scrollIntoView({behavior: 'smooth', block: 'center'});
+            }
+            // NEW: Menambahkan edit untuk Master Admin
+            else if (sheetName === 'Master_Admin') {
+                const data = masterAdmins.find(o => o.rowIndex === rowIndex);
+                document.getElementById('adminDataUser').value = data['Username'];
+                document.getElementById('adminDataPass').value = data['Password'];
+                document.getElementById('adminDataRole').value = data['Role'];
+
+                const btn = document.getElementById('btnSubmitAdmin');
+                btn.innerHTML = '<i class="fa-solid fa-edit"></i> Update Admin';
+                btn.classList.replace('btn-primary', 'btn-success');
+                document.getElementById('titleAdminData').innerText = "Edit Akun Admin";
+                document.getElementById('formAdminData').scrollIntoView({behavior: 'smooth', block: 'center'});
             }
         }
 
@@ -1517,7 +1651,6 @@
                         ${resepHTML}
                     </td>
                 `;
-                const safeItem = encodeURIComponent(JSON.stringify(item));
                 tr.ondblclick = () => bukaRiwayatKunjunganFarmasi(item['No RM'], item['Nama Lengkap'], item['rowIndex'], isDone);
                 fBody.appendChild(tr);
             });
@@ -1577,7 +1710,7 @@
         });
 
         // ==================================================================
-        // 5. POST DATA ADMIN (OPERATOR, OBAT, TINDAKAN) + UPDATE DATA
+        // 5. POST DATA ADMIN (OPERATOR, OBAT, TINDAKAN, ADMIN) + UPDATE
         // ==================================================================
         async function simpanMasterData(e, actionType) {
             e.preventDefault();
@@ -1605,6 +1738,10 @@
             } else if (actionType === 'addTindakan') {
                 payload.namaTindakan = document.getElementById('adminTindakanNama').value;
                 payload.harga = document.getElementById('adminTindakanHarga').value;
+            } else if (actionType === 'addAdmin') { // NEW: Handle form Master Admin
+                payload.username = document.getElementById('adminDataUser').value;
+                payload.password = document.getElementById('adminDataPass').value;
+                payload.role = document.getElementById('adminDataRole').value;
             }
 
             try {
@@ -1625,11 +1762,16 @@
                         document.getElementById('titleOp').innerText = "Tambah Tenaga Medis";
                     } else if (actionType === 'addObat') {
                         btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Obat';
+                        btn.classList.replace('btn-success', 'btn-primary');
                         document.getElementById('titleObat').innerText = "Tambah Master Obat";
                     } else if (actionType === 'addTindakan') {
                         btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Tindakan';
                         btn.classList.replace('btn-success', 'btn-primary');
                         document.getElementById('titleTindakan').innerText = "Tambah Tindakan Klinik";
+                    } else if (actionType === 'addAdmin') { // NEW: Reset Admin form
+                        btn.innerHTML = '<i class="fa-solid fa-save"></i> Simpan Admin';
+                        btn.classList.replace('btn-success', 'btn-primary');
+                        document.getElementById('titleAdminData').innerText = "Tambah Akun Admin";
                     }
                     editModeAdmin.active = false;
                     editModeAdmin.sheetName = '';
@@ -1948,10 +2090,20 @@
             generateOdontoTextSummary();
         }
 
+        // ==================================================================
+        // 1. UPDATE FIX: Pengecekan Riwayat Auto Fill (Kini Jauh Lebih Fleksibel)
+        // ==================================================================
         function checkPastVisits(e) {
             let key = e.target.value.toLowerCase().trim();
+            // Hanya trigger pencarian jika pengguna sudah mengetik minimal 3 karakter
             if (key.length > 2 && allPatientsData.length > 0) {
-                let pastVisits = allPatientsData.filter(i => (i['No RM']||'').toLowerCase() === key || (i['NIK']||'').toString() === key || (i['Nama Lengkap']||'').toLowerCase().includes(key));
+                // BUG FIXED: Menggunakan .includes() alih-alih '===' untuk No RM dan NIK
+                let pastVisits = allPatientsData.filter(i => 
+                    (i['No RM'] || '').toString().toLowerCase().includes(key) || 
+                    (i['NIK'] || '').toString().toLowerCase().includes(key) || 
+                    (i['Nama Lengkap'] || '').toString().toLowerCase().includes(key)
+                );
+                
                 if (pastVisits.length > 0) {
                     document.getElementById('autoFillAlert').style.display = 'flex';
                     pastVisits.sort((a,b) => new Date(a['Timestamp']) - new Date(b['Timestamp']));
