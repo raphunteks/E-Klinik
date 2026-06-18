@@ -6,7 +6,7 @@
     <title>Sistem E-RM | Klinik Pribadi</title>
 
     <!-- Meta Tags -->
-    <link rel="icon" type="image/png" href="axalogo.png">
+    <link rel="icon" type="image/png" id="faviconMeta" href="axalogo.png">
     <link rel="apple-touch-icon" href="axalogo.png">
     <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis, farmasi, dan akuntansi terintegrasi.">
 
@@ -17,6 +17,30 @@
     
     <!-- LINK KE FILE CSS EKSTERNAL -->
     <link rel="stylesheet" href="styles.css">
+
+    <!-- CSS ISOLASI KHUSUS CETAK SKS & RUJUKAN -->
+    <style>
+        .print-section { display: none; }
+    </style>
+    <style media="print">
+        body * { visibility: hidden; }
+        .print-section, .print-section * { visibility: visible; }
+        .print-section { position: absolute; left: 0; top: 0; width: 100%; display: none; }
+        
+        body.print-sks #printArea { display: block !important; }
+        body.print-rujukan #printAreaRujukan { display: block !important; }
+        
+        /* Pengaturan Layout & Tipografi Kertas A4 */
+        @page { size: auto; margin: 15mm; }
+        body { background: white !important; color: black; margin: 0; padding: 0; }
+        .blob, nav, main, .modal, #toast { display: none !important; }
+        
+        .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 25px; }
+        .kop-surat img { height: 75px; margin-bottom: 5px; }
+        .sks-title { text-align: center; text-decoration: underline; font-weight: bold; font-size: 14pt; margin-bottom: 20px;}
+        .sks-body { font-size: 11pt; line-height: 1.6; }
+        .sks-signature { margin-top: 40px; }
+    </style>
 
     <!-- Definisi Pola (Patterns) SVG untuk Odontogram -->
     <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
@@ -43,8 +67,8 @@
 
     <nav>
         <div class="brand" onclick="navTo('beranda')">
-            <img src="axalogo.png" alt="Logo" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fa-solid fa-tooth\'></i>')">
-            <span>Klinik<span style="color:var(--text-dark)">Care</span></span>
+            <img src="axalogo.png" id="navLogo" alt="Logo" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fa-solid fa-tooth\'></i>')">
+            <span id="navBrandName">Klinik<span style="color:var(--text-dark)">Care</span></span>
         </div>
         <div class="nav-links">
             <button class="nav-btn active" onclick="navTo('beranda')" id="btn-beranda"><i class="fa-solid fa-house"></i> <span>Beranda</span></button>
@@ -650,7 +674,7 @@
                     <table class="dash-table">
                         <thead>
                             <tr>
-                                <th>Tgl / Aksi</th>
+                                <th>Tgl / Aksi Dokumen</th>
                                 <th>No RM</th>
                                 <th>Identitas Pasien</th>
                                 <th>Fisik & SOAP (Kunjungan Terakhir)</th>
@@ -727,13 +751,14 @@
                 <div class="admin-tabs" style="margin-top: 20px;">
                     <button class="admin-tab-btn active" onclick="switchAdminTab('tab-master')"><i class="fa-solid fa-database"></i> Master Data</button>
                     <button class="admin-tab-btn" onclick="switchAdminTab('tab-keuangan')"><i class="fa-solid fa-chart-line"></i> Laporan Keuangan</button>
+                    <button class="admin-tab-btn" onclick="switchAdminTab('tab-pengaturan')"><i class="fa-solid fa-building"></i> Pengaturan Klinik</button>
                 </div>
                 
                 <!-- TAB 1: MASTER DATA -->
                 <div id="tab-master" class="admin-tab-content active">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
                         
-                        <!-- Form Operator -->
+                        <!-- Form Operator (Ditingkatkan: Tambah SIP) -->
                         <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formOp">
                             <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-user-plus"></i> <span id="titleOp">Tambah Tenaga Medis</span></h3>
                             <form onsubmit="simpanMasterData(event, 'addOperator')">
@@ -744,9 +769,13 @@
                                         <option value="Perawat">Perawat / Bidan</option>
                                     </select>
                                 </div>
-                                <div class="input-group" style="margin-bottom: 15px;">
+                                <div class="input-group" style="margin-bottom: 10px;">
                                     <label>Nama Lengkap & Gelar</label>
                                     <input type="text" id="adminOpNama" placeholder="Cth: drg. Budi Santoso" required>
+                                </div>
+                                <div class="input-group" style="margin-bottom: 15px;">
+                                    <label>Nomor SIP (Surat Izin Praktik)</label>
+                                    <input type="text" id="adminOpSip" placeholder="Opsional (Cth: HD0000...)">
                                 </div>
                                 <button type="submit" class="btn btn-primary" id="btnSubmitOp" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Operator</button>
                             </form>
@@ -823,8 +852,8 @@
                         <div class="table-responsive" style="margin-bottom: 25px;">
                             <h4 style="margin: 10px 15px; color: var(--primary);">1. Operator & Tenaga Medis</h4>
                             <table class="dash-table">
-                                <thead><tr><th>ID</th><th>Role</th><th>Nama Lengkap</th><th style="text-align:right;">Aksi</th></tr></thead>
-                                <tbody id="listMasterOp"><tr><td colspan="4">Memuat data...</td></tr></tbody>
+                                <thead><tr><th>ID</th><th>Role</th><th>Nama Lengkap</th><th>Nomor SIP</th><th style="text-align:right;">Aksi</th></tr></thead>
+                                <tbody id="listMasterOp"><tr><td colspan="5">Memuat data...</td></tr></tbody>
                             </table>
                         </div>
 
@@ -896,6 +925,34 @@
 
                 </div> <!-- END TAB KEUANGAN -->
 
+                <!-- TAB 3: PENGATURAN KLINIK (BARU) -->
+                <div id="tab-pengaturan" class="admin-tab-content">
+                    <div style="background: rgba(255,255,255,0.8); padding: 30px; border-radius: 12px; border: 1px solid var(--glass-border); max-width: 600px; margin: 0 auto;">
+                        <h3 style="font-size: 1.3rem; margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-building-user"></i> Identitas Klinik</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 25px;">Pengaturan ini akan berdampak pada Kop Surat cetak Surat Keterangan Sakit & Surat Rujukan.</p>
+                        
+                        <form onsubmit="simpanPengaturan(event)">
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Nama Klinik Utama</label>
+                                <input type="text" id="setNamaKlinik" value="KLINIK CARE MEDIKA" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Alamat Lengkap</label>
+                                <textarea id="setAlamatKlinik" rows="2" required>Jl. Kesehatan No. 123, Kota Anda</textarea>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Nomor Telepon / WhatsApp</label>
+                                <input type="text" id="setNoTelp" value="(021) 1234567" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 25px;">
+                                <label>URL Logo Klinik (Link Gambar/Path)</label>
+                                <input type="text" id="setUrlLogo" value="axalogo.png" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="btnSubmitPengaturan" style="width: 100%; padding: 15px; font-size: 1.05rem;"><i class="fa-solid fa-save"></i> Terapkan Pengaturan Identitas</button>
+                        </form>
+                    </div>
+                </div> <!-- END TAB PENGATURAN -->
+
             </div>
         </section>
     </main>
@@ -923,8 +980,35 @@
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" style="flex: 1;" onclick="eksekusiCetakSKS()"><i class="fa-solid fa-print"></i> Cetak PDF</button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="eksekusiCetakSKS()"><i class="fa-solid fa-print"></i> Cetak SKS</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal Generate SURAT RUJUKAN -->
+    <div id="modalRujukan" class="modal">
+        <div class="modal-content" style="max-width:500px;">
+            <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalRujukan').classList.remove('active')"></i>
+            <h3 style="margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-file-export"></i> Terbitkan Surat Rujukan</h3>
+            <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Lengkapi data tujuan rujukan ke Fasilitas Kesehatan (RS/Klinik) tingkat lanjut.</p>
+            
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Rumah Sakit / Fasilitas Tujuan</label>
+                <input type="text" id="rujukRs" placeholder="Cth: BLUD RSU BAHTERAMAS">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>TS dr. Poli (Teman Sejawat)</label>
+                <input type="text" id="rujukPoli" placeholder="Cth: GIGI ENDODONSI">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Diagnosa Sementara</label>
+                <input type="text" id="rujukDiagnosa">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Terapi / Tindakan yang Telah Diberikan</label>
+                <textarea id="rujukTerapi" rows="2"></textarea>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="eksekusiCetakRujukan()"><i class="fa-solid fa-print"></i> Cetak Surat Rujukan</button>
         </div>
     </div>
 
@@ -943,7 +1027,7 @@
         </div>
     </div>
 
-    <!-- Modal Konfirmasi Custom (Pengganti alert/confirm browser) -->
+    <!-- Modal Konfirmasi Custom -->
     <div id="customConfirm" class="modal">
         <div class="modal-content" style="max-width:400px; text-align:center;">
             <h3 style="margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-circle-exclamation" style="color: #f59e0b;"></i> Konfirmasi</h3>
@@ -955,12 +1039,12 @@
         </div>
     </div>
 
-    <!-- AREA CETAK SKS (HIDDEN DI LAYAR, MUNCUL SAAT DI-PRINT) -->
-    <div id="printArea">
+    <!-- AREA CETAK SKS (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
+    <div id="printArea" class="print-section">
         <div class="kop-surat">
-            <img src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
-            <h1 style="font-size: 20pt; margin: 0;">KLINIK CARE MEDIKA</h1>
-            <p style="font-size: 11pt; margin: 0;">Jl. Kesehatan No. 123, Kota Anda, Telp: (021) 1234567</p>
+            <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
+            <h1 class="print-nama-klinik" style="font-size: 20pt; margin: 0; text-transform: uppercase;">KLINIK CARE MEDIKA</h1>
+            <p class="print-alamat-klinik" style="font-size: 11pt; margin: 0;">Jl. Kesehatan No. 123, Kota Anda, Telp: (021) 1234567</p>
         </div>
         <div class="sks-title">SURAT KETERANGAN SAKIT</div>
         <div class="sks-body">
@@ -968,7 +1052,7 @@
             <table style="width: 100%; margin: 15px 0; border: none; font-size: 12pt;">
                 <tr><td style="width: 150px; padding: 5px 0;">Nama Lengkap</td><td>: <strong id="printNama"></strong></td></tr>
                 <tr><td style="padding: 5px 0;">Usia / Jenis Kelamin</td><td>: <span id="printUsia"></span> Tahun / <span id="printJk"></span></td></tr>
-                <tr><td style="padding: 5px 0;">Pekerjaan</td><td>: <span id="printKerja">Karyawan / Pelajar</span></td></tr>
+                <tr><td style="padding: 5px 0;">Pekerjaan</td><td>: <span id="printKerja"></span></td></tr>
                 <tr><td style="padding: 5px 0;">Alamat</td><td>: <span id="printAlamat"></span></td></tr>
             </table>
             <p style="text-align: justify; margin-top: 15px;">Berdasarkan hasil pemeriksaan kesehatan yang bersangkutan, pasien di atas dalam keadaan sakit dan memerlukan istirahat selama <strong><span id="printHari"></span> (<span id="printHariTeks"></span>) hari</strong>, terhitung mulai tanggal <strong><span id="printMulai"></span></strong> s/d <strong><span id="printSelesai"></span></strong>.</p>
@@ -977,7 +1061,45 @@
         <div class="sks-signature">
             <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
             <br><br><br>
-            <p><strong>( ______________________ )</strong><br>SIP: .......................................</p>
+            <p><strong style="text-decoration: underline;" id="printDokterSks">( ______________________ )</strong><br><span id="printSipSks">SIP: .......................................</span></p>
+        </div>
+    </div>
+
+    <!-- AREA CETAK SURAT RUJUKAN (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
+    <div id="printAreaRujukan" class="print-section">
+        <div class="kop-surat">
+            <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
+            <h1 class="print-nama-klinik" style="font-size: 20pt; margin: 0; text-transform: uppercase;">KLINIK CARE MEDIKA</h1>
+            <p class="print-alamat-klinik" style="font-size: 11pt; margin: 0;">Jl. Kesehatan No. 123, Kota Anda, Telp: (021) 1234567</p>
+        </div>
+        
+        <div class="sks-title" style="margin-top: 10px; margin-bottom: 25px;">SURAT RUJUKAN EKSTERNAL</div>
+        
+        <div style="border: 2px solid #000; padding: 15px; margin-bottom: 20px;">
+            <table style="width: 100%; border: none; font-size: 12pt; line-height: 1.5;">
+                <tr><td style="width: 150px;">Kepada Yth,</td><td>: <strong id="printRujukanPoli"></strong></td></tr>
+                <tr><td>Di Tempat</td><td>: <strong id="printRujukanRs"></strong></td></tr>
+            </table>
+        </div>
+
+        <div class="sks-body">
+            <p style="margin-bottom: 10px;">Mohon pemeriksaan dan penanganan lebih lanjut pasien di bawah ini:</p>
+            
+            <table style="width: 100%; margin: 10px 0; border: none; font-size: 12pt; line-height: 1.5;">
+                <tr><td style="width: 180px; padding: 3px 0;">Nama Lengkap</td><td>: <strong id="printRujukanNama"></strong></td></tr>
+                <tr><td style="padding: 3px 0;">Umur / Jenis Kelamin</td><td>: <span id="printRujukanUmur"></span> Tahun / <span id="printRujukanJk"></span></td></tr>
+                <tr><td style="padding: 3px 0;">No Rekam Medis</td><td>: <span id="printRujukanRm"></span></td></tr>
+                <tr><td style="padding: 3px 0; vertical-align:top;">Diagnosa Utama</td><td>: <strong id="printRujukanDiagnosa"></strong></td></tr>
+                <tr><td style="padding: 3px 0; vertical-align:top;">Telah Diberikan (Terapi)</td><td>: <span id="printRujukanTerapi"></span></td></tr>
+            </table>
+
+            <p style="text-align: justify; margin-top: 25px;">Demikian surat rujukan ini dibuat, atas bantuan dan kerjasamanya kami ucapkan banyak terima kasih.</p>
+        </div>
+        
+        <div class="sks-signature" style="text-align: right;">
+            <p>Salam Sejawat, <span id="printRujukanTgl"></span></p>
+            <br><br><br>
+            <p><strong style="text-decoration: underline;" id="printRujukanDokter">( ______________________ )</strong><br><span id="printRujukanSip">SIP: .......................................</span></p>
         </div>
     </div>
 
@@ -999,6 +1121,7 @@
         let masterTindakans = [];
         let masterAdmins = []; 
         let dataKeuangan = []; 
+        let masterPengaturan = []; // Array Penyimpanan Konfigurasi Klinik
         let isAdminLoggedIn = false; 
         
         let tempPasienSks = null;
@@ -1013,7 +1136,6 @@
         let chartBarInst = null;
         let chartPieInst = null;
 
-        // Atur default warna teks chart agar sesuai tema
         Chart.defaults.color = '#475569';
         Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
 
@@ -1134,7 +1256,7 @@
             
             autoRefreshInterval = setInterval(() => {
                 loadDashboardData(true); 
-            }, 15000); // Polling setiap 15 Detik
+            }, 15000); 
 
             renderOdontogram();
             tambahBarisResep();
@@ -1166,7 +1288,6 @@
 
             if (pushState) history.pushState({page: targetId}, '', '/' + targetId);
             
-            // Render ulang chart jika masuk tab admin keuangan
             if(targetId === 'dashboardadmin') {
                 if(!isAdminLoggedIn) {
                     document.getElementById('adminLoginBox').style.display = 'block';
@@ -1183,7 +1304,6 @@
             }
         }
 
-        // TABS DALAM DASHBOARD ADMIN
         function switchAdminTab(tabId) {
             document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.admin-tab-content').forEach(c => c.classList.remove('active'));
@@ -1211,7 +1331,6 @@
                 document.getElementById('adminDashboard').style.display = 'block';
                 document.getElementById('loginPass').value = ''; 
                 
-                // Trigger render chart saat berhasil login jika tabnya sedang aktif
                 if(document.getElementById('tab-keuangan').classList.contains('active')) {
                      renderFinancialCharts();
                 }
@@ -1228,7 +1347,70 @@
         }
 
         // ==================================================================
-        // 2. LOAD DATA BACKEND (DENGAN REAL-TIME CHECK & FRAGMENT OPTIMIZATION)
+        // LOGIKA PENERAPAN PENGATURAN KLINIK KE UI
+        // ==================================================================
+        function applyPengaturanKlinikUI() {
+            // Ambil dari backend (jika backend telah diupgrade untuk merespon Master_Pengaturan)
+            // Jika tidak, tetap melangsungkan data tersimpan dari state lokal Admin
+            if(masterPengaturan && masterPengaturan.length > 0) {
+                const setting = masterPengaturan[0]; 
+                const nama = setting['Nama Klinik'] || 'KLINIK CARE MEDIKA';
+                const alamat = setting['Alamat Klinik'] || 'Jl. Kesehatan No. 123, Kota Anda';
+                const telp = setting['No Telepon'] || '(021) 1234567';
+                const logo = setting['URL Logo'] || 'axalogo.png';
+
+                document.getElementById('setNamaKlinik').value = nama;
+                document.getElementById('setAlamatKlinik').value = alamat;
+                document.getElementById('setNoTelp').value = telp;
+                document.getElementById('setUrlLogo').value = logo;
+
+                // Terapkan ke Area Cetak SKS dan Rujukan
+                document.querySelectorAll('.print-nama-klinik').forEach(el => el.innerText = nama.toUpperCase());
+                document.querySelectorAll('.print-alamat-klinik').forEach(el => el.innerText = `${alamat}, Telp: ${telp}`);
+                document.querySelectorAll('.print-logo').forEach(el => {
+                    el.src = logo; 
+                    el.onerror = () => { el.style.display='none'; };
+                });
+
+                // Terapkan ke Navbar Web App
+                document.getElementById('navBrandName').innerHTML = `<span style="color:var(--text-dark)">${nama}</span>`;
+                const mainLogo = document.getElementById('navLogo');
+                if(mainLogo) mainLogo.src = logo;
+            }
+        }
+
+        async function simpanPengaturan(e) {
+            e.preventDefault();
+            const nama = document.getElementById('setNamaKlinik').value;
+            const alamat = document.getElementById('setAlamatKlinik').value;
+            const telp = document.getElementById('setNoTelp').value;
+            const logo = document.getElementById('setUrlLogo').value;
+
+            // Apply immediately to UI Variables untuk rendering Print
+            document.querySelectorAll('.print-nama-klinik').forEach(el => el.innerText = nama.toUpperCase());
+            document.querySelectorAll('.print-alamat-klinik').forEach(el => el.innerText = `${alamat}, Telp: ${telp}`);
+            document.querySelectorAll('.print-logo').forEach(el => {
+                el.src = logo; el.onerror = () => { el.style.display='none'; };
+            });
+            document.getElementById('navBrandName').innerHTML = `<span style="color:var(--text-dark)">${nama}</span>`;
+            if(document.getElementById('navLogo')) document.getElementById('navLogo').src = logo;
+
+            // Optional: Kirim data pembaruan ke Backend GAS (Abaikan error CORS jika backend lama)
+            try {
+                showToast("Menyimpan pengaturan klinik...", "info");
+                await fetch(API_URL, {
+                    method: 'POST', mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'updatePengaturan', namaKlinik: nama, alamatKlinik: alamat, noTelp: telp, urlLogo: logo })
+                });
+                showToast("Pengaturan berhasil diterapkan!", "success");
+            } catch(e) {
+                showToast("Telah diterapkan secara lokal di Browser.", "success");
+            }
+        }
+
+        // ==================================================================
+        // 2. LOAD DATA BACKEND (REAL-TIME CHECK)
         // ==================================================================
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
@@ -1264,6 +1446,10 @@
                         masterTindakans = result.dataTindakan;
                         masterAdmins = result.dataAdmin; 
                         dataKeuangan = result.dataKeuangan || []; 
+                        
+                        // Menampung dan menerapkan Pengaturan Klinik yang masuk
+                        masterPengaturan = result.dataPengaturan || [];
+                        applyPengaturanKlinikUI();
                         
                         if(document.getElementById('arsip').classList.contains('active')) renderTableArsip(allPatientsData);
                         if(document.getElementById('farmasi').classList.contains('active')) renderTableFarmasi(allPatientsData);
@@ -1324,7 +1510,7 @@
             listOp.innerHTML = ''; listObat.innerHTML = ''; listTindakan.innerHTML = ''; listAdmin.innerHTML = '';
             
             masterOperators.forEach(o => {
-                listOp.innerHTML += `<tr><td>${o['ID']}</td><td>${o['Role']}</td><td>${o['Nama Lengkap']}</td>
+                listOp.innerHTML += `<tr><td>${o['ID']}</td><td>${o['Role']}</td><td>${o['Nama Lengkap']}</td><td>${o['SIP'] || '-'}</td>
                 <td style="text-align:right; white-space:nowrap;">
                     <button class="btn btn-outline" style="padding: 4px 8px; font-size: 0.75rem;" onclick="editMasterData('Master_Operator', ${o['rowIndex']})"><i class="fa-solid fa-edit"></i> Edit</button>
                     <button class="btn btn-danger" style="padding: 4px 8px; font-size: 0.75rem;" onclick="hapusMasterData('Master_Operator', ${o['rowIndex']})"><i class="fa-solid fa-trash"></i> Hapus</button>
@@ -1353,7 +1539,7 @@
                 </td></tr>`;
             });
 
-            if(masterOperators.length === 0) listOp.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
+            if(masterOperators.length === 0) listOp.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data.</td></tr>';
             if(masterObats.length === 0) listObat.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data.</td></tr>';
             if(masterTindakans.length === 0) listTindakan.innerHTML = '<tr><td colspan="4" style="text-align:center;">Belum ada data.</td></tr>';
             if(masterAdmins.length === 0) listAdmin.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data admin.</td></tr>';
@@ -1368,6 +1554,7 @@
                 const data = masterOperators.find(o => o.rowIndex === rowIndex);
                 document.getElementById('adminOpRole').value = data['Role'];
                 document.getElementById('adminOpNama').value = data['Nama Lengkap'];
+                document.getElementById('adminOpSip').value = data['SIP'] || '';
                 
                 const btn = document.getElementById('btnSubmitOp');
                 btn.innerHTML = '<i class="fa-solid fa-edit"></i> Update Operator';
@@ -1412,7 +1599,7 @@
             }
         }
 
-        // Fungsi Simpan (Diperbaiki untuk sinkronisasi dengan event handler HTML)
+        // Fungsi Simpan Master Data
         async function simpanMasterData(e, actionType) {
             e.preventDefault();
             let payload = { action: actionType };
@@ -1426,6 +1613,7 @@
             if(actionType === 'addOperator' || payload.sheetName === 'Master_Operator') {
                 payload.role = document.getElementById('adminOpRole').value;
                 payload.nama = document.getElementById('adminOpNama').value;
+                payload.sip  = document.getElementById('adminOpSip').value;
             } else if (actionType === 'addObat' || payload.sheetName === 'Master_Obat') {
                 payload.namaObat = document.getElementById('adminObatNama').value;
                 payload.harga = document.getElementById('adminObatHarga').value;
@@ -1451,7 +1639,6 @@
                 e.target.reset();
                 editModeAdmin = { active: false, sheetName: '', rowIndex: null };
                 
-                // Reset Buttons Text
                 document.getElementById('btnSubmitOp').innerHTML = '<i class="fa-solid fa-save"></i> Simpan Operator';
                 document.getElementById('btnSubmitObat').innerHTML = '<i class="fa-solid fa-save"></i> Simpan Obat';
                 document.getElementById('btnSubmitTindakan').innerHTML = '<i class="fa-solid fa-save"></i> Simpan Tindakan';
@@ -1521,12 +1708,10 @@
                     totalPendapatanBulanIni += grand;
                 }
 
-                // Pengurutan hari menggunakan YYYY-MM-DD
                 const dayKey = d.toISOString().split('T')[0]; 
                 if(!dailyData[dayKey]) dailyData[dayKey] = 0;
                 dailyData[dayKey] += grand;
 
-                // Pengurutan bulan menggunakan YYYY-MM
                 const m = (d.getMonth() + 1).toString().padStart(2, '0');
                 const monthKey = `${d.getFullYear()}-${m}`;
                 if(!monthlyData[monthKey]) monthlyData[monthKey] = 0;
@@ -1537,14 +1722,12 @@
             document.getElementById('kpiTotalTindakan').innerText = formatRupiah(totalTindakanBulanIni);
             document.getElementById('kpiTotalObat').innerText = formatRupiah(totalObatBulanIni);
 
-            // Parsing untuk Line Chart (Harian)
             const sortedDailyKeys = Object.keys(dailyData).sort().slice(-30); // Max 30 hari
             const labelHarian = sortedDailyKeys.map(k => {
                 let p = k.split('-'); return `${p[2]}/${p[1]}`;
             });
             const dataHarian = sortedDailyKeys.map(k => dailyData[k]);
 
-            // Parsing untuk Bar Chart (Bulanan)
             const sortedMonthlyKeys = Object.keys(monthlyData).sort().slice(-12); // Max 12 bulan
             const labelBulanan = sortedMonthlyKeys.map(k => {
                 let p = k.split('-'); 
@@ -1553,12 +1736,10 @@
             });
             const dataBulanan = sortedMonthlyKeys.map(k => monthlyData[k]);
 
-            // Hancurkan Chart lama jika merender ulang
             if(chartLineInst) chartLineInst.destroy();
             if(chartBarInst) chartBarInst.destroy();
             if(chartPieInst) chartPieInst.destroy();
 
-            // Chart Konfigurasi Animasi & Tampilan Profesional
             const tooltipFormatRupiah = {
                 callbacks: { label: function(context) { return formatRupiah(context.raw); } }
             };
@@ -1571,7 +1752,7 @@
                     datasets: [{
                         label: 'Pendapatan (Rp)',
                         data: dataHarian,
-                        borderColor: '#0284c7', // Primary Color
+                        borderColor: '#0284c7', 
                         backgroundColor: 'rgba(2, 132, 199, 0.1)',
                         pointBackgroundColor: '#fff',
                         pointBorderColor: '#0284c7',
@@ -1580,7 +1761,7 @@
                         pointHoverRadius: 6,
                         borderWidth: 3,
                         fill: true,
-                        tension: 0.4 // Smooth curve
+                        tension: 0.4 
                     }]
                 },
                 options: { 
@@ -1603,7 +1784,7 @@
                     datasets: [{
                         label: 'Pendapatan (Rp)',
                         data: dataBulanan,
-                        backgroundColor: '#10b981', // Success color
+                        backgroundColor: '#10b981',
                         hoverBackgroundColor: '#059669',
                         borderRadius: 8,
                         barPercentage: 0.6
@@ -1659,7 +1840,6 @@
                 return;
             }
 
-            // Menggunakan Document Fragment agar tidak terjadi re-paint berkali-kali di DOM
             const fragment = document.createDocumentFragment();
 
             pasienBerobat.forEach(item => {
@@ -1715,7 +1895,7 @@
         });
 
         // ==================================================================
-        // 4. RENDER TABEL ARSIP (OPTIMIZED WITH DOCUMENT FRAGMENT)
+        // 4. RENDER TABEL ARSIP (TERMASUK TOMBOL CETAK RUJUKAN)
         // ==================================================================
         function renderTableArsip(dataArray) {
             const tBody = document.getElementById('tableBody');
@@ -1739,7 +1919,10 @@
                     <td style="white-space:nowrap;">
                         <i class="fa-regular fa-clock" style="color:var(--text-light)"></i> <strong>${fTime}</strong><br>
                         <span style="font-size:0.75rem; color:var(--text-light);">Tgl Pelayanan: ${fTglPelayanan}</span><br>
-                        <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
+                        <div style="display:flex; flex-direction:column; gap:5px; margin-top:10px;">
+                            <button class="btn btn-primary" style="padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-prescription"></i> Cetak SKS</button>
+                            <button class="btn btn-outline" style="padding: 6px 10px; font-size: 0.8rem; background:white;" onclick="bukaModalRujukan('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-export"></i> Cetak Rujukan</button>
+                        </div>
                     </td>
                     <td><strong>${item['No RM'] || '-'}</strong></td>
                     <td>
@@ -2197,7 +2380,7 @@
         }
 
         // ==================================================================
-        // 5. LOGIKA TINDAKAN MEDIS DINAMIS & PERHITUNGAN (NEW)
+        // 5. LOGIKA TINDAKAN MEDIS DINAMIS & PERHITUNGAN
         // ==================================================================
         function tambahBarisTindakan() {
             const tbody = document.getElementById('tindakanBody');
@@ -2224,7 +2407,6 @@
             if(parts.length > 1) {
                 let harga = parseInt(parts[1].replace(/,/g, '').trim()) || 0;
                 hargaEl.value = harga;
-                // Bersihkan input nama tindakan
                 inputEl.value = parts[0].trim();
             }
             kalkulasiBarisTindakan(inputEl);
@@ -2245,7 +2427,7 @@
         }
 
         // ==================================================================
-        // 5B. LOGIKA E-RESEP DINAMIS & PERHITUNGAN (NEW UPDATE)
+        // 5B. LOGIKA E-RESEP DINAMIS & PERHITUNGAN
         // ==================================================================
         function tambahBarisResep() {
             const tbody = document.getElementById('resepBody');
@@ -2309,9 +2491,7 @@
             kalkulasiGrandTotal();
         }
 
-        // ==================================================================
         // KALKULASI GRAND TOTAL AKHIR
-        // ==================================================================
         function kalkulasiGrandTotal() {
             let totalTindakan = 0;
             document.querySelectorAll('.tnd-sub').forEach(el => {
@@ -2325,12 +2505,10 @@
 
             let grand = totalTindakan + totalObat;
 
-            // Update UI Labels
             document.getElementById('labelTotalTindakan').innerText = formatRupiah(totalTindakan);
             document.getElementById('labelTotalObat').innerText = formatRupiah(totalObat);
             document.getElementById('labelGrandTotal').innerText = formatRupiah(grand);
 
-            // Update Hidden Inputs to Send to GAS
             document.getElementById('inputTotalBiayaTindakan').value = totalTindakan;
             document.getElementById('inputTotalBiayaObat').value = totalObat;
             document.getElementById('inputGrandTotalBiaya').value = grand;
@@ -2355,7 +2533,6 @@
                 if(values.length > 0) strAlergi = values.join("; ");
             }
 
-            // Kumpulkan Data Tindakan
             let tindakanArray = [];
             document.querySelectorAll('#tindakanBody tr').forEach(row => {
                 const nama = row.querySelector('.tnd-nama').value.trim();
@@ -2370,7 +2547,6 @@
                 }
             });
 
-            // Kumpulkan Data Resep Obat
             let resepArray = [];
             document.querySelectorAll('#resepBody tr').forEach(row => {
                 const obat = row.querySelector('.res-nama-obat').value.trim();
@@ -2392,7 +2568,6 @@
             dataObj.riwayatPenyakit = strPenyakit; 
             dataObj.riwayatAlergi = strAlergi; 
             
-            // Masukkan data JSON Array
             dataObj.detailTindakan = JSON.stringify(tindakanArray);
             dataObj.resepObat = JSON.stringify(resepArray);
             dataObj.action = "saveRM";
@@ -2552,7 +2727,6 @@
             document.getElementById('modalRiwayatPasien').classList.add('active');
         }
 
-        // BUKA RIWAYAT KLINIS FARMASI (TOMBOL TANDAI SELESAI)
         function bukaRiwayatKunjunganFarmasi(rmFilter, nama, rowIndex, isDone) {
             bukaRiwayatKunjungan(rmFilter, nama); 
             
@@ -2592,7 +2766,27 @@
             }, false);
         }
 
+
+        // ==================================================================
+        // LOGIKA DINAMIS SIP DOKTER (SKS & RUJUKAN)
+        // ==================================================================
+        function getSIP(namaDokter) {
+            if(!namaDokter || namaDokter === '-') return "SIP: .......................................";
+            const dokterInfo = masterOperators.find(op => op['Nama Lengkap'] === namaDokter);
+            if(dokterInfo && dokterInfo['SIP'] && dokterInfo['SIP'] !== '-') {
+                return "SIP: " + dokterInfo['SIP'];
+            }
+            // Kebutuhan Fallback / Dummy yang Anda minta untuk Aksa Arsyad
+            if(namaDokter.includes("drg. M. Aksa Arsyad")) {
+                return "SIP: HD00002016701725";
+            }
+            return "SIP: .......................................";
+        }
+
+
+        // ==================================================================
         // CETAK SKS
+        // ==================================================================
         const inputHari = document.getElementById('sksHari');
         const inputMulai = document.getElementById('sksMulai');
         const inputSelesai = document.getElementById('sksSelesai');
@@ -2628,13 +2822,74 @@
             document.getElementById('printMulai').innerText = formatIndoDateOnly(inputMulai.value); document.getElementById('printSelesai').innerText = formatIndoDateOnly(inputSelesai.value);
             document.getElementById('printTglSurat').innerText = "Kendari, " + formatIndoDateOnly(new Date().toISOString());
 
+            // Assign Dokter + SIP dinamis
+            let namaDokter = tempPasienSks['Dokter Penanggung Jawab'] || "______________________";
+            document.getElementById('printDokterSks').innerText = "( " + namaDokter + " )";
+            document.getElementById('printSipSks').innerText = getSIP(namaDokter);
+
             document.getElementById('modalSks').classList.remove('active');
-            setTimeout(() => { window.print(); }, 300);
+            
+            // Masuk Mode Print Khusus SKS
+            document.body.classList.add('print-sks');
+            setTimeout(() => { 
+                window.print(); 
+                document.body.classList.remove('print-sks');
+            }, 300);
+        }
+
+        // ==================================================================
+        // CETAK SURAT RUJUKAN EKSTERNAL
+        // ==================================================================
+        function bukaModalRujukan(encodedItem) {
+            tempPasienSks = JSON.parse(decodeURIComponent(encodedItem));
+            document.getElementById('modalRujukan').classList.add('active');
+            
+            // Pengisian Formulir Otomatis
+            document.getElementById('rujukDiagnosa').value = tempPasienSks['Assessment'] && tempPasienSks['Assessment'] !== '-' ? tempPasienSks['Assessment'] : '';
+            
+            let terapiDiberikan = [];
+            if(tempPasienSks['Resep Obat'] && tempPasienSks['Resep Obat'] !== '[]' && tempPasienSks['Resep Obat'] !== '-') terapiDiberikan.push("Pemberian Terapi Obat");
+            if(tempPasienSks['Detail Tindakan'] && tempPasienSks['Detail Tindakan'] !== '[]' && tempPasienSks['Detail Tindakan'] !== '-') terapiDiberikan.push("Tindakan Awal Klinis");
+            
+            document.getElementById('rujukTerapi').value = terapiDiberikan.length > 0 ? terapiDiberikan.join(', ') : 'Belum ada terapi spesifik.';
+        }
+
+        function eksekusiCetakRujukan() {
+            if(!tempPasienSks) return;
+
+            document.getElementById('printRujukanRs').innerText = document.getElementById('rujukRs').value || '-';
+            document.getElementById('printRujukanPoli').innerText = document.getElementById('rujukPoli').value || '-';
+            document.getElementById('printRujukanDiagnosa').innerText = document.getElementById('rujukDiagnosa').value || '-';
+            document.getElementById('printRujukanTerapi').innerText = document.getElementById('rujukTerapi').value || '-';
+
+            document.getElementById('printRujukanNama').innerText = tempPasienSks['Nama Lengkap'] || '-';
+            document.getElementById('printRujukanUmur').innerText = tempPasienSks['Usia'] || '-';
+            document.getElementById('printRujukanJk').innerText = tempPasienSks['Jenis Kelamin'] === 'Laki-laki' ? 'L (L)' : (tempPasienSks['Jenis Kelamin'] === 'Perempuan' ? 'P (P)' : '-');
+            document.getElementById('printRujukanRm').innerText = tempPasienSks['No RM'] || '-';
+            
+            document.getElementById('printRujukanTgl').innerText = formatIndoDateOnly(new Date().toISOString());
+
+            // Assign Dokter + SIP dinamis
+            let namaDokter = tempPasienSks['Dokter Penanggung Jawab'] || "______________________";
+            document.getElementById('printRujukanDokter').innerText = "( " + namaDokter + " )";
+            document.getElementById('printRujukanSip').innerText = getSIP(namaDokter);
+
+            document.getElementById('modalRujukan').classList.remove('active');
+            
+            // Masuk Mode Print Khusus Rujukan
+            document.body.classList.add('print-rujukan');
+            setTimeout(() => { 
+                window.print(); 
+                document.body.classList.remove('print-rujukan'); 
+            }, 300);
         }
 
         function showToast(msg, type) {
-            const t = document.getElementById('toast'); t.className = type; t.innerHTML = msg;
-            t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000);
+            const t = document.getElementById('toast');
+            t.className = type;
+            t.innerHTML = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
         }
     </script>
 </body>
