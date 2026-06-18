@@ -10,34 +10,21 @@
     <link rel="apple-touch-icon" href="axalogo.png">
     <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis, farmasi, dan akuntansi terintegrasi.">
 
-    <!-- Fonts, Icons, Chart.js & PDF/QR Libraries -->
+    <!-- Fonts, Icons & Chart.js -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- LIBRARY TTE (QR CODE & PDF RENDERER) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
+
     <!-- LINK KE FILE CSS EKSTERNAL -->
     <link rel="stylesheet" href="styles.css">
 
-    <!-- CSS ISOLASI KHUSUS CETAK & HALAMAN VERIFIKASI -->
+    <!-- CSS ISOLASI KHUSUS CETAK SKS & RUJUKAN -->
     <style>
         .print-section { display: none; }
-        
-        /* Layout Halaman Landing Verifikasi Dokumen (Style E-Office) */
-        #verifikasi-page { padding: 40px 5%; max-width: 1200px; margin: auto; display: none; animation: fadeIn 0.4s; background: #f8fafc; min-height: 100vh; }
-        #verifikasi-page.active { display: block; }
-        .verif-box { background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; overflow: hidden; }
-        .verif-table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem; }
-        .verif-table td { padding: 12px 20px; border-bottom: 1px solid #e2e8f0; vertical-align: middle; }
-        .verif-table td:first-child { font-weight: 600; width: 200px; background: #f8fafc; border-right: 1px solid #e2e8f0; color: #475569; }
-        .badge-approved { background: #10b981; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-left: 8px; vertical-align: middle; }
-        
-        .iframe-container { width: 100%; height: 85vh; background: #334155; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        
-        /* QR Container Styling (Untuk Cetak TTE) */
-        .qr-wrapper { position: relative; display: inline-block; padding: 4px; border: 2px solid #e2e8f0; border-radius: 6px; background: white; }
-        .qr-logo-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 22px; height: 22px; background: white; padding: 2px; border-radius: 4px; z-index: 10; }
     </style>
     <style media="print">
         body * { visibility: hidden; }
@@ -50,15 +37,13 @@
         /* Pengaturan Layout & Tipografi Kertas A4 */
         @page { size: auto; margin: 15mm; }
         body { background: white !important; color: black; margin: 0; padding: 0; }
-        .blob, nav, main, .modal, #toast { display: none !important; }
+        .blob, nav, main, .modal, #toast, #pdfLoadingOverlay, #verifikasi-page { display: none !important; }
         
         .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 25px; }
         .kop-surat img { height: 75px; margin-bottom: 5px; }
         .sks-title { text-align: center; text-decoration: underline; font-weight: bold; font-size: 14pt; margin-bottom: 20px;}
         .sks-body { font-size: 11pt; line-height: 1.6; }
-        
-        /* Pastikan QR tercetak sempurna */
-        .qr-wrapper { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .sks-signature { margin-top: 40px; }
     </style>
 
     <!-- Definisi Pola (Patterns) SVG untuk Odontogram -->
@@ -81,10 +66,61 @@
 </head>
 <body>
 
+    <!-- 1. OVERLAY LOADING SAAT GENERATE PDF -->
+    <div id="pdfLoadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px);">
+        <div class="spinner" style="display: block; border-color: rgba(2, 132, 199, 0.3); border-top-color: #0284c7; width: 60px; height: 60px; border-width: 6px; margin-bottom: 20px;"></div>
+        <h3 style="color: #0284c7; font-weight: 700;">Memproses Tanda Tangan Elektronik...</h3>
+        <p style="color: #64748b; font-size: 0.95rem; margin-top: 10px;">Sistem sedang mengenkripsi dan mengunggah dokumen ke Arsip Digital.</p>
+    </div>
+
+    <!-- 2. HALAMAN VERIFIKASI LANDING PAGE (DITAMPILKAN SAAT BARCODE DISCAN) -->
+    <div id="verifikasi-page" class="section" style="display: none; background: #f8fafc; min-height: 100vh; width: 100%; position: absolute; top:0; left:0; z-index: 9999; padding: 20px;">
+        <div style="max-width: 900px; margin: 20px auto; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); overflow: hidden;">
+            <div style="background: #0284c7; padding: 20px; color: white; display: flex; align-items: center; justify-content: space-between;">
+                <h2 style="margin:0; font-size: 1.4rem;"><i class="fa-solid fa-file-shield"></i> Validasi Dokumen Digital</h2>
+                <img id="vfLogoKlinik" src="axalogo.png" style="height: 40px; background: white; padding: 5px; border-radius: 6px;" onerror="this.style.display='none'">
+            </div>
+            <div style="padding: 20px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.95rem; margin-bottom: 20px;">
+                    <tr>
+                        <td style="padding: 12px; font-weight: 600; width: 200px; border-bottom: 1px solid #e2e8f0; background: #f1f5f9;">Pembuat Draft</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;" id="vfPembuat">Memuat...</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: 600; border-bottom: 1px solid #e2e8f0; background: #f1f5f9;">Sistem Validasi</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e2e8f0;">Sistem E-RM Cloud</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 12px; font-weight: 600; border-bottom: 1px solid #e2e8f0; background: #f1f5f9;">Penandatangan</td>
+                        <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; color: #0284c7; font-weight: 600;">
+                            <span id="vfPenandatangan">Memuat...</span> 
+                            <span style="background: #22c55e; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; margin-left: 10px; box-shadow: 0 2px 5px rgba(34,197,94,0.3);">Approved</span>
+                        </td>
+                    </tr>
+                </table>
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden;">
+                    <div style="padding: 12px 20px; border-bottom: 1px solid #cbd5e1; display: flex; justify-content: space-between; align-items: center; background: white; flex-wrap: wrap; gap: 10px;">
+                        <span style="font-weight: 700; color: #1e293b;">Draft Surat (Pratinjau PDF)</span>
+                        <div>
+                            <a id="vfLinkFile" href="#" target="_blank" class="btn btn-outline" style="padding: 6px 12px; font-size: 0.8rem; margin-right: 5px; text-decoration: none; color: #0284c7; border-color: #0284c7;"><i class="fa-solid fa-download"></i> Unduh Asli</a>
+                            <button class="btn btn-primary" onclick="reloadViewer()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-rotate-right"></i> Reload Viewer</button>
+                        </div>
+                    </div>
+                    <div style="background: #e2e8f0; padding: 10px; text-align: center; min-height: 600px; display: flex; align-items: center; justify-content: center;">
+                        <!-- Embed Google Drive Iframe -->
+                        <iframe id="pdfViewerFrame" style="width: 100%; height: 800px; border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 4px; background: white;" src=""></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- BACKGROUND BLOBS -->
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
 
-    <nav id="mainNav">
+    <nav>
         <div class="brand" onclick="navTo('beranda')">
             <img src="axalogo.png" id="navLogo" alt="Logo" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fa-solid fa-tooth\'></i>')">
             <span id="navBrandName">Klinik<span style="color:var(--text-dark)">Care</span></span>
@@ -98,64 +134,7 @@
         </div>
     </nav>
 
-    <!-- HALAMAN VERIFIKASI DOKUMEN DIGITAL (KHUSUS QR CODE) -->
-    <section id="verifikasi-page">
-        <div style="text-align: center; margin-bottom: 30px;">
-            <img src="axalogo.png" class="print-logo" style="height: 70px; margin-bottom: 10px;" onerror="this.style.display='none'">
-            <h2 style="color: var(--text-dark); margin: 0; text-transform: uppercase;" class="print-nama-klinik">KLINIK CARE MEDIKA</h2>
-            <p style="color: var(--primary); font-size: 0.95rem; font-weight: 600; letter-spacing: 1px;">PORTAL VALIDASI DOKUMEN ELEKTRONIK</p>
-        </div>
-        
-        <div style="display: flex; gap: 20px; align-items: stretch; margin-bottom: 20px; flex-wrap: wrap;">
-            <!-- Tabel Metadata Kiri -->
-            <div class="verif-box" style="flex: 3; min-width: 300px; margin-bottom: 0;">
-                <table class="verif-table">
-                    <tr>
-                        <td>Pembuat Draft</td>
-                        <td><span id="vfPembuat">-</span> - Staf Klinik Terpadu</td>
-                    </tr>
-                    <tr>
-                        <td>Verifikator</td>
-                        <td id="vfVerifikator" style="color: var(--text-light);">Sistem Tanda Tangan Elektronik Terpadu (TTE)</td>
-                    </tr>
-                    <tr>
-                        <td>Penandatangan</td>
-                        <td><span id="vfPenandatangan" style="font-weight: 600;">-</span><span class="badge-approved">Approved</span></td>
-                    </tr>
-                    <tr>
-                        <td>Draft Surat</td>
-                        <td>
-                            <button class="btn btn-primary" style="padding: 6px 15px; font-size: 0.85rem; border-radius: 4px;" onclick="reloadViewer()">
-                                <i class="fa-solid fa-rotate-right"></i> Reload viewer
-                            </button>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-
-            <!-- Box Status Kanan -->
-            <div class="verif-box" style="flex: 1; min-width: 250px; padding: 20px; background: #fdfdfd; margin-bottom: 0;">
-                <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px;">File final :</p>
-                <a href="#" id="vfLinkFile" target="_blank" style="color: var(--primary); font-weight: 600; text-decoration: none; word-break: break-all; display: block; margin-bottom: 15px; font-size: 0.9rem;">
-                    <i class="fa-solid fa-file-pdf"></i> Unduh Berkas Asli
-                </a>
-                <p style="font-size: 0.85rem; color: var(--text-dark); margin-bottom: 5px;">Draft selesai pada :<br><span id="vfTglSelesai" style="color: var(--text-light);">-</span></p>
-                <p style="font-size: 0.85rem; color: var(--text-dark);">Oleh :<br><span id="vfOleh" style="color: var(--text-light);">-</span></p>
-            </div>
-        </div>
-
-        <!-- PDF Viewer Iframe -->
-        <div class="iframe-container">
-            <iframe id="pdfViewerFrame" src="" style="width: 100%; height: 100%; border: none;"></iframe>
-        </div>
-
-        <div style="text-align: center; margin-top: 30px; margin-bottom: 30px;">
-            <button class="btn btn-outline" onclick="window.location.href='/'" style="padding: 10px 20px;"><i class="fa-solid fa-arrow-left"></i> Kembali ke Beranda</button>
-        </div>
-    </section>
-
-    <!-- WRAPPER UTAMA APLIKASI -->
-    <main id="mainAppWrapper">
+    <main>
         <!-- ==============================================
              1. BERANDA (beranda)
              ============================================== -->
@@ -914,7 +893,7 @@
                                 </div>
                                 <div class="input-group" style="margin-bottom: 10px;">
                                     <label>Password Login</label>
-                                    <input type="text" id="adminDataPass" placeholder="Cth: pass123" required>
+                                    <input type="password" id="adminDataPass" placeholder="Cth: pass123" required>
                                 </div>
                                 <div class="input-group" style="margin-bottom: 15px;">
                                     <label>Role Akun</label>
@@ -1065,7 +1044,7 @@
                 </div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" style="width: 100%;" onclick="generateAndUploadPDF('SKS')"><i class="fa-solid fa-qrcode"></i> Cetak Dokumen Digital (SKS)</button>
+                <button class="btn btn-primary" style="flex: 1;" onclick="eksekusiCetakSKS()"><i class="fa-solid fa-print"></i> Cetak SKS Digital</button>
             </div>
         </div>
     </div>
@@ -1096,7 +1075,7 @@
                 <label>Terapi / Tindakan yang Telah Diberikan</label>
                 <textarea id="rujukTerapi" rows="2"></textarea>
             </div>
-            <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="generateAndUploadPDF('RUJUKAN')"><i class="fa-solid fa-qrcode"></i> Cetak Dokumen Digital (Rujukan)</button>
+            <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="eksekusiCetakRujukan()"><i class="fa-solid fa-print"></i> Cetak Surat Rujukan Digital</button>
         </div>
     </div>
 
@@ -1127,7 +1106,7 @@
         </div>
     </div>
 
-    <!-- AREA CETAK SKS (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
+    <!-- AREA CETAK SKS (Disembunyikan, MUNCUL SAAT DI-PRINT/GENERATE PDF) -->
     <div id="printArea" class="print-section">
         <div class="kop-surat">
             <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
@@ -1146,26 +1125,18 @@
             <p style="text-align: justify; margin-top: 15px;">Berdasarkan hasil pemeriksaan kesehatan yang bersangkutan, pasien di atas dalam keadaan sakit dan memerlukan istirahat selama <strong><span id="printHari"></span> (<span id="printHariTeks"></span>) hari</strong>, terhitung mulai tanggal <strong><span id="printMulai"></span></strong> s/d <strong><span id="printSelesai"></span></strong>.</p>
             <p>Harap maklum dan menjadi periksa bagi pihak yang berkepentingan.</p>
         </div>
-        
-        <!-- TANDA TANGAN DIGITAL SKS -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; page-break-inside: avoid;">
-            <div style="text-align: center;">
-                <div class="qr-wrapper" id="qrContainerSks">
-                    <div id="qrCanvasSks"></div>
-                    <img src="axalogo.png" class="qr-logo-overlay" onerror="this.style.display='none'">
-                </div>
-                <div style="font-size: 8pt; margin-top: 5px; color: #333; font-family: sans-serif;">Dokumen Valid (TTE)</div>
-                <div id="idSksText" style="font-size: 7pt; color: #666; margin-top: 2px; font-family: sans-serif;">ID: -</div>
-            </div>
-            <div class="sks-signature" style="text-align: right; margin: 0;">
-                <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
-                <br><br><br>
-                <p><strong style="text-decoration: underline;" id="printDokterSks">( ______________________ )</strong><br><span id="printSipSks">SIP: .......................................</span></p>
-            </div>
+        <div class="sks-signature">
+            <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
+            
+            <!-- TEMPAT INJEKSI BARCODE TTE SKS -->
+            <div id="qrCanvasSks" style="margin: 10px auto; width: 120px;"></div>
+            <div id="idSksText" style="font-size: 9pt; color: #64748b; margin-top: 5px; margin-bottom: 5px; font-weight: bold;"></div>
+
+            <p><strong style="text-decoration: underline;" id="printDokterSks">( ______________________ )</strong><br><span id="printSipSks">SIP: .......................................</span></p>
         </div>
     </div>
 
-    <!-- AREA CETAK SURAT RUJUKAN (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
+    <!-- AREA CETAK SURAT RUJUKAN (Disembunyikan, MUNCUL SAAT DI-PRINT/GENERATE PDF) -->
     <div id="printAreaRujukan" class="print-section">
         <div class="kop-surat">
             <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
@@ -1196,30 +1167,15 @@
             <p style="text-align: justify; margin-top: 25px;">Demikian surat rujukan ini dibuat, atas bantuan dan kerjasamanya kami ucapkan banyak terima kasih.</p>
         </div>
         
-        <!-- TANDA TANGAN DIGITAL RUJUKAN -->
-        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; page-break-inside: avoid;">
-            <div style="text-align: center;">
-                <div class="qr-wrapper" id="qrContainerRujuk">
-                    <div id="qrCanvasRujuk"></div>
-                    <img src="axalogo.png" class="qr-logo-overlay" onerror="this.style.display='none'">
-                </div>
-                <div style="font-size: 8pt; margin-top: 5px; color: #333; font-family: sans-serif;">Dokumen Valid (TTE)</div>
-                <div id="idRujukText" style="font-size: 7pt; color: #666; margin-top: 2px; font-family: sans-serif;">ID: -</div>
-            </div>
-            <div class="sks-signature" style="text-align: right; margin: 0;">
-                <p>Salam Sejawat, <span id="printRujukanTgl"></span></p>
-                <br><br><br>
-                <p><strong style="text-decoration: underline;" id="printRujukanDokter">( ______________________ )</strong><br><span id="printRujukanSip">SIP: .......................................</span></p>
-            </div>
-        </div>
-    </div>
+        <div class="sks-signature" style="text-align: right;">
+            <p>Salam Sejawat, <span id="printRujukanTgl"></span></p>
 
-    <!-- OVERLAY LOADING SAAT GENERATE PDF -->
-    <div id="pdfLoadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px);">
-        <div class="spinner" style="display: block; border-color: rgba(2, 132, 199, 0.3); border-top-color: var(--primary); width: 60px; height: 60px; border-width: 6px; margin-bottom: 20px;"></div>
-        <h3 style="color: var(--primary); font-family: 'Plus Jakarta Sans', sans-serif;">Memproses Tanda Tangan Elektronik...</h3>
-        <p style="color: var(--text-light); font-size: 0.95rem; font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 10px;">Sistem sedang mengenkripsi dan mengunggah dokumen ke Arsip Digital.</p>
-        <p style="color: var(--danger); font-size: 0.8rem; margin-top: 5px; font-weight: 600;">Harap Jangan Menutup Halaman Ini</p>
+            <!-- TEMPAT INJEKSI BARCODE TTE RUJUKAN -->
+            <div id="qrCanvasRujuk" style="margin: 10px 0 10px auto; width: 120px;"></div>
+            <div id="idRujukText" style="font-size: 9pt; color: #64748b; margin-top: 5px; margin-bottom: 5px; font-weight: bold;"></div>
+
+            <p><strong style="text-decoration: underline;" id="printRujukanDokter">( ______________________ )</strong><br><span id="printRujukanSip">SIP: .......................................</span></p>
+        </div>
     </div>
 
     <!-- AUDIO ELEMENT UNTUK SFX NOTIFIKASI -->
