@@ -1215,10 +1215,11 @@
     </div>
 
     <!-- OVERLAY LOADING SAAT GENERATE PDF -->
-    <div id="pdfLoadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; justify-content: center; align-items: center; flex-direction: column;">
-        <div class="spinner" style="display: block; border-color: rgba(2, 132, 199, 0.3); border-top-color: var(--primary); width: 50px; height: 50px; border-width: 5px; margin-bottom: 20px;"></div>
+    <div id="pdfLoadingOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(5px);">
+        <div class="spinner" style="display: block; border-color: rgba(2, 132, 199, 0.3); border-top-color: var(--primary); width: 60px; height: 60px; border-width: 6px; margin-bottom: 20px;"></div>
         <h3 style="color: var(--primary); font-family: 'Plus Jakarta Sans', sans-serif;">Memproses Tanda Tangan Elektronik...</h3>
         <p style="color: var(--text-light); font-size: 0.95rem; font-family: 'Plus Jakarta Sans', sans-serif; margin-top: 10px;">Sistem sedang mengenkripsi dan mengunggah dokumen ke Arsip Digital.</p>
+        <p style="color: var(--danger); font-size: 0.8rem; margin-top: 5px; font-weight: 600;">Harap Jangan Menutup Halaman Ini</p>
     </div>
 
     <!-- AUDIO ELEMENT UNTUK SFX NOTIFIKASI -->
