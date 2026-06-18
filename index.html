@@ -875,17 +875,23 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-bottom: 30px;">
                         <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
                             <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Tren Pendapatan Harian (30 Hari Terakhir)</h3>
-                            <canvas id="chartHarian" height="250"></canvas>
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="chartHarian"></canvas>
+                            </div>
                         </div>
                         <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
                             <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Komparasi Pendapatan Bulanan</h3>
-                            <canvas id="chartBulanan" height="250"></canvas>
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="chartBulanan"></canvas>
+                            </div>
                         </div>
                     </div>
 
                     <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); max-width: 500px; margin: 0 auto;">
                         <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Distribusi Sumber Pendapatan Keseluruhan</h3>
-                        <canvas id="chartPie" height="250"></canvas>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="chartPie"></canvas>
+                        </div>
                     </div>
 
                 </div> <!-- END TAB KEUANGAN -->
