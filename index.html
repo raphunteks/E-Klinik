@@ -676,7 +676,7 @@
                         <input type="text" id="searchFarmasi" placeholder="Cari Pasien...">
                     </div>
                 </div>
-                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar antrean resep. Klik 2x untuk melihat rincian resep dan mengubah status pemberian.</p>
+                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar antrean khusus resep obat. Tindakan medis tidak ditampilkan di sini.</p>
 
                 <div class="table-responsive">
                     <table class="dash-table">
@@ -684,7 +684,7 @@
                             <tr>
                                 <th>Waktu Masuk</th>
                                 <th>Pasien & Dokter</th>
-                                <th>Status Farmasi</th>
+                                <th>Rincian Obat & Status</th>
                             </tr>
                         </thead>
                         <tbody id="farmasiBody">
@@ -875,11 +875,11 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-bottom: 30px;">
                         <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
                             <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Tren Pendapatan Harian (30 Hari Terakhir)</h3>
-                            <canvas id="chartHarian" height="200"></canvas>
+                            <canvas id="chartHarian" height="250"></canvas>
                         </div>
                         <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
                             <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Komparasi Pendapatan Bulanan</h3>
-                            <canvas id="chartBulanan" height="200"></canvas>
+                            <canvas id="chartBulanan" height="250"></canvas>
                         </div>
                     </div>
 
@@ -984,7 +984,7 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS VERSI 8/9 ANDA DISINI
+        // MASUKKAN URL DEPLOYMENT GAS VERSI 10 ANDA DISINI
         const API_URL = "https://script.google.com/macros/s/AKfycbyIzSLxK74fqVbtG6FzlgiEXunJT9BqvIpKpMvtAD3iVakn1VmZ2cjJlOXOXEimXlFN/exec"; 
         
         let allPatientsData = [];
@@ -992,7 +992,7 @@
         let masterObats = [];
         let masterTindakans = [];
         let masterAdmins = []; 
-        let dataKeuangan = []; // NEW: Array Laporan Keuangan
+        let dataKeuangan = []; 
         let isAdminLoggedIn = false; 
         
         let tempPasienSks = null;
@@ -1002,10 +1002,14 @@
         let lastRawDataRM = ""; 
         let autoRefreshInterval = null;
 
-        // Instance Chart.js untuk dihancurkan sebelum render ulang
+        // Instance Chart.js
         let chartLineInst = null;
         let chartBarInst = null;
         let chartPieInst = null;
+
+        // Atur default warna teks chart agar sesuai tema
+        Chart.defaults.color = '#475569';
+        Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
 
         function toggleAccordion(id) {
             const el = document.getElementById(id);
@@ -1017,17 +1021,16 @@
         }
 
         // ==================================================================
-        // FORMATTING: TANGGAL & RUPIAH (NEW)
+        // FORMATTING: TANGGAL & RUPIAH
         // ==================================================================
         function formatRupiah(angka) {
             return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
         }
 
-        // Fungsi parsing tanggal yang robust untuk mengatasi masalah zona waktu RAW JS
         function formatIndoDateTime(rawDateStr) {
             if(!rawDateStr || rawDateStr === '-') return '-';
             const d = new Date(rawDateStr);
-            if(isNaN(d.getTime())) return rawDateStr; // Kembalikan string asli jika format gagal
+            if(isNaN(d.getTime())) return rawDateStr; 
             
             const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
             return d.toLocaleDateString('id-ID', options);
@@ -1059,8 +1062,6 @@
             modal.classList.add('active');
 
             const btnCancel = document.getElementById('btnConfirmCancel');
-
-            // Clone to remove old event listeners
             const newBtnOk = btnOk.cloneNode(true);
             const newBtnCancel = btnCancel.cloneNode(true);
             btnOk.parentNode.replaceChild(newBtnOk, btnOk);
@@ -1131,7 +1132,7 @@
 
             renderOdontogram();
             tambahBarisResep();
-            tambahBarisTindakan(); // Init tabel tindakan
+            tambahBarisTindakan(); 
             document.getElementById('tanggalPelayanan').valueAsDate = new Date();
             
             let path = window.location.pathname.substring(1);
@@ -1203,6 +1204,11 @@
                 document.getElementById('adminLoginBox').style.display = 'none';
                 document.getElementById('adminDashboard').style.display = 'block';
                 document.getElementById('loginPass').value = ''; 
+                
+                // Trigger render chart saat berhasil login jika tabnya sedang aktif
+                if(document.getElementById('tab-keuangan').classList.contains('active')) {
+                     renderFinancialCharts();
+                }
             } else {
                 showToast('Username atau Password Anda salah!', 'error');
             }
@@ -1216,7 +1222,7 @@
         }
 
         // ==================================================================
-        // 2. LOAD DATA BACKEND (DENGAN REAL-TIME CHECK)
+        // 2. LOAD DATA BACKEND (DENGAN REAL-TIME CHECK & FRAGMENT OPTIMIZATION)
         // ==================================================================
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
@@ -1251,7 +1257,7 @@
                         masterObats = result.dataObat;
                         masterTindakans = result.dataTindakan;
                         masterAdmins = result.dataAdmin; 
-                        dataKeuangan = result.dataKeuangan || []; // Load Laporan Keuangan
+                        dataKeuangan = result.dataKeuangan || []; 
                         
                         if(document.getElementById('arsip').classList.contains('active')) renderTableArsip(allPatientsData);
                         if(document.getElementById('farmasi').classList.contains('active')) renderTableFarmasi(allPatientsData);
@@ -1259,7 +1265,6 @@
                         populateMasterDropdowns();
                         renderMasterLists();
 
-                        // Jika tab keuangan terbuka, update grafiknya saat narik data baru
                         if(isAdminLoggedIn && document.getElementById('tab-keuangan').classList.contains('active')) {
                             renderFinancialCharts();
                         }
@@ -1294,7 +1299,6 @@
 
             masterObats.forEach(ob => {
                 if(parseInt(ob['Stok Tersedia']) > 0) {
-                    // Gunakan format khusus di value agar bisa diekstrak datanya oleh JS nanti
                     dataListObat.innerHTML += `<option value="${ob['Nama Obat']} | Rp ${ob['Harga (Rp)']} (Stok: ${ob['Stok Tersedia']})"></option>`;
                 }
             });
@@ -1304,7 +1308,7 @@
             });
         }
 
-        // Tampilkan Master Data di Dasbor Admin & Fitur Hapus/Edit
+        // Tampilkan Master Data di Dasbor Admin
         function renderMasterLists() {
             const listOp = document.getElementById('listMasterOp');
             const listObat = document.getElementById('listMasterObat');
@@ -1402,6 +1406,57 @@
             }
         }
 
+        // Fungsi Simpan (Diperbaiki untuk sinkronisasi dengan event handler HTML)
+        async function simpanMasterData(e, actionType) {
+            e.preventDefault();
+            let payload = { action: actionType };
+
+            if(editModeAdmin.active) {
+                payload.action = 'updateData';
+                payload.sheetName = editModeAdmin.sheetName;
+                payload.rowIndex = editModeAdmin.rowIndex;
+            }
+
+            if(actionType === 'addOperator' || payload.sheetName === 'Master_Operator') {
+                payload.role = document.getElementById('adminOpRole').value;
+                payload.nama = document.getElementById('adminOpNama').value;
+            } else if (actionType === 'addObat' || payload.sheetName === 'Master_Obat') {
+                payload.namaObat = document.getElementById('adminObatNama').value;
+                payload.harga = document.getElementById('adminObatHarga').value;
+                payload.stok = document.getElementById('adminObatStok').value;
+            } else if (actionType === 'addTindakan' || payload.sheetName === 'Master_Tindakan') {
+                payload.namaTindakan = document.getElementById('adminTindakanNama').value;
+                payload.harga = document.getElementById('adminTindakanHarga').value;
+            } else if (actionType === 'addAdmin' || payload.sheetName === 'Master_Admin') {
+                payload.username = document.getElementById('adminDataUser').value;
+                payload.password = document.getElementById('adminDataPass').value;
+                payload.role = document.getElementById('adminDataRole').value;
+            }
+
+            try {
+                showToast("Menyimpan ke database...", "info");
+                await fetch(API_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                showToast("Data Master Berhasil Disimpan!", "success");
+                e.target.reset();
+                editModeAdmin = { active: false, sheetName: '', rowIndex: null };
+                
+                // Reset Buttons Text
+                document.getElementById('btnSubmitOp').innerHTML = '<i class="fa-solid fa-save"></i> Simpan Operator';
+                document.getElementById('btnSubmitObat').innerHTML = '<i class="fa-solid fa-save"></i> Simpan Obat';
+                document.getElementById('btnSubmitTindakan').innerHTML = '<i class="fa-solid fa-save"></i> Simpan Tindakan';
+                document.getElementById('btnSubmitAdmin').innerHTML = '<i class="fa-solid fa-save"></i> Simpan Admin';
+                
+                loadDashboardData(true);
+            } catch(err) {
+                showToast("Gagal menyimpan data master.", "error");
+            }
+        }
+
         async function hapusMasterData(sheetName, rowIndex) {
             showCustomConfirm("Apakah Anda yakin ingin menghapus data ini secara permanen?", async (confirmed) => {
                 if(!confirmed) return;
@@ -1423,12 +1478,11 @@
         }
 
         // ==================================================================
-        // 2B. LOGIKA CHART.JS AKUNTANSI / KEUANGAN (NEW)
+        // 2B. LOGIKA CHART.JS AKUNTANSI / KEUANGAN (UPGRADED)
         // ==================================================================
         function renderFinancialCharts() {
             if(!dataKeuangan || dataKeuangan.length === 0) return;
 
-            // Variabel agregasi
             let totalTindakanBulanIni = 0;
             let totalObatBulanIni = 0;
             let totalPendapatanBulanIni = 0;
@@ -1437,8 +1491,8 @@
             const curMonth = now.getMonth();
             const curYear = now.getFullYear();
 
-            const dailyData = {}; // Format: "DD-MM-YYYY" -> Total
-            const monthlyData = {}; // Format: "MM YYYY" -> Total
+            const dailyData = {}; 
+            const monthlyData = {}; 
 
             let grandTotalTindakan = 0;
             let grandTotalObat = 0;
@@ -1455,40 +1509,37 @@
                 grandTotalTindakan += tTindakan;
                 grandTotalObat += tObat;
 
-                // KPI Bulan Ini
                 if(d.getMonth() === curMonth && d.getFullYear() === curYear) {
                     totalTindakanBulanIni += tTindakan;
                     totalObatBulanIni += tObat;
                     totalPendapatanBulanIni += grand;
                 }
 
-                // Agregasi Harian (Format YYYY-MM-DD agar mudah disortir)
+                // Pengurutan hari menggunakan YYYY-MM-DD
                 const dayKey = d.toISOString().split('T')[0]; 
                 if(!dailyData[dayKey]) dailyData[dayKey] = 0;
                 dailyData[dayKey] += grand;
 
-                // Agregasi Bulanan (Format YYYY-MM)
+                // Pengurutan bulan menggunakan YYYY-MM
                 const m = (d.getMonth() + 1).toString().padStart(2, '0');
                 const monthKey = `${d.getFullYear()}-${m}`;
                 if(!monthlyData[monthKey]) monthlyData[monthKey] = 0;
                 monthlyData[monthKey] += grand;
             });
 
-            // Update KPI Box
             document.getElementById('kpiTotalBulan').innerText = formatRupiah(totalPendapatanBulanIni);
             document.getElementById('kpiTotalTindakan').innerText = formatRupiah(totalTindakanBulanIni);
             document.getElementById('kpiTotalObat').innerText = formatRupiah(totalObatBulanIni);
 
-            // Menyiapkan Data Chart
-            // 1. Chart Harian (Sort & Ambil 30 hari terakhir)
-            const sortedDailyKeys = Object.keys(dailyData).sort().slice(-30);
+            // Parsing untuk Line Chart (Harian)
+            const sortedDailyKeys = Object.keys(dailyData).sort().slice(-30); // Max 30 hari
             const labelHarian = sortedDailyKeys.map(k => {
-                let p = k.split('-'); return `${p[2]}/${p[1]}`; // Render jadi DD/MM
+                let p = k.split('-'); return `${p[2]}/${p[1]}`;
             });
             const dataHarian = sortedDailyKeys.map(k => dailyData[k]);
 
-            // 2. Chart Bulanan (Sort & Ambil 12 bulan terakhir)
-            const sortedMonthlyKeys = Object.keys(monthlyData).sort().slice(-12);
+            // Parsing untuk Bar Chart (Bulanan)
+            const sortedMonthlyKeys = Object.keys(monthlyData).sort().slice(-12); // Max 12 bulan
             const labelBulanan = sortedMonthlyKeys.map(k => {
                 let p = k.split('-'); 
                 const mL = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -1496,73 +1547,114 @@
             });
             const dataBulanan = sortedMonthlyKeys.map(k => monthlyData[k]);
 
-            // Hancurkan instance chart lama jika ada sebelum membuat baru
+            // Hancurkan Chart lama jika merender ulang
             if(chartLineInst) chartLineInst.destroy();
             if(chartBarInst) chartBarInst.destroy();
             if(chartPieInst) chartPieInst.destroy();
 
-            // RENDER GRAFIK GARIS (HARIAN)
+            // Chart Konfigurasi Animasi & Tampilan Profesional
+            const tooltipFormatRupiah = {
+                callbacks: { label: function(context) { return formatRupiah(context.raw); } }
+            };
+
             const ctxHarian = document.getElementById('chartHarian').getContext('2d');
             chartLineInst = new Chart(ctxHarian, {
                 type: 'line',
                 data: {
                     labels: labelHarian,
                     datasets: [{
-                        label: 'Pendapatan Harian (Rp)',
+                        label: 'Pendapatan (Rp)',
                         data: dataHarian,
-                        borderColor: '#0ea5e9',
-                        backgroundColor: 'rgba(14, 165, 233, 0.2)',
-                        borderWidth: 2,
+                        borderColor: '#0284c7', // Primary Color
+                        backgroundColor: 'rgba(2, 132, 199, 0.1)',
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#0284c7',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderWidth: 3,
                         fill: true,
-                        tension: 0.3
+                        tension: 0.4 // Smooth curve
                     }]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: tooltipFormatRupiah },
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
             });
 
-            // RENDER GRAFIK BATANG (BULANAN)
             const ctxBulanan = document.getElementById('chartBulanan').getContext('2d');
             chartBarInst = new Chart(ctxBulanan, {
                 type: 'bar',
                 data: {
                     labels: labelBulanan,
                     datasets: [{
-                        label: 'Pendapatan Bulanan (Rp)',
+                        label: 'Pendapatan (Rp)',
                         data: dataBulanan,
-                        backgroundColor: '#10b981',
-                        borderRadius: 6
+                        backgroundColor: '#10b981', // Success color
+                        hoverBackgroundColor: '#059669',
+                        borderRadius: 8,
+                        barPercentage: 0.6
                     }]
                 },
-                options: { responsive: true, plugins: { legend: { display: false } } }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: tooltipFormatRupiah },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
             });
 
-            // RENDER GRAFIK LINGKARAN (PIE RATIO)
             const ctxPie = document.getElementById('chartPie').getContext('2d');
             chartPieInst = new Chart(ctxPie, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Tindakan / Perawatan', 'Penjualan Resep Obat'],
+                    labels: ['Tindakan Medis', 'Farmasi / Obat'],
                     datasets: [{
                         data: [grandTotalTindakan, grandTotalObat],
                         backgroundColor: ['#3b82f6', '#f59e0b'],
+                        hoverBackgroundColor: ['#2563eb', '#d97706'],
                         borderWidth: 0,
-                        hoverOffset: 10
+                        hoverOffset: 15
                     }]
                 },
-                options: { responsive: true }
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } },
+                        tooltip: tooltipFormatRupiah
+                    }
+                }
             });
         }
 
 
         // ==================================================================
-        // 3. RENDER TABEL FARMASI
+        // 3. RENDER TABEL FARMASI (OPTIMIZED WITH DOCUMENT FRAGMENT)
         // ==================================================================
         function renderTableFarmasi(dataArray) {
             const fBody = document.getElementById('farmasiBody');
-            fBody.innerHTML = '';
+            
             const pasienBerobat = dataArray.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]');
 
-            if(pasienBerobat.length === 0) return fBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px;">Tidak ada antrean resep obat.</td></tr>`;
+            if(pasienBerobat.length === 0) {
+                fBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px;">Tidak ada antrean resep obat.</td></tr>`;
+                return;
+            }
+
+            // Menggunakan Document Fragment agar tidak terjadi re-paint berkali-kali di DOM
+            const fragment = document.createDocumentFragment();
 
             pasienBerobat.forEach(item => {
                 let resepHTML = '';
@@ -1572,7 +1664,6 @@
                         resepHTML = '<ul style="margin-left: 15px; margin-top:5px; font-size:0.85rem; color: #334155;">';
                         rs.forEach(r => {
                             let labelRacik = r.racikan !== 'Non-Racik' ? `<b>[${r.racikan}]</b> ` : '';
-                            // NEW: Render dengan info satuan yang dipecah dari Datalist jika ada
                             let obatNamaBersih = r.namaObat.split('|')[0].trim();
                             resepHTML += `<li>${labelRacik}${obatNamaBersih} (Jml: ${r.jumlah}) - Signa: ${r.signa} (${r.aturanPakai})</li>`;
                         });
@@ -1584,7 +1675,6 @@
                 let badgeClass = isDone ? 'status-done' : 'status-wait';
                 let statusText = isDone ? 'Selesai Diberikan' : 'Menunggu Proses';
                 
-                // Gunakan format Indo
                 let formattedTime = formatIndoDateTime(item['Timestamp']);
 
                 const tr = document.createElement('tr');
@@ -1605,8 +1695,11 @@
                     </td>
                 `;
                 tr.ondblclick = () => bukaRiwayatKunjunganFarmasi(item['No RM'], item['Nama Lengkap'], item['rowIndex'], isDone);
-                fBody.appendChild(tr);
+                fragment.appendChild(tr);
             });
+            
+            fBody.innerHTML = '';
+            fBody.appendChild(fragment);
         }
 
         document.getElementById('searchFarmasi').addEventListener('input', (e) => {
@@ -1616,19 +1709,23 @@
         });
 
         // ==================================================================
-        // 4. RENDER TABEL ARSIP (DASHBOARD)
+        // 4. RENDER TABEL ARSIP (OPTIMIZED WITH DOCUMENT FRAGMENT)
         // ==================================================================
         function renderTableArsip(dataArray) {
             const tBody = document.getElementById('tableBody');
-            tBody.innerHTML = '';
-            if(dataArray.length === 0) return tBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada arsip yang cocok.</td></tr>`;
+            
+            if(dataArray.length === 0) {
+                tBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada arsip yang cocok.</td></tr>`;
+                return;
+            }
 
-            dataArray.forEach((item, index) => {
+            const fragment = document.createDocumentFragment();
+
+            dataArray.forEach((item) => {
                 const tr = document.createElement('tr');
                 tr.style.cursor = 'pointer'; 
                 const safeItem = encodeURIComponent(JSON.stringify(item));
                 
-                // Gunakan format Indo
                 let fTime = formatIndoDateTime(item['Timestamp']);
                 let fTglPelayanan = formatIndoDateOnly(item['Tanggal Pelayanan']);
 
@@ -1656,8 +1753,11 @@
                     </td>
                 `;
                 tr.ondblclick = () => bukaRiwayatKunjungan(item['No RM'], item['Nama Lengkap']);
-                tBody.appendChild(tr);
+                fragment.appendChild(tr);
             });
+            
+            tBody.innerHTML = '';
+            tBody.appendChild(fragment);
         }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
