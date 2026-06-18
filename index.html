@@ -115,8 +115,6 @@
         </div>
     </div>
 
-
-    <!-- BACKGROUND BLOBS -->
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
 
@@ -1125,18 +1123,17 @@
             <p style="text-align: justify; margin-top: 15px;">Berdasarkan hasil pemeriksaan kesehatan yang bersangkutan, pasien di atas dalam keadaan sakit dan memerlukan istirahat selama <strong><span id="printHari"></span> (<span id="printHariTeks"></span>) hari</strong>, terhitung mulai tanggal <strong><span id="printMulai"></span></strong> s/d <strong><span id="printSelesai"></span></strong>.</p>
             <p>Harap maklum dan menjadi periksa bagi pihak yang berkepentingan.</p>
         </div>
-        <div class="sks-signature">
+        <div class="sks-signature" style="text-align: right; margin-top: 30px;">
             <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
             
             <!-- TEMPAT INJEKSI BARCODE TTE SKS -->
-            <div id="qrCanvasSks" style="margin: 10px auto; width: 120px;"></div>
-            <div id="idSksText" style="font-size: 9pt; color: #64748b; margin-top: 5px; margin-bottom: 5px; font-weight: bold;"></div>
+            <div id="qrCanvasSks" style="display: flex; justify-content: flex-end; margin: 10px 0;"></div>
 
             <p><strong style="text-decoration: underline;" id="printDokterSks">( ______________________ )</strong><br><span id="printSipSks">SIP: .......................................</span></p>
         </div>
     </div>
 
-    <!-- AREA CETAK SURAT RUJUKAN (Disembunyikan, MUNCUL SAAT DI-PRINT/GENERATE PDF) -->
+    <!-- AREA CETAK SURAT RUJUKAN (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
     <div id="printAreaRujukan" class="print-section">
         <div class="kop-surat">
             <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
@@ -1167,12 +1164,11 @@
             <p style="text-align: justify; margin-top: 25px;">Demikian surat rujukan ini dibuat, atas bantuan dan kerjasamanya kami ucapkan banyak terima kasih.</p>
         </div>
         
-        <div class="sks-signature" style="text-align: right;">
+        <div class="sks-signature" style="text-align: right; margin-top: 30px;">
             <p>Salam Sejawat, <span id="printRujukanTgl"></span></p>
 
             <!-- TEMPAT INJEKSI BARCODE TTE RUJUKAN -->
-            <div id="qrCanvasRujuk" style="margin: 10px 0 10px auto; width: 120px;"></div>
-            <div id="idRujukText" style="font-size: 9pt; color: #64748b; margin-top: 5px; margin-bottom: 5px; font-weight: bold;"></div>
+            <div id="qrCanvasRujuk" style="display: flex; justify-content: flex-end; margin: 10px 0;"></div>
 
             <p><strong style="text-decoration: underline;" id="printRujukanDokter">( ______________________ )</strong><br><span id="printRujukanSip">SIP: .......................................</span></p>
         </div>
