@@ -557,10 +557,19 @@
                         <label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis & Radiografi)</label>
                         <textarea name="objective" id="fObjective" rows="3" placeholder="Hasil pemeriksaan klinis ekstraoral & intraoral hari ini, tes vitalitas, interpretasi rontgen..." required></textarea>
                     </div>
+                    
+                    <!-- NEW ICD-10 DATALIST -->
+                    <datalist id="listICD10">
+                        <!-- Akan diisi secara dinamis melalui JavaScript (loadDashboardData) -->
+                    </datalist>
+
                     <div class="soap-section">
-                        <label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis & Klasifikasi)</label>
-                        <textarea name="assessment" id="fAssessment" rows="2" placeholder="Diagnosis kerja utama hari ini, klasifikasi penyakit (misal: Pulpitis Ireversibel Simtomatik)..." required></textarea>
+                        <label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis & Klasifikasi Penyakit)</label>
+                        <!-- Diubah menjadi input text dengan autocomplete list ICD10 -->
+                        <input type="text" name="assessment" id="fAssessment" list="listICD10" placeholder="Pilih atau cari kode/nama ICD-10 (Cth: K04.1 Necrosis of pulp)..." autocomplete="off" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; transition: border 0.3s; font-size: 0.95rem;">
+                        <p style="font-size: 0.75rem; color: var(--text-light); margin-top: 5px;">*Database ICD-10 K00-K14 terhubung secara otomatis.</p>
                     </div>
+
                     <div class="soap-section">
                         <label><span class="soap-badge bg-p">P</span> Plan (Rencana Perawatan & Tindakan)</label>
                         <textarea name="plan" id="fPlan" rows="3" placeholder="Rencana perawatan & instruksi pasien..." required></textarea>
@@ -1000,10 +1009,13 @@
                 <label>TS dr. Poli (Teman Sejawat)</label>
                 <input type="text" id="rujukPoli" placeholder="Cth: GIGI ENDODONSI">
             </div>
+            
+            <!-- Diagnosa Rujukan Terhubung dengan Datalist ICD-10 -->
             <div class="input-group" style="margin-bottom: 15px;">
-                <label>Diagnosa Sementara</label>
-                <input type="text" id="rujukDiagnosa">
+                <label>Diagnosa Sementara (ICD-10)</label>
+                <input type="text" id="rujukDiagnosa" list="listICD10" placeholder="Pilih atau ketik diagnosa..." autocomplete="off">
             </div>
+            
             <div class="input-group" style="margin-bottom: 15px;">
                 <label>Terapi / Tindakan yang Telah Diberikan</label>
                 <textarea id="rujukTerapi" rows="2"></textarea>
@@ -1112,7 +1124,7 @@
          JAVASCRIPT LOGIC
          ================================================================== -->
     <script>
-        // MASUKKAN URL DEPLOYMENT GAS VERSI 10 ANDA DISINI
+        // MASUKKAN URL DEPLOYMENT GAS VERSI 11 ANDA DISINI (Jika sudah deploy baru)
         const API_URL = "https://script.google.com/macros/s/AKfycbyIzSLxK74fqVbtG6FzlgiEXunJT9BqvIpKpMvtAD3iVakn1VmZ2cjJlOXOXEimXlFN/exec"; 
         
         let allPatientsData = [];
@@ -1121,9 +1133,10 @@
         let masterTindakans = [];
         let masterAdmins = []; 
         let dataKeuangan = []; 
-        let masterPengaturan = []; // Array Penyimpanan Konfigurasi Klinik
-        let isAdminLoggedIn = false; 
+        let masterPengaturan = [];
+        let masterICD10 = []; // Array Penyimpanan ICD-10 Database
         
+        let isAdminLoggedIn = false; 
         let tempPasienSks = null;
         let memoryPatientData = null; 
         
@@ -1350,8 +1363,6 @@
         // LOGIKA PENERAPAN PENGATURAN KLINIK KE UI
         // ==================================================================
         function applyPengaturanKlinikUI() {
-            // Ambil dari backend (jika backend telah diupgrade untuk merespon Master_Pengaturan)
-            // Jika tidak, tetap melangsungkan data tersimpan dari state lokal Admin
             if(masterPengaturan && masterPengaturan.length > 0) {
                 const setting = masterPengaturan[0]; 
                 const nama = setting['Nama Klinik'] || 'KLINIK CARE MEDIKA';
@@ -1364,7 +1375,6 @@
                 document.getElementById('setNoTelp').value = telp;
                 document.getElementById('setUrlLogo').value = logo;
 
-                // Terapkan ke Area Cetak SKS dan Rujukan
                 document.querySelectorAll('.print-nama-klinik').forEach(el => el.innerText = nama.toUpperCase());
                 document.querySelectorAll('.print-alamat-klinik').forEach(el => el.innerText = `${alamat}, Telp: ${telp}`);
                 document.querySelectorAll('.print-logo').forEach(el => {
@@ -1372,7 +1382,6 @@
                     el.onerror = () => { el.style.display='none'; };
                 });
 
-                // Terapkan ke Navbar Web App
                 document.getElementById('navBrandName').innerHTML = `<span style="color:var(--text-dark)">${nama}</span>`;
                 const mainLogo = document.getElementById('navLogo');
                 if(mainLogo) mainLogo.src = logo;
@@ -1386,7 +1395,6 @@
             const telp = document.getElementById('setNoTelp').value;
             const logo = document.getElementById('setUrlLogo').value;
 
-            // Apply immediately to UI Variables untuk rendering Print
             document.querySelectorAll('.print-nama-klinik').forEach(el => el.innerText = nama.toUpperCase());
             document.querySelectorAll('.print-alamat-klinik').forEach(el => el.innerText = `${alamat}, Telp: ${telp}`);
             document.querySelectorAll('.print-logo').forEach(el => {
@@ -1395,7 +1403,6 @@
             document.getElementById('navBrandName').innerHTML = `<span style="color:var(--text-dark)">${nama}</span>`;
             if(document.getElementById('navLogo')) document.getElementById('navLogo').src = logo;
 
-            // Optional: Kirim data pembaruan ke Backend GAS (Abaikan error CORS jika backend lama)
             try {
                 showToast("Menyimpan pengaturan klinik...", "info");
                 await fetch(API_URL, {
@@ -1410,7 +1417,7 @@
         }
 
         // ==================================================================
-        // 2. LOAD DATA BACKEND (REAL-TIME CHECK)
+        // 2. LOAD DATA BACKEND (REAL-TIME CHECK) + ICD10
         // ==================================================================
         async function loadDashboardData(silent = false) {
             const tBody = document.getElementById('tableBody');
@@ -1447,9 +1454,11 @@
                         masterAdmins = result.dataAdmin; 
                         dataKeuangan = result.dataKeuangan || []; 
                         
-                        // Menampung dan menerapkan Pengaturan Klinik yang masuk
                         masterPengaturan = result.dataPengaturan || [];
                         applyPengaturanKlinikUI();
+                        
+                        // Menampung Database ICD-10
+                        masterICD10 = result.dataICD || [];
                         
                         if(document.getElementById('arsip').classList.contains('active')) renderTableArsip(allPatientsData);
                         if(document.getElementById('farmasi').classList.contains('active')) renderTableFarmasi(allPatientsData);
@@ -1477,11 +1486,13 @@
             const selectPerawat = document.getElementById('selectPerawat');
             const dataListObat = document.getElementById('listDataObatServer');
             const dataListTindakan = document.getElementById('listDataTindakanServer');
+            const dataListICD = document.getElementById('listICD10');
             
             selectDokter.innerHTML = '<option value="" disabled selected>- Pilih Dokter -</option>';
             selectPerawat.innerHTML = '<option value="" selected>- Tidak Ada / Pilih Perawat -</option>';
             dataListObat.innerHTML = '';
             dataListTindakan.innerHTML = '';
+            dataListICD.innerHTML = '';
 
             masterOperators.forEach(op => {
                 let opt = `<option value="${op['Nama Lengkap']}">${op['Nama Lengkap']}</option>`;
@@ -1498,9 +1509,15 @@
             masterTindakans.forEach(tn => {
                 dataListTindakan.innerHTML += `<option value="${tn['Nama Tindakan']} | Rp ${tn['Tarif (Rp)']}"></option>`;
             });
+
+            // Populate ICD-10 Datalist
+            if(masterICD10 && masterICD10.length > 0) {
+                masterICD10.forEach(icd => {
+                    dataListICD.innerHTML += `<option value="${icd['Kode ICD-10']} - ${icd['Deskripsi']}"></option>`;
+                });
+            }
         }
 
-        // Tampilkan Master Data di Dasbor Admin
         function renderMasterLists() {
             const listOp = document.getElementById('listMasterOp');
             const listObat = document.getElementById('listMasterObat');
@@ -1599,7 +1616,6 @@
             }
         }
 
-        // Fungsi Simpan Master Data
         async function simpanMasterData(e, actionType) {
             e.preventDefault();
             let payload = { action: actionType };
@@ -1671,7 +1687,7 @@
         }
 
         // ==================================================================
-        // 2B. LOGIKA CHART.JS AKUNTANSI / KEUANGAN (UPGRADED)
+        // 2B. LOGIKA CHART.JS AKUNTANSI / KEUANGAN
         // ==================================================================
         function renderFinancialCharts() {
             if(!dataKeuangan || dataKeuangan.length === 0) return;
@@ -1722,13 +1738,13 @@
             document.getElementById('kpiTotalTindakan').innerText = formatRupiah(totalTindakanBulanIni);
             document.getElementById('kpiTotalObat').innerText = formatRupiah(totalObatBulanIni);
 
-            const sortedDailyKeys = Object.keys(dailyData).sort().slice(-30); // Max 30 hari
+            const sortedDailyKeys = Object.keys(dailyData).sort().slice(-30); 
             const labelHarian = sortedDailyKeys.map(k => {
                 let p = k.split('-'); return `${p[2]}/${p[1]}`;
             });
             const dataHarian = sortedDailyKeys.map(k => dailyData[k]);
 
-            const sortedMonthlyKeys = Object.keys(monthlyData).sort().slice(-12); // Max 12 bulan
+            const sortedMonthlyKeys = Object.keys(monthlyData).sort().slice(-12);
             const labelBulanan = sortedMonthlyKeys.map(k => {
                 let p = k.split('-'); 
                 const mL = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
@@ -1828,7 +1844,7 @@
 
 
         // ==================================================================
-        // 3. RENDER TABEL FARMASI (OPTIMIZED WITH DOCUMENT FRAGMENT)
+        // 3. RENDER TABEL FARMASI
         // ==================================================================
         function renderTableFarmasi(dataArray) {
             const fBody = document.getElementById('farmasiBody');
@@ -2375,6 +2391,10 @@
                 document.getElementById('chkTidakAdaAlergi').checked = true; aContainer.style.display = 'none';
             }
 
+            // AUTOFILL DIAGNOSIS (ICD-10)
+            const elAssess = document.getElementById('fAssessment');
+            if(elAssess && rec['Assessment'] && rec['Assessment'] !== '-') elAssess.value = rec['Assessment'];
+
             document.getElementById('autoFillAlert').style.display = 'none';
             showToast("Berhasil memuat memori data kunjungan masa lalu!", "success");
         }
@@ -2700,7 +2720,7 @@
                                         
                                         <strong>S (Subjektif):</strong> ${v['Subjective']}<br>
                                         <strong>O (Objektif):</strong> ${v['Objective']}<br>
-                                        <strong>A (Asesmen):</strong> ${v['Assessment']}<br>
+                                        <strong>A (Asesmen / ICD-10):</strong> ${v['Assessment']}<br>
                                         <strong>P (Plan):</strong> <span style="color:#10b981; font-weight:600;">${v['Plan']}</span>
                                     </div>
                                 </details>
@@ -2766,7 +2786,6 @@
             }, false);
         }
 
-
         // ==================================================================
         // LOGIKA DINAMIS SIP DOKTER (SKS & RUJUKAN)
         // ==================================================================
@@ -2776,13 +2795,11 @@
             if(dokterInfo && dokterInfo['SIP'] && dokterInfo['SIP'] !== '-') {
                 return "SIP: " + dokterInfo['SIP'];
             }
-            // Kebutuhan Fallback / Dummy yang Anda minta untuk Aksa Arsyad
             if(namaDokter.includes("drg. M. Aksa Arsyad")) {
                 return "SIP: HD00002016701725";
             }
             return "SIP: .......................................";
         }
-
 
         // ==================================================================
         // CETAK SKS
@@ -2844,7 +2861,7 @@
             tempPasienSks = JSON.parse(decodeURIComponent(encodedItem));
             document.getElementById('modalRujukan').classList.add('active');
             
-            // Pengisian Formulir Otomatis
+            // Pengisian Formulir Otomatis (Termasuk ICD-10)
             document.getElementById('rujukDiagnosa').value = tempPasienSks['Assessment'] && tempPasienSks['Assessment'] !== '-' ? tempPasienSks['Assessment'] : '';
             
             let terapiDiberikan = [];
