@@ -139,20 +139,28 @@ document.getElementById('inputTtl').addEventListener('input', function(e) {
 // DOM CONTENT LOADED - MASTER INIT
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    loadDashboardData(true); 
+    // [FITUR BARU] Cek Jika Parameter adalah halaman Verifikasi TTE
+    const urlParams = new URLSearchParams(window.location.search);
+    const verifyId = urlParams.get('verify');
     
-    autoRefreshInterval = setInterval(() => {
+    if (verifyId) {
+        bukaHalamanVerifikasi(verifyId);
+    } else {
         loadDashboardData(true); 
-    }, 15000); 
+        
+        autoRefreshInterval = setInterval(() => {
+            loadDashboardData(true); 
+        }, 15000); 
 
-    renderOdontogram();
-    tambahBarisResep();
-    tambahBarisTindakan(); 
-    document.getElementById('tanggalPelayanan').valueAsDate = new Date();
-    
-    let path = window.location.pathname.substring(1);
-    if(path === '' || path === 'index.html') path = 'beranda';
-    navTo(path, false);
+        renderOdontogram();
+        tambahBarisResep();
+        tambahBarisTindakan(); 
+        document.getElementById('tanggalPelayanan').valueAsDate = new Date();
+        
+        let path = window.location.pathname.substring(1);
+        if(path === '' || path === 'index.html') path = 'beranda';
+        navTo(path, false);
+    }
 });
 
 // ==================================================================
@@ -187,13 +195,9 @@ function navTo(sectionId, pushState = true) {
             }
         }
     } else {
-        // [UPGRADE UI INSTAN]
-        // Render tabel dari cache memori jika data sudah ditarik dari server sebelumnya
-        // Ini menghilangkan lag/loading ketika klik tab Farmasi atau Arsip berulang kali.
         if(targetId === 'arsip' && allPatientsData.length > 0) renderTableArsip(allPatientsData);
         if(targetId === 'farmasi' && allPatientsData.length > 0) renderTableFarmasi(allPatientsData);
         
-        // Fetch ulang dari background. (Pakai silent=true jika memori sdh ada agar user tak terganggu)
         const hasData = allPatientsData.length > 0;
         loadDashboardData(hasData);
     }
@@ -317,7 +321,6 @@ async function loadDashboardData(silent = false) {
         if(result.status === 'success') {
             const currentRawRM = JSON.stringify(result.dataRM);
             
-            // [UPGRADE FIX] Hanya update memori lokal dan render master table JIKA ada perubahan di database
             if (currentRawRM !== lastRawDataRM) {
                 if (lastRawDataRM !== "") {
                     const currentPending = result.dataRM.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
@@ -347,9 +350,6 @@ async function loadDashboardData(silent = false) {
                 lastRawDataRM = currentRawRM;
             }
             
-            // [UPGRADE FIX] Pindahkan Render UI Tabel keluar dari blok "if changed"
-            // Tujuannya agar saat tab pertama kali dibuka, loading spinner ("Menarik arsip...") 
-            // selalu tertimpa oleh data tabel, walau tidak ada perubahan di server.
             if(document.getElementById('arsip').classList.contains('active')) {
                 renderTableArsip(allPatientsData);
             }
@@ -397,7 +397,6 @@ function populateMasterDropdowns() {
         dataListTindakan.innerHTML += `<option value="${tn['Nama Tindakan']} | Rp ${tn['Tarif (Rp)']}"></option>`;
     });
 
-    // Populate ICD-10 Datalist
     if(masterICD10 && masterICD10.length > 0) {
         masterICD10.forEach(icd => {
             dataListICD.innerHTML += `<option value="${icd['Kode ICD-10']} - ${icd['Deskripsi']}"></option>`;
@@ -964,6 +963,9 @@ function getReadOnlyToothSVGOnly(id, position, data) {
     tempDiv.innerHTML = generateToothSVG(id, position);
     let svgEl = tempDiv.querySelector('svg');
     
+    // [UPGRADE FIX] Remove ID to prevent querySelector bleeding/overlap in Document
+    svgEl.removeAttribute('id'); 
+    
     svgEl.querySelectorAll('.surface').forEach(s => {
         s.removeAttribute('onclick');
         s.style.cursor = 'default';
@@ -1014,6 +1016,7 @@ function generateToothSVG(id, position) {
 
 function applyOdontoTool(event, id) {
     const svgEl = document.getElementById('svg-' + id);
+    if (!svgEl) return;
     const clickedSurface = event.target;
 
     let toolType = currentOdontoToolType; 
@@ -1022,7 +1025,8 @@ function applyOdontoTool(event, id) {
     if (toolType === 'norm') {
         svgEl.removeAttribute('data-whole');
         svgEl.removeAttribute('data-root');
-        document.getElementById('label-' + id).textContent = '';
+        let textEl = document.getElementById('label-' + id);
+        if (textEl) textEl.textContent = '';
         svgEl.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
     } 
     else if (toolType === 'surface') {
@@ -1041,8 +1045,10 @@ function applyOdontoTool(event, id) {
     }
     else if (toolType === 'label') {
         let textEl = document.getElementById('label-' + id);
-        if (textEl.textContent === toolValue.toUpperCase()) textEl.textContent = '';
-        else textEl.textContent = toolValue.toUpperCase();
+        if (textEl) {
+            if (textEl.textContent === toolValue.toUpperCase()) textEl.textContent = '';
+            else textEl.textContent = toolValue.toUpperCase();
+        }
     }
     
     generateOdontoTextSummary();
@@ -1085,7 +1091,8 @@ function generateOdontoTextSummary() {
     let results = [];
     let odontoStateJSON = {}; 
 
-    document.querySelectorAll('.odonto-tooth').forEach(wrapper => {
+    // [UPGRADE FIX] Selektor Spesifik: Hanya ambil gigi di dalam form Input, abaikan yang ada di Modal Riwayat!
+    document.querySelectorAll('#odontogramGrid .odonto-tooth').forEach(wrapper => {
         let numEl = wrapper.querySelector('.odonto-num');
         if (!numEl) return;
         
@@ -1139,7 +1146,8 @@ function generateOdontoTextSummary() {
 }
 
 function applyPastOdontoState(stateObj) {
-    document.querySelectorAll('.odonto-tooth').forEach(wrapper => {
+    // [UPGRADE FIX] Selektor Spesifik
+    document.querySelectorAll('#odontogramGrid .odonto-tooth').forEach(wrapper => {
         let numEl = wrapper.querySelector('.odonto-num');
         if (!numEl) return;
         
@@ -1149,13 +1157,14 @@ function applyPastOdontoState(stateObj) {
         let svg = wrapper.querySelector('.tooth-svg');
         svg.removeAttribute('data-whole');
         svg.removeAttribute('data-root');
-        wrapper.querySelector('.odonto-label').textContent = '';
+        let lblEl = wrapper.querySelector('.odonto-label');
+        if (lblEl) lblEl.textContent = '';
         svg.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
 
         let data = stateObj[toothId];
         if (!data) return;
 
-        if (data.label) wrapper.querySelector('.odonto-label').textContent = data.label;
+        if (data.label && lblEl) lblEl.textContent = data.label;
         if (data.root) svg.setAttribute('data-root', data.root);
         if (data.whole) svg.setAttribute('data-whole', data.whole);
 
@@ -1740,7 +1749,101 @@ function getSIP(namaDokter) {
 }
 
 // ==================================================================
-// CETAK SKS
+// FITUR BARU: VERIFIKASI DOKUMEN & TTE (QR + LOGO KLINIK)
+// ==================================================================
+async function bukaHalamanVerifikasi(docId) {
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    const verifPage = document.getElementById('verifikasi-page');
+    if(verifPage) {
+        verifPage.style.display = 'block';
+        verifPage.classList.add('active');
+    }
+
+    try {
+        document.getElementById('vfPembuat').innerText = "Menyelaraskan data...";
+        document.getElementById('vfPenandatangan').innerText = "Mencari status persetujuan...";
+
+        const response = await fetch(`${API_URL}?action=verify&docId=${docId}`);
+        const res = await response.json();
+
+        if(res.status === 'success' && res.data) {
+            const data = res.data;
+            document.getElementById('vfPembuat').innerText = data['Pembuat'] || "Staf Klinik";
+            document.getElementById('vfPenandatangan').innerText = data['Penandatangan'] || "-";
+
+            const driveId = data['Drive ID'];
+            document.getElementById('pdfViewerFrame').setAttribute('data-driveid', driveId);
+            reloadViewer();
+            
+            if(masterPengaturan && masterPengaturan.length > 0) {
+                const vfLogo = document.getElementById('vfLogoKlinik');
+                if(vfLogo) vfLogo.src = masterPengaturan[0]['URL Logo'];
+            }
+
+        } else {
+            document.getElementById('vfPembuat').innerText = "Dokumen Tidak Valid";
+            document.getElementById('vfPenandatangan').innerHTML = "<span style='color:red;'>Belum Disetujui / Dokumen Palsu</span>";
+            showToast("Dokumen tidak ditemukan di database.", "error");
+        }
+    } catch(e) {
+        console.error(e);
+        document.getElementById('vfPembuat').innerText = "Koneksi Bermasalah";
+        showToast("Gagal memuat data verifikasi.", "error");
+    }
+}
+
+function reloadViewer() {
+    const iframe = document.getElementById('pdfViewerFrame');
+    const driveId = iframe.getAttribute('data-driveid');
+    if(driveId) {
+        iframe.src = 'about:blank';
+        setTimeout(() => { iframe.src = `https://drive.google.com/file/d/${driveId}/preview`; }, 300);
+    }
+}
+
+function generateQRWithLogo(containerId, text) {
+    return new Promise((resolve) => {
+        let container = document.getElementById(containerId);
+        if(!container) { resolve(); return; }
+        container.innerHTML = '';
+        
+        const tempDiv = document.createElement('div');
+        new QRCode(tempDiv, {
+            text: text, width: 300, height: 300,
+            colorDark : "#000000", colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        
+        setTimeout(() => {
+            const qrCanvas = tempDiv.querySelector('canvas');
+            if (qrCanvas) {
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = 120; finalCanvas.height = 120;
+                const ctx = finalCanvas.getContext('2d');
+                ctx.drawImage(qrCanvas, 0, 0, 120, 120);
+                
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    const size = 32; const pos = (120 - size) / 2;
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(pos - 4, pos - 4, size + 8, size + 8);
+                    ctx.drawImage(img, pos, pos, size, size);
+                    container.appendChild(finalCanvas);
+                    resolve();
+                };
+                img.onerror = () => { container.appendChild(finalCanvas); resolve(); };
+                
+                let logoUrl = 'axalogo.png';
+                if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
+                img.src = logoUrl;
+            } else { resolve(); }
+        }, 150);
+    });
+}
+
+// ==================================================================
+// CETAK SKS (UPGRADE DIGITAL SIGNATURE & UPLOAD PDF)
 // ==================================================================
 const inputHari = document.getElementById('sksHari');
 const inputMulai = document.getElementById('sksMulai');
@@ -1773,8 +1876,14 @@ function angkaKeTeks(angka) {
     return teks[angka] || angka.toString(); 
 }
 
-function eksekusiCetakSKS() {
+async function eksekusiCetakSKS() {
     if(!tempPasienSks) return;
+
+    // 1. Generate Metadata TTE
+    const docId = `SKS-${new Date().getTime()}`;
+    const baseUrl = window.location.href.split('?')[0].split('#')[0];
+    const verifyUrl = `${baseUrl}?verify=${docId}`;
+
     const printNama = document.getElementById('printNama');
     if(printNama) printNama.innerText = tempPasienSks['Nama Lengkap'] || "-";
     
@@ -1815,6 +1924,42 @@ function eksekusiCetakSKS() {
     const printSipSks = document.getElementById('printSipSks');
     if(printSipSks) printSipSks.innerText = getSIP(namaDokter);
 
+    // 2. Generate QR Code with Logo
+    await generateQRWithLogo('qrCanvasSks', verifyUrl);
+
+    // 3. Render PDF Base64 & Upload
+    const overlay = document.getElementById('pdfLoadingOverlay');
+    if(overlay) overlay.style.display = 'flex';
+
+    const printArea = document.getElementById('printArea');
+    if(printArea) {
+        const originalDisplay = printArea.style.display;
+        printArea.style.display = 'block'; 
+
+        const opt = {
+            margin: 10, filename: `${docId}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+            const pdfBase64 = await html2pdf().set(opt).from(printArea).outputPdf('datauristring');
+            printArea.style.display = originalDisplay;
+
+            const payload = {
+                action: 'uploadPDF', docId: docId, fileName: opt.filename,
+                base64Data: pdfBase64.split(',')[1], tipe: 'SKS',
+                pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik", 
+                penandatangan: namaDokter
+            };
+            
+            fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        } catch(e) { console.error("PDF Render Error:", e); }
+    }
+
+    if(overlay) overlay.style.display = 'none';
+
     const modalSks = document.getElementById('modalSks');
     if(modalSks) modalSks.classList.remove('active');
     
@@ -1823,7 +1968,7 @@ function eksekusiCetakSKS() {
     setTimeout(() => { 
         window.print(); 
         document.body.classList.remove('print-sks');
-    }, 300);
+    }, 500);
 }
 
 // ==================================================================
@@ -1834,32 +1979,27 @@ function bukaModalRujukan(encodedItem) {
     const modalRujukan = document.getElementById('modalRujukan');
     if(modalRujukan) modalRujukan.classList.add('active');
     
-    // Pengisian Formulir Otomatis
     const rujukDiagnosa = document.getElementById('rujukDiagnosa');
-    if(rujukDiagnosa) {
-        rujukDiagnosa.value = tempPasienSks['Assessment'] && tempPasienSks['Assessment'] !== '-' ? tempPasienSks['Assessment'] : '';
-    }
+    if(rujukDiagnosa) rujukDiagnosa.value = tempPasienSks['Assessment'] && tempPasienSks['Assessment'] !== '-' ? tempPasienSks['Assessment'] : '';
     
     let terapiDiberikan = [];
-    if(tempPasienSks['Resep Obat'] && tempPasienSks['Resep Obat'] !== '-' && tempPasienSks['Resep Obat'] !== '[]') {
-        terapiDiberikan.push("Pemberian Terapi Obat");
-    }
-    if(tempPasienSks['Detail Tindakan'] && tempPasienSks['Detail Tindakan'] !== '-' && tempPasienSks['Detail Tindakan'] !== '[]') {
-        terapiDiberikan.push("Tindakan Awal Klinis");
-    }
+    if(tempPasienSks['Resep Obat'] && tempPasienSks['Resep Obat'] !== '-' && tempPasienSks['Resep Obat'] !== '[]') terapiDiberikan.push("Pemberian Terapi Obat");
+    if(tempPasienSks['Detail Tindakan'] && tempPasienSks['Detail Tindakan'] !== '-' && tempPasienSks['Detail Tindakan'] !== '[]') terapiDiberikan.push("Tindakan Awal Klinis");
     
     const rujukTerapi = document.getElementById('rujukTerapi');
     if(rujukTerapi) {
-        if(terapiDiberikan.length > 0) {
-            rujukTerapi.value = terapiDiberikan.join(', ');
-        } else {
-            rujukTerapi.value = 'Belum ada terapi spesifik.';
-        }
+        if(terapiDiberikan.length > 0) rujukTerapi.value = terapiDiberikan.join(', ');
+        else rujukTerapi.value = 'Belum ada terapi spesifik.';
     }
 }
 
-function eksekusiCetakRujukan() {
+async function eksekusiCetakRujukan() {
     if(!tempPasienSks) return;
+
+    // 1. Generate Metadata TTE
+    const docId = `RUJUKAN-${new Date().getTime()}`;
+    const baseUrl = window.location.href.split('?')[0].split('#')[0];
+    const verifyUrl = `${baseUrl}?verify=${docId}`;
 
     const elRsTujuan = document.getElementById('rujukRs');
     if(elRsTujuan) document.getElementById('printRujukanRs').innerText = elRsTujuan.value || '-';
@@ -1890,6 +2030,41 @@ function eksekusiCetakRujukan() {
     document.getElementById('printRujukanDokter').innerText = "( " + namaDokter + " )";
     document.getElementById('printRujukanSip').innerText = getSIP(namaDokter);
 
+    // 2. Generate QR Code with Logo
+    await generateQRWithLogo('qrCanvasRujuk', verifyUrl);
+
+    // 3. Render PDF Base64 & Upload
+    const overlay = document.getElementById('pdfLoadingOverlay');
+    if(overlay) overlay.style.display = 'flex';
+
+    const printAreaRujukan = document.getElementById('printAreaRujukan');
+    if(printAreaRujukan) {
+        const originalDisplay = printAreaRujukan.style.display;
+        printAreaRujukan.style.display = 'block';
+
+        const opt = {
+            margin: 10, filename: `${docId}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        try {
+            const pdfBase64 = await html2pdf().set(opt).from(printAreaRujukan).outputPdf('datauristring');
+            printAreaRujukan.style.display = originalDisplay;
+
+            const payload = {
+                action: 'uploadPDF', docId: docId, fileName: opt.filename,
+                base64Data: pdfBase64.split(',')[1], tipe: 'RUJUKAN',
+                pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik", 
+                penandatangan: namaDokter
+            };
+            fetch(API_URL, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        } catch(e) { console.error("PDF Render Error:", e); }
+    }
+
+    if(overlay) overlay.style.display = 'none';
+
     const modalRujukan = document.getElementById('modalRujukan');
     if(modalRujukan) modalRujukan.classList.remove('active');
     
@@ -1898,7 +2073,7 @@ function eksekusiCetakRujukan() {
     setTimeout(() => { 
         window.print(); 
         document.body.classList.remove('print-rujukan'); 
-    }, 300);
+    }, 500);
 }
 
 // ==================================================================
@@ -1912,4 +2087,118 @@ function showToast(msg, type) {
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 3000);
     }
+}
+
+// ==================================================================
+// FITUR BARU: VERIFIKASI DOKUMEN & TTE (QR + LOGO KLINIK)
+// ==================================================================
+async function bukaHalamanVerifikasi(docId) {
+    // Hide navigasi dan modul aplikasi utama
+    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    const nav = document.querySelector('nav'); if(nav) nav.style.display = 'none';
+    
+    const verifPage = document.getElementById('verifikasi-page');
+    if(verifPage) {
+        verifPage.style.display = 'block';
+        verifPage.classList.add('active');
+    }
+
+    try {
+        document.getElementById('vfPembuat').innerText = "Menyelaraskan data...";
+        document.getElementById('vfPenandatangan').innerText = "Mencari status persetujuan...";
+
+        const response = await fetch(`${API_URL}?action=verify&docId=${docId}`);
+        const res = await response.json();
+
+        if(res.status === 'success' && res.data) {
+            const data = res.data;
+            document.getElementById('vfPembuat').innerText = data['Pembuat'] || "Staf Klinik";
+            document.getElementById('vfPenandatangan').innerText = "1. " + (data['Penandatangan'] || "-");
+
+            const fileUrl = data['File URL'];
+            const driveId = data['Drive ID'];
+            
+            // Set Download Asli (via Browser Biasa)
+            const linkObj = document.getElementById('vfLinkFile');
+            if(linkObj) {
+                linkObj.href = fileUrl;
+                linkObj.setAttribute('data-driveid', driveId);
+            }
+
+            // Set ke iFrame Google Drive Preview Engine
+            const iframe = document.getElementById('pdfViewerFrame');
+            if(iframe) {
+                iframe.setAttribute('data-driveid', driveId);
+                reloadViewer();
+            }
+
+            if(masterPengaturan && masterPengaturan.length > 0) {
+                const vfLogo = document.getElementById('vfLogoKlinik');
+                if(vfLogo) vfLogo.src = masterPengaturan[0]['URL Logo'];
+            }
+
+        } else {
+            document.getElementById('vfPembuat').innerText = "Tidak Valid/Ditolak";
+            document.getElementById('vfPenandatangan').innerHTML = "<span style='color:red;'>Dokumen Palsu / Belum Disetujui</span>";
+            showToast("Dokumen tidak ditemukan di database resmi.", "error");
+        }
+
+    } catch(e) {
+        console.error(e);
+        document.getElementById('vfPembuat').innerText = "Koneksi Bermasalah";
+        showToast("Terjadi kesalahan koneksi saat Verifikasi Server.", "error");
+    }
+}
+
+function reloadViewer() {
+    const iframe = document.getElementById('pdfViewerFrame');
+    const driveId = iframe ? iframe.getAttribute('data-driveid') : null;
+    
+    if(driveId && iframe) {
+        iframe.src = 'about:blank'; // Mencegah caching error
+        setTimeout(() => {
+            iframe.src = `https://drive.google.com/file/d/${driveId}/preview`;
+        }, 400);
+    }
+}
+
+function generateQRWithLogo(containerId, text) {
+    return new Promise((resolve) => {
+        let container = document.getElementById(containerId);
+        if(!container) { resolve(); return; }
+        container.innerHTML = '';
+        
+        const tempDiv = document.createElement('div');
+        new QRCode(tempDiv, {
+            text: text, width: 300, height: 300,
+            colorDark : "#000000", colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+        
+        setTimeout(() => {
+            const qrCanvas = tempDiv.querySelector('canvas');
+            if (qrCanvas) {
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = 120; finalCanvas.height = 120;
+                const ctx = finalCanvas.getContext('2d');
+                ctx.drawImage(qrCanvas, 0, 0, 120, 120);
+                
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    const size = 32; const pos = (120 - size) / 2;
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(pos - 4, pos - 4, size + 8, size + 8);
+                    ctx.drawImage(img, pos, pos, size, size);
+                    container.appendChild(finalCanvas);
+                    resolve();
+                };
+                img.onerror = () => { container.appendChild(finalCanvas); resolve(); };
+                
+                let logoUrl = 'axalogo.png';
+                if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
+                img.src = logoUrl;
+            } else { resolve(); }
+        }, 300);
+    });
 }
