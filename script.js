@@ -187,7 +187,15 @@ function navTo(sectionId, pushState = true) {
             }
         }
     } else {
-        loadDashboardData(false);
+        // [UPGRADE UI INSTAN]
+        // Render tabel dari cache memori jika data sudah ditarik dari server sebelumnya
+        // Ini menghilangkan lag/loading ketika klik tab Farmasi atau Arsip berulang kali.
+        if(targetId === 'arsip' && allPatientsData.length > 0) renderTableArsip(allPatientsData);
+        if(targetId === 'farmasi' && allPatientsData.length > 0) renderTableFarmasi(allPatientsData);
+        
+        // Fetch ulang dari background. (Pakai silent=true jika memori sdh ada agar user tak terganggu)
+        const hasData = allPatientsData.length > 0;
+        loadDashboardData(hasData);
     }
 }
 
@@ -309,8 +317,8 @@ async function loadDashboardData(silent = false) {
         if(result.status === 'success') {
             const currentRawRM = JSON.stringify(result.dataRM);
             
+            // [UPGRADE FIX] Hanya update memori lokal dan render master table JIKA ada perubahan di database
             if (currentRawRM !== lastRawDataRM) {
-                
                 if (lastRawDataRM !== "") {
                     const currentPending = result.dataRM.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
                     const pastPending = allPatientsData.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
@@ -331,20 +339,25 @@ async function loadDashboardData(silent = false) {
                 masterPengaturan = result.dataPengaturan || [];
                 applyPengaturanKlinikUI();
                 
-                // Menampung Database ICD-10
                 masterICD10 = result.dataICD || [];
-                
-                if(document.getElementById('arsip').classList.contains('active')) renderTableArsip(allPatientsData);
-                if(document.getElementById('farmasi').classList.contains('active')) renderTableFarmasi(allPatientsData);
                 
                 populateMasterDropdowns();
                 renderMasterLists();
 
-                if(isAdminLoggedIn && document.getElementById('tab-keuangan').classList.contains('active')) {
-                    renderFinancialCharts();
-                }
-
                 lastRawDataRM = currentRawRM;
+            }
+            
+            // [UPGRADE FIX] Pindahkan Render UI Tabel keluar dari blok "if changed"
+            // Tujuannya agar saat tab pertama kali dibuka, loading spinner ("Menarik arsip...") 
+            // selalu tertimpa oleh data tabel, walau tidak ada perubahan di server.
+            if(document.getElementById('arsip').classList.contains('active')) {
+                renderTableArsip(allPatientsData);
+            }
+            if(document.getElementById('farmasi').classList.contains('active')) {
+                renderTableFarmasi(allPatientsData);
+            }
+            if(isAdminLoggedIn && document.getElementById('tab-keuangan').classList.contains('active')) {
+                renderFinancialCharts();
             }
         }
     } catch (error) {
@@ -722,6 +735,7 @@ function renderFinancialCharts() {
 // ==================================================================
 function renderTableFarmasi(dataArray) {
     const fBody = document.getElementById('farmasiBody');
+    if(!fBody) return; // Prevent render error
     
     const pasienBerobat = dataArray.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]');
 
@@ -789,6 +803,7 @@ document.getElementById('searchFarmasi').addEventListener('input', (e) => {
 // ==================================================================
 function renderTableArsip(dataArray) {
     const tBody = document.getElementById('tableBody');
+    if(!tBody) return; // Prevent render error
     
     if(dataArray.length === 0) {
         tBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada arsip yang cocok.</td></tr>`;
@@ -874,6 +889,9 @@ const labelMapping = {
 };
 
 function renderOdontogram() {
+    const gridEl = document.getElementById('odontogramGrid');
+    if(!gridEl) return;
+    
     const odontoMap = [
         { type: 'top', items: [18,17,16,15,14,13,12,11, 'divider-down', 21,22,23,24,25,26,27,28] },
         { type: 'top', items: ['', '', '', 55,54,53,52,51, 'divider-down', 61,62,63,64,65, '', '', ''] },
@@ -899,7 +917,7 @@ function renderOdontogram() {
         });
         html += '</div>';
     });
-    document.getElementById('odontogramGrid').innerHTML = html;
+    gridEl.innerHTML = html;
 }
 
 function generateReadOnlyOdontogram(stateStr) {
@@ -1113,8 +1131,11 @@ function generateOdontoTextSummary() {
         }
     });
     
-    document.getElementById('elemenGigiInput').value = results.join('; ');
-    document.getElementById('odontoVisualInput').value = JSON.stringify(odontoStateJSON);
+    const elemenInput = document.getElementById('elemenGigiInput');
+    if(elemenInput) elemenInput.value = results.join('; ');
+    
+    const odontoInput = document.getElementById('odontoVisualInput');
+    if(odontoInput) odontoInput.value = JSON.stringify(odontoStateJSON);
 }
 
 function applyPastOdontoState(stateObj) {
@@ -1399,112 +1420,150 @@ function kalkulasiGrandTotal() {
 
     let grand = totalTindakan + totalObat;
 
-    document.getElementById('labelTotalTindakan').innerText = formatRupiah(totalTindakan);
-    document.getElementById('labelTotalObat').innerText = formatRupiah(totalObat);
-    document.getElementById('labelGrandTotal').innerText = formatRupiah(grand);
+    const labelTotalTindakan = document.getElementById('labelTotalTindakan');
+    if(labelTotalTindakan) labelTotalTindakan.innerText = formatRupiah(totalTindakan);
+    
+    const labelTotalObat = document.getElementById('labelTotalObat');
+    if(labelTotalObat) labelTotalObat.innerText = formatRupiah(totalObat);
+    
+    const labelGrandTotal = document.getElementById('labelGrandTotal');
+    if(labelGrandTotal) labelGrandTotal.innerText = formatRupiah(grand);
 
-    document.getElementById('inputTotalBiayaTindakan').value = totalTindakan;
-    document.getElementById('inputTotalBiayaObat').value = totalObat;
-    document.getElementById('inputGrandTotalBiaya').value = grand;
+    const inputTindakan = document.getElementById('inputTotalBiayaTindakan');
+    if(inputTindakan) inputTindakan.value = totalTindakan;
+    
+    const inputObat = document.getElementById('inputTotalBiayaObat');
+    if(inputObat) inputObat.value = totalObat;
+    
+    const inputGrand = document.getElementById('inputGrandTotalBiaya');
+    if(inputGrand) inputGrand.value = grand;
 }
 
 // ==================================================================
 // 6. PROSES SUBMIT FORM KE GAS
 // ==================================================================
-document.getElementById('ermForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    generateOdontoTextSummary(); 
+const ermForm = document.getElementById('ermForm');
+if(ermForm) {
+    ermForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        generateOdontoTextSummary(); 
 
-    let strPenyakit = "Tidak Ada";
-    if(!chkTidakAdaPenyakit.checked) {
-        let values = []; document.querySelectorAll('.penyakit-input').forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
-        if(values.length > 0) strPenyakit = values.join("; ");
-    }
-
-    let strAlergi = "Tidak Ada";
-    if(!chkTidakAdaAlergi.checked) {
-        let values = []; document.querySelectorAll('.alergi-input').forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
-        if(values.length > 0) strAlergi = values.join("; ");
-    }
-
-    let tindakanArray = [];
-    document.querySelectorAll('#tindakanBody tr').forEach(row => {
-        const nama = row.querySelector('.tnd-nama').value.trim();
-        if(nama !== "") {
-            tindakanArray.push({
-                nama: nama,
-                gigi: row.querySelector('.tnd-gigi').value,
-                harga: row.querySelector('.tnd-harga').value,
-                qty: row.querySelector('.tnd-qty').value,
-                subTotal: row.querySelector('.tnd-sub').value
-            });
+        let strPenyakit = "Tidak Ada";
+        if(document.getElementById('chkTidakAdaPenyakit') && !document.getElementById('chkTidakAdaPenyakit').checked) {
+            let values = []; document.querySelectorAll('.penyakit-input').forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
+            if(values.length > 0) strPenyakit = values.join("; ");
         }
-    });
 
-    let resepArray = [];
-    document.querySelectorAll('#resepBody tr').forEach(row => {
-        const obat = row.querySelector('.res-nama-obat').value.trim();
-        if(obat !== "") {
-            resepArray.push({
-                racikan: row.querySelector('.res-racikan').value, 
-                jmlPermintaan: row.querySelector('.res-jml-minta').value,
-                jenisRacikan: row.querySelector('.res-jenis-racik').value, 
-                namaObat: obat, 
-                jumlah: row.querySelector('.res-jumlah').value,
-                signa: row.querySelector('.res-signa').value, 
-                aturanPakai: row.querySelector('.res-aturan').value
-            });
+        let strAlergi = "Tidak Ada";
+        if(document.getElementById('chkTidakAdaAlergi') && !document.getElementById('chkTidakAdaAlergi').checked) {
+            let values = []; document.querySelectorAll('.alergi-input').forEach(inp => { if(inp.value.trim() !== "") values.push(inp.value.trim()); });
+            if(values.length > 0) strAlergi = values.join("; ");
         }
-    });
 
-    const formData = new FormData(e.target);
-    const dataObj = Object.fromEntries(formData.entries());
-    dataObj.riwayatPenyakit = strPenyakit; 
-    dataObj.riwayatAlergi = strAlergi; 
-    
-    dataObj.detailTindakan = JSON.stringify(tindakanArray);
-    dataObj.resepObat = JSON.stringify(resepArray);
-    dataObj.action = "saveRM";
-
-    const btn = document.getElementById('submitBtn'); const btnText = document.getElementById('btnText'); const btnSpinner = document.getElementById('btnSpinner');
-    btn.disabled = true; btnText.style.display = 'none'; btnSpinner.style.display = 'block';
-
-    try {
-        await fetch(API_URL, {
-            method: 'POST',
-            mode: 'no-cors', 
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dataObj)
+        let tindakanArray = [];
+        document.querySelectorAll('#tindakanBody tr').forEach(row => {
+            const nama = row.querySelector('.tnd-nama').value.trim();
+            if(nama !== "") {
+                tindakanArray.push({
+                    nama: nama,
+                    gigi: row.querySelector('.tnd-gigi').value,
+                    harga: row.querySelector('.tnd-harga').value,
+                    qty: row.querySelector('.tnd-qty').value,
+                    subTotal: row.querySelector('.tnd-sub').value
+                });
+            }
         });
-        
-        showToast("Rekam Medis & Finansial Berhasil Disimpan!", "success");
-        e.target.reset(); document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
-        
-        document.getElementById('tindakanBody').innerHTML = ""; tambahBarisTindakan();
-        document.getElementById('resepBody').innerHTML = ""; tambahBarisResep(); 
-        kalkulasiGrandTotal();
 
-        chkTidakAdaPenyakit.checked = true; document.getElementById('penyakitContainer').style.display = 'none'; 
-        chkTidakAdaAlergi.checked = true; document.getElementById('alergiContainer').style.display = 'none';
-        
-        document.querySelectorAll('input[name="bahasaLain"], input[name="tinggalLain"], input[name="jaminanLain"]').forEach(el => { el.style.display = 'none'; el.removeAttribute('required'); });
+        let resepArray = [];
+        document.querySelectorAll('#resepBody tr').forEach(row => {
+            const obat = row.querySelector('.res-nama-obat').value.trim();
+            if(obat !== "") {
+                resepArray.push({
+                    racikan: row.querySelector('.res-racikan').value, 
+                    jmlPermintaan: row.querySelector('.res-jml-minta').value,
+                    jenisRacikan: row.querySelector('.res-jenis-racik').value, 
+                    namaObat: obat, 
+                    jumlah: row.querySelector('.res-jumlah').value,
+                    signa: row.querySelector('.res-signa').value, 
+                    aturanPakai: row.querySelector('.res-aturan').value
+                });
+            }
+        });
 
-        applyPastOdontoState({}); document.getElementById('autoFillAlert').style.display = 'none'; memoryPatientData = null;
+        const formData = new FormData(e.target);
+        const dataObj = Object.fromEntries(formData.entries());
+        dataObj.riwayatPenyakit = strPenyakit; 
+        dataObj.riwayatAlergi = strAlergi; 
         
-        setTimeout(() => navTo('arsip'), 1500);
-    } catch (error) {
-        showToast("Gagal menyambung ke server Google.", "error");
-    } finally {
-        btn.disabled = false; btnText.style.display = 'block'; btnSpinner.style.display = 'none';
-    }
-});
+        dataObj.detailTindakan = JSON.stringify(tindakanArray);
+        dataObj.resepObat = JSON.stringify(resepArray);
+        dataObj.action = "saveRM";
+
+        const btn = document.getElementById('submitBtn'); 
+        const btnText = document.getElementById('btnText'); 
+        const btnSpinner = document.getElementById('btnSpinner');
+        
+        if(btn) btn.disabled = true; 
+        if(btnText) btnText.style.display = 'none'; 
+        if(btnSpinner) btnSpinner.style.display = 'block';
+
+        try {
+            await fetch(API_URL, {
+                method: 'POST',
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(dataObj)
+            });
+            
+            showToast("Rekam Medis & Finansial Berhasil Disimpan!", "success");
+            e.target.reset(); 
+            if(document.getElementById('tanggalPelayanan')) {
+                document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
+            }
+            
+            if(document.getElementById('tindakanBody')) document.getElementById('tindakanBody').innerHTML = ""; 
+            tambahBarisTindakan();
+            if(document.getElementById('resepBody')) document.getElementById('resepBody').innerHTML = ""; 
+            tambahBarisResep(); 
+            kalkulasiGrandTotal();
+
+            const chkPenyakit = document.getElementById('chkTidakAdaPenyakit');
+            if(chkPenyakit) chkPenyakit.checked = true; 
+            const containerPenyakit = document.getElementById('penyakitContainer');
+            if(containerPenyakit) containerPenyakit.style.display = 'none'; 
+            
+            const chkAlergi = document.getElementById('chkTidakAdaAlergi');
+            if(chkAlergi) chkAlergi.checked = true; 
+            const containerAlergi = document.getElementById('alergiContainer');
+            if(containerAlergi) containerAlergi.style.display = 'none';
+            
+            document.querySelectorAll('input[name="bahasaLain"], input[name="tinggalLain"], input[name="jaminanLain"]').forEach(el => { el.style.display = 'none'; el.removeAttribute('required'); });
+
+            applyPastOdontoState({}); 
+            const alertFill = document.getElementById('autoFillAlert');
+            if(alertFill) alertFill.style.display = 'none'; 
+            memoryPatientData = null;
+            
+            setTimeout(() => navTo('arsip'), 1500);
+        } catch (error) {
+            showToast("Gagal menyambung ke server Google.", "error");
+        } finally {
+            if(btn) btn.disabled = false; 
+            if(btnText) btnText.style.display = 'block'; 
+            if(btnSpinner) btnSpinner.style.display = 'none';
+        }
+    });
+}
 
 // BUKA RIWAYAT KLINIS (MODAL DASBOR)
 function bukaRiwayatKunjungan(rmFilter, nama) {
-    document.getElementById('histRm').innerText = rmFilter;
-    document.getElementById('histNama').innerText = nama;
+    const histRm = document.getElementById('histRm');
+    const histNama = document.getElementById('histNama');
+    if(histRm) histRm.innerText = rmFilter;
+    if(histNama) histNama.innerText = nama;
     
     const timeline = document.getElementById('historyTimeline');
+    if(!timeline) return;
     timeline.innerHTML = '';
 
     let visits = allPatientsData.filter(i => i['No RM'] === rmFilter).sort((a,b) => new Date(b['Timestamp']) - new Date(a['Timestamp']));
@@ -1618,13 +1677,16 @@ function bukaRiwayatKunjungan(rmFilter, nama) {
             `;
         });
     }
-    document.getElementById('modalRiwayatPasien').classList.add('active');
+    const modalRiwayat = document.getElementById('modalRiwayatPasien');
+    if(modalRiwayat) modalRiwayat.classList.add('active');
 }
 
 function bukaRiwayatKunjunganFarmasi(rmFilter, nama, rowIndex, isDone) {
     bukaRiwayatKunjungan(rmFilter, nama); 
     
     const timeline = document.getElementById('historyTimeline');
+    if(!timeline) return;
+
     if(!isDone) {
         let btnHtml = `<div style="background:#fff3cd; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #fde047; text-align:center;">
                           <p style="color:#b45309; margin-bottom:10px; font-weight:600;">Resep ini masih dalam status Menunggu Proses.</p>
@@ -1652,7 +1714,8 @@ async function tandaiFarmasiSelesai(rowIndex) {
                 body: JSON.stringify({ action: 'updateFarmasi', rowIndex: rowIndex })
             });
             showToast("Status berhasil diperbarui!", "success");
-            document.getElementById('modalRiwayatPasien').classList.remove('active');
+            const modalRiwayat = document.getElementById('modalRiwayatPasien');
+            if(modalRiwayat) modalRiwayat.classList.remove('active');
             loadDashboardData(true);
         } catch (error) {
             showToast("Gagal update status.", "error");
@@ -1696,7 +1759,8 @@ if(inputMulai) inputMulai.addEventListener('change', hitungTanggalSelesai);
 
 function bukaModalSks(encodedItem) {
     tempPasienSks = JSON.parse(decodeURIComponent(encodedItem));
-    document.getElementById('modalSks').classList.add('active');
+    const modalSks = document.getElementById('modalSks');
+    if(modalSks) modalSks.classList.add('active');
     if(inputHari) inputHari.value = 3; 
     if(inputMulai) {
         inputMulai.valueAsDate = new Date(); 
@@ -1711,25 +1775,48 @@ function angkaKeTeks(angka) {
 
 function eksekusiCetakSKS() {
     if(!tempPasienSks) return;
-    document.getElementById('printNama').innerText = tempPasienSks['Nama Lengkap'] || "-";
+    const printNama = document.getElementById('printNama');
+    if(printNama) printNama.innerText = tempPasienSks['Nama Lengkap'] || "-";
+    
+    const printUsia = document.getElementById('printUsia');
+    if(printUsia) printUsia.innerText = tempPasienSks['Usia'] || "-";
+    
+    const printJk = document.getElementById('printJk');
+    if(printJk) printJk.innerText = tempPasienSks['Jenis Kelamin'] || "-";
+    
+    const printKerja = document.getElementById('printKerja');
+    if(printKerja) printKerja.innerText = tempPasienSks['Pekerjaan'] && tempPasienSks['Pekerjaan'] !== '-' ? tempPasienSks['Pekerjaan'] : "Karyawan / Pelajar";
+    
+    const printAlamat = document.getElementById('printAlamat');
+    if(printAlamat) printAlamat.innerText = tempPasienSks['Alamat'] || "-";
     
     if(inputHari) {
         const jmlHari = parseInt(inputHari.value);
-        document.getElementById('printHari').innerText = jmlHari;
-        document.getElementById('printHariTeks').innerText = angkaKeTeks(jmlHari);
+        const printHari = document.getElementById('printHari');
+        if(printHari) printHari.innerText = jmlHari;
+        const printHariTeks = document.getElementById('printHariTeks');
+        if(printHariTeks) printHariTeks.innerText = angkaKeTeks(jmlHari);
     }
     
-    if(inputMulai) document.getElementById('printMulai').innerText = formatIndoDateOnly(inputMulai.value); 
-    if(inputSelesai) document.getElementById('printSelesai').innerText = formatIndoDateOnly(inputSelesai.value);
+    if(inputMulai && document.getElementById('printMulai')) {
+        document.getElementById('printMulai').innerText = formatIndoDateOnly(inputMulai.value); 
+    }
+    if(inputSelesai && document.getElementById('printSelesai')) {
+        document.getElementById('printSelesai').innerText = formatIndoDateOnly(inputSelesai.value);
+    }
     
-    document.getElementById('printTglSurat').innerText = "Kendari, " + formatIndoDateOnly(new Date().toISOString());
+    const printTglSurat = document.getElementById('printTglSurat');
+    if(printTglSurat) printTglSurat.innerText = "Kendari, " + formatIndoDateOnly(new Date().toISOString());
 
     // Assign Dokter + SIP dinamis
     let namaDokter = tempPasienSks['Dokter Penanggung Jawab'] || "______________________";
-    document.getElementById('printDokterSks').innerText = "( " + namaDokter + " )";
-    document.getElementById('printSipSks').innerText = getSIP(namaDokter);
+    const printDokterSks = document.getElementById('printDokterSks');
+    if(printDokterSks) printDokterSks.innerText = "( " + namaDokter + " )";
+    const printSipSks = document.getElementById('printSipSks');
+    if(printSipSks) printSipSks.innerText = getSIP(namaDokter);
 
-    document.getElementById('modalSks').classList.remove('active');
+    const modalSks = document.getElementById('modalSks');
+    if(modalSks) modalSks.classList.remove('active');
     
     // Masuk Mode Print Khusus SKS
     document.body.classList.add('print-sks');
@@ -1744,10 +1831,14 @@ function eksekusiCetakSKS() {
 // ==================================================================
 function bukaModalRujukan(encodedItem) {
     tempPasienSks = JSON.parse(decodeURIComponent(encodedItem));
-    document.getElementById('modalRujukan').classList.add('active');
+    const modalRujukan = document.getElementById('modalRujukan');
+    if(modalRujukan) modalRujukan.classList.add('active');
     
     // Pengisian Formulir Otomatis
-    document.getElementById('rujukDiagnosa').value = tempPasienSks['Assessment'] && tempPasienSks['Assessment'] !== '-' ? tempPasienSks['Assessment'] : '';
+    const rujukDiagnosa = document.getElementById('rujukDiagnosa');
+    if(rujukDiagnosa) {
+        rujukDiagnosa.value = tempPasienSks['Assessment'] && tempPasienSks['Assessment'] !== '-' ? tempPasienSks['Assessment'] : '';
+    }
     
     let terapiDiberikan = [];
     if(tempPasienSks['Resep Obat'] && tempPasienSks['Resep Obat'] !== '-' && tempPasienSks['Resep Obat'] !== '[]') {
@@ -1757,20 +1848,30 @@ function bukaModalRujukan(encodedItem) {
         terapiDiberikan.push("Tindakan Awal Klinis");
     }
     
-    if(terapiDiberikan.length > 0) {
-        document.getElementById('rujukTerapi').value = terapiDiberikan.join(', ');
-    } else {
-        document.getElementById('rujukTerapi').value = 'Belum ada terapi spesifik.';
+    const rujukTerapi = document.getElementById('rujukTerapi');
+    if(rujukTerapi) {
+        if(terapiDiberikan.length > 0) {
+            rujukTerapi.value = terapiDiberikan.join(', ');
+        } else {
+            rujukTerapi.value = 'Belum ada terapi spesifik.';
+        }
     }
 }
 
 function eksekusiCetakRujukan() {
     if(!tempPasienSks) return;
 
-    document.getElementById('printRujukanRs').innerText = document.getElementById('rujukRs').value || '-';
-    document.getElementById('printRujukanPoli').innerText = document.getElementById('rujukPoli').value || '-';
-    document.getElementById('printRujukanDiagnosa').innerText = document.getElementById('rujukDiagnosa').value || '-';
-    document.getElementById('printRujukanTerapi').innerText = document.getElementById('rujukTerapi').value || '-';
+    const elRsTujuan = document.getElementById('rujukRs');
+    if(elRsTujuan) document.getElementById('printRujukanRs').innerText = elRsTujuan.value || '-';
+    
+    const elPoliTujuan = document.getElementById('rujukPoli');
+    if(elPoliTujuan) document.getElementById('printRujukanPoli').innerText = elPoliTujuan.value || '-';
+    
+    const elRujukDiagnosa = document.getElementById('rujukDiagnosa');
+    if(elRujukDiagnosa) document.getElementById('printRujukanDiagnosa').innerText = elRujukDiagnosa.value || '-';
+    
+    const elRujukTerapi = document.getElementById('rujukTerapi');
+    if(elRujukTerapi) document.getElementById('printRujukanTerapi').innerText = elRujukTerapi.value || '-';
 
     document.getElementById('printRujukanNama').innerText = tempPasienSks['Nama Lengkap'] || '-';
     document.getElementById('printRujukanUmur').innerText = tempPasienSks['Usia'] || '-';
@@ -1789,7 +1890,8 @@ function eksekusiCetakRujukan() {
     document.getElementById('printRujukanDokter').innerText = "( " + namaDokter + " )";
     document.getElementById('printRujukanSip').innerText = getSIP(namaDokter);
 
-    document.getElementById('modalRujukan').classList.remove('active');
+    const modalRujukan = document.getElementById('modalRujukan');
+    if(modalRujukan) modalRujukan.classList.remove('active');
     
     // Masuk Mode Print Khusus Rujukan
     document.body.classList.add('print-rujukan');
