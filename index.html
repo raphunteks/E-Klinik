@@ -1508,7 +1508,7 @@
                 data: {
                     labels: labelHarian,
                     datasets: [{
-                        label: 'Pendapatan Harian',
+                        label: 'Pendapatan Harian (Rp)',
                         data: dataHarian,
                         borderColor: '#0ea5e9',
                         backgroundColor: 'rgba(14, 165, 233, 0.2)',
@@ -1517,19 +1517,7 @@
                         tension: 0.3
                     }]
                 },
-                options: { 
-                    responsive: true, 
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits:0 }).format(context.parsed.y);
-                                }
-                            }
-                        }
-                    } 
-                }
+                options: { responsive: true, plugins: { legend: { display: false } } }
             });
 
             // RENDER GRAFIK BATANG (BULANAN)
@@ -1539,25 +1527,13 @@
                 data: {
                     labels: labelBulanan,
                     datasets: [{
-                        label: 'Pendapatan Bulanan',
+                        label: 'Pendapatan Bulanan (Rp)',
                         data: dataBulanan,
                         backgroundColor: '#10b981',
                         borderRadius: 6
                     }]
                 },
-                options: { 
-                    responsive: true, 
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits:0 }).format(context.parsed.y);
-                                }
-                            }
-                        }
-                    } 
-                }
+                options: { responsive: true, plugins: { legend: { display: false } } }
             });
 
             // RENDER GRAFIK LINGKARAN (PIE RATIO)
@@ -1569,46 +1545,25 @@
                     datasets: [{
                         data: [grandTotalTindakan, grandTotalObat],
                         backgroundColor: ['#3b82f6', '#f59e0b'],
-                        borderColor: ['#ffffff', '#ffffff'],
-                        borderWidth: 2,
+                        borderWidth: 0,
                         hoverOffset: 10
                     }]
                 },
-                options: { 
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.label || '';
-                                    if (label) { label += ': '; }
-                                    if (context.parsed !== null) {
-                                        label += new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits:0 }).format(context.parsed);
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    }
-                }
+                options: { responsive: true }
             });
         }
 
 
         // ==================================================================
-        // 3. RENDER TABEL FARMASI (OPTIMIZED FAST RENDER)
+        // 3. RENDER TABEL FARMASI
         // ==================================================================
         function renderTableFarmasi(dataArray) {
             const fBody = document.getElementById('farmasiBody');
+            fBody.innerHTML = '';
             const pasienBerobat = dataArray.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]');
 
-            if(pasienBerobat.length === 0) {
-                fBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px;">Tidak ada antrean resep obat.</td></tr>`;
-                return;
-            }
+            if(pasienBerobat.length === 0) return fBody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:30px;">Tidak ada antrean resep obat.</td></tr>`;
 
-            let htmlArr = [];
             pasienBerobat.forEach(item => {
                 let resepHTML = '';
                 try {
@@ -1617,6 +1572,7 @@
                         resepHTML = '<ul style="margin-left: 15px; margin-top:5px; font-size:0.85rem; color: #334155;">';
                         rs.forEach(r => {
                             let labelRacik = r.racikan !== 'Non-Racik' ? `<b>[${r.racikan}]</b> ` : '';
+                            // NEW: Render dengan info satuan yang dipecah dari Datalist jika ada
                             let obatNamaBersih = r.namaObat.split('|')[0].trim();
                             resepHTML += `<li>${labelRacik}${obatNamaBersih} (Jml: ${r.jumlah}) - Signa: ${r.signa} (${r.aturanPakai})</li>`;
                         });
@@ -1627,30 +1583,30 @@
                 let isDone = item['Status Farmasi'] === 'Selesai Diberikan';
                 let badgeClass = isDone ? 'status-done' : 'status-wait';
                 let statusText = isDone ? 'Selesai Diberikan' : 'Menunggu Proses';
-                let formattedTime = formatIndoDateTime(item['Timestamp']);
                 
-                let safeRM = (item['No RM'] || '').replace(/'/g, "\\'");
-                let safeNama = (item['Nama Lengkap'] || '').replace(/'/g, "\\'");
+                // Gunakan format Indo
+                let formattedTime = formatIndoDateTime(item['Timestamp']);
 
-                htmlArr.push(`
-                    <tr style="cursor:pointer;" ondblclick="bukaRiwayatKunjunganFarmasi('${safeRM}', '${safeNama}', ${item['rowIndex']}, ${isDone})">
-                        <td style="white-space:nowrap; vertical-align: top;">
-                            <strong>${formattedTime}</strong><br>
-                            <span class="status-badge ${badgeClass}" style="display:inline-block; margin-top:8px;">${statusText}</span>
-                        </td>
-                        <td style="vertical-align: top;">
-                            <strong style="color:var(--primary); font-size:1.05rem;">${item['Nama Lengkap']}</strong><br>
-                            <small>No RM: ${item['No RM']} | Usia: ${item['Usia']} Thn</small><br>
-                            <small style="color:#64748b; margin-top:5px; display:block;">Dokter: ${item['Dokter Penanggung Jawab']}</small>
-                        </td>
-                        <td style="vertical-align: top;">
-                            <strong>Daftar Obat:</strong>
-                            ${resepHTML}
-                        </td>
-                    </tr>
-                `);
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer';
+                tr.innerHTML = `
+                    <td style="white-space:nowrap; vertical-align: top;">
+                        <strong>${formattedTime}</strong><br>
+                        <span class="status-badge ${badgeClass}" style="display:inline-block; margin-top:8px;">${statusText}</span>
+                    </td>
+                    <td style="vertical-align: top;">
+                        <strong style="color:var(--primary); font-size:1.05rem;">${item['Nama Lengkap']}</strong><br>
+                        <small>No RM: ${item['No RM']} | Usia: ${item['Usia']} Thn</small><br>
+                        <small style="color:#64748b; margin-top:5px; display:block;">Dokter: ${item['Dokter Penanggung Jawab']}</small>
+                    </td>
+                    <td style="vertical-align: top;">
+                        <strong>Daftar Obat:</strong>
+                        ${resepHTML}
+                    </td>
+                `;
+                tr.ondblclick = () => bukaRiwayatKunjunganFarmasi(item['No RM'], item['Nama Lengkap'], item['rowIndex'], isDone);
+                fBody.appendChild(tr);
             });
-            fBody.innerHTML = htmlArr.join('');
         }
 
         document.getElementById('searchFarmasi').addEventListener('input', (e) => {
@@ -1660,54 +1616,48 @@
         });
 
         // ==================================================================
-        // 4. RENDER TABEL ARSIP (DASHBOARD) - OPTIMIZED FAST RENDER
+        // 4. RENDER TABEL ARSIP (DASHBOARD)
         // ==================================================================
         function renderTableArsip(dataArray) {
             const tBody = document.getElementById('tableBody');
-            if(dataArray.length === 0) {
-                tBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada arsip yang cocok.</td></tr>`;
-                return;
-            }
+            tBody.innerHTML = '';
+            if(dataArray.length === 0) return tBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:30px;">Belum ada arsip yang cocok.</td></tr>`;
 
-            let htmlArr = [];
-            const maxRender = Math.min(dataArray.length, 150); 
-            
-            for(let i=0; i<maxRender; i++) {
-                let item = dataArray[i];
-                let safeItem = encodeURIComponent(JSON.stringify(item)).replace(/'/g, "%27");
-                let safeRM = (item['No RM'] || '').replace(/'/g, "\\'");
-                let safeNama = (item['Nama Lengkap'] || '').replace(/'/g, "\\'");
+            dataArray.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                tr.style.cursor = 'pointer'; 
+                const safeItem = encodeURIComponent(JSON.stringify(item));
                 
+                // Gunakan format Indo
                 let fTime = formatIndoDateTime(item['Timestamp']);
                 let fTglPelayanan = formatIndoDateOnly(item['Tanggal Pelayanan']);
 
-                htmlArr.push(`
-                    <tr style="cursor:pointer;" ondblclick="bukaRiwayatKunjungan('${safeRM}', '${safeNama}')">
-                        <td style="white-space:nowrap;">
-                            <i class="fa-regular fa-clock" style="color:var(--text-light)"></i> <strong>${fTime}</strong><br>
-                            <span style="font-size:0.75rem; color:var(--text-light);">Tgl Pelayanan: ${fTglPelayanan}</span><br>
-                            <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
-                        </td>
-                        <td><strong>${item['No RM'] || '-'}</strong></td>
-                        <td>
-                            <strong>${item['Nama Lengkap'] || '-'}</strong><br>
-                            <small>Usia: ${item['Usia'] || '-'} Thn (${item['Jenis Kelamin']})</small><br>
-                            <small style="color:#ef4444;">Penyakit: ${item['Riwayat Penyakit'] || 'Tidak Ada'}</small><br>
-                            <small style="color:#ef4444;">Alergi: ${item['Riwayat Alergi'] || 'Tidak Ada'}</small>
-                        </td>
-                        <td>
-                            <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
-                                <strong>Elemen Gigi: ${item['Elemen Gigi']||'-'}</strong><br>
-                                <strong>TD:</strong> ${item['Sistole']||'-'}/${item['Diastole']||'-'} | <strong>N:</strong> ${item['Detak Nadi (x/Mnt)']||'-'} | <strong>S:</strong> ${item['Suhu (C)']||'-'}°C
-                            </div>
-                            <p style="font-size:0.85rem; margin-bottom: 2px;"><strong>S:</strong> ${item['Subjective']||'-'}</p>
-                            <p style="font-size:0.85rem; margin-bottom: 2px;"><strong>A:</strong> ${item['Assessment']||'-'}</p>
-                            <p style="font-size:0.85rem; margin-bottom: 2px;"><strong>P:</strong> ${item['Plan']||'-'}</p>
-                        </td>
-                    </tr>
-                `);
-            }
-            tBody.innerHTML = htmlArr.join('');
+                tr.innerHTML = `
+                    <td style="white-space:nowrap;">
+                        <i class="fa-regular fa-clock" style="color:var(--text-light)"></i> <strong>${fTime}</strong><br>
+                        <span style="font-size:0.75rem; color:var(--text-light);">Tgl Pelayanan: ${fTglPelayanan}</span><br>
+                        <button class="btn btn-primary" style="margin-top:10px; padding: 6px 10px; font-size: 0.8rem;" onclick="bukaModalSks('${safeItem}'); event.stopPropagation();"><i class="fa-solid fa-file-pdf"></i> Cetak SKS</button>
+                    </td>
+                    <td><strong>${item['No RM'] || '-'}</strong></td>
+                    <td>
+                        <strong>${item['Nama Lengkap'] || '-'}</strong><br>
+                        <small>Usia: ${item['Usia'] || '-'} Thn (${item['Jenis Kelamin']})</small><br>
+                        <small style="color:#ef4444;">Penyakit: ${item['Riwayat Penyakit'] || 'Tidak Ada'}</small><br>
+                        <small style="color:#ef4444;">Alergi: ${item['Riwayat Alergi'] || 'Tidak Ada'}</small>
+                    </td>
+                    <td>
+                        <div style="font-size:0.8rem; background: rgba(255,255,255,0.3); padding:5px; border-radius:6px; margin-bottom:5px;">
+                            <strong>Elemen Gigi: ${item['Elemen Gigi']||'-'}</strong><br>
+                            <strong>TD:</strong> ${item['Sistole']||'-'}/${item['Diastole']||'-'} | <strong>N:</strong> ${item['Detak Nadi (x/Mnt)']||'-'} | <strong>S:</strong> ${item['Suhu (C)']||'-'}°C
+                        </div>
+                        <p style="font-size:0.85rem;"><strong>S:</strong> ${item['Subjective']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>A:</strong> ${item['Assessment']||'-'}</p>
+                        <p style="font-size:0.85rem;"><strong>P:</strong> ${item['Plan']||'-'}</p>
+                    </td>
+                `;
+                tr.ondblclick = () => bukaRiwayatKunjungan(item['No RM'], item['Nama Lengkap']);
+                tBody.appendChild(tr);
+            });
         }
 
         document.getElementById('searchInput').addEventListener('input', (e) => {
@@ -2496,65 +2446,23 @@
             document.getElementById('modalRiwayatPasien').classList.add('active');
         }
 
-        // BUKA RIWAYAT KLINIS FARMASI (TOMBOL TANDAI SELESAI) - KHUSUS UI FARMASI
+        // BUKA RIWAYAT KLINIS FARMASI (TOMBOL TANDAI SELESAI)
         function bukaRiwayatKunjunganFarmasi(rmFilter, nama, rowIndex, isDone) {
-            document.getElementById('histRm').innerText = rmFilter;
-            document.getElementById('histNama').innerText = nama;
+            bukaRiwayatKunjungan(rmFilter, nama); 
             
             const timeline = document.getElementById('historyTimeline');
-            timeline.innerHTML = '';
-
-            let visits = allPatientsData.filter(i => i['No RM'] === rmFilter && i['rowIndex'] === rowIndex);
-            
-            if(visits.length === 0) {
-                timeline.innerHTML = '<p style="color:var(--text-light)">Data resep tidak ditemukan.</p>';
-            } else {
-                let v = visits[0];
-                let fTime = formatIndoDateTime(v['Timestamp']);
-                
-                let resepHTML = '';
-                try {
-                    let rs = JSON.parse(v['Resep Obat']);
-                    if(rs && rs.length > 0) {
-                        resepHTML = '<table style="width:100%; border-collapse:collapse; margin-top:10px; font-size: 0.9rem;"><tr><th style="border-bottom:1px solid #ccc; text-align:left; padding:8px;">Nama Obat</th><th style="border-bottom:1px solid #ccc; text-align:left; padding:8px;">Jumlah</th><th style="border-bottom:1px solid #ccc; text-align:left; padding:8px;">Aturan Pakai</th></tr>';
-                        rs.forEach(r => {
-                            let labelRacik = r.racikan !== 'Non-Racik' ? `<span style="color:var(--danger); font-weight:bold;">[${r.racikan}]</span> ` : '';
-                            let obatNamaBersih = r.namaObat.split('|')[0].trim();
-                            resepHTML += `<tr><td style="border-bottom:1px solid #eee; padding:8px;">${labelRacik}${obatNamaBersih}</td><td style="border-bottom:1px solid #eee; padding:8px; font-weight:bold;">${r.jumlah}</td><td style="border-bottom:1px solid #eee; padding:8px;">${r.signa} (${r.aturanPakai})</td></tr>`;
-                        });
-                        resepHTML += '</table>';
-                    } else { resepHTML = '<p style="color:#64748b; margin-top:5px;">Tidak ada resep obat.</p>'; }
-                } catch(e) { resepHTML = `<p>${v['Resep Obat']}</p>`; }
-
-                let btnHtml = '';
-                if(!isDone) {
-                    btnHtml = `<div style="background:#fff3cd; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #fde047; text-align:center;">
+            if(!isDone) {
+                let btnHtml = `<div style="background:#fff3cd; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #fde047; text-align:center;">
                                   <p style="color:#b45309; margin-bottom:10px; font-weight:600;">Resep ini masih dalam status Menunggu Proses.</p>
                                   <button class="btn btn-success" onclick="tandaiFarmasiSelesai(${rowIndex})"><i class="fa-solid fa-check-circle"></i> Tandai Resep Selesai Diberikan</button>
                                </div>`;
-                } else {
-                    btnHtml = `<div style="background:#d1fae5; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #6ee7b7; text-align:center;">
+                timeline.insertAdjacentHTML('afterbegin', btnHtml);
+            } else {
+                let btnHtml = `<div style="background:#d1fae5; padding:15px; border-radius:8px; margin-bottom:20px; border:1px solid #6ee7b7; text-align:center;">
                                   <p style="color:#047857; margin:0; font-weight:600;"><i class="fa-solid fa-check-circle"></i> Resep ini telah Selesai Diberikan kepada pasien.</p>
                                </div>`;
-                }
-
-                timeline.innerHTML = `
-                    ${btnHtml}
-                    <div class="timeline-item" style="border-left: 4px solid var(--success);">
-                        <div class="tl-header" style="background:#f0fdf4; border-bottom:1px solid #bbf7d0;">
-                            <div class="tl-date" style="color:var(--success);"><i class="fa-solid fa-prescription-bottle-medical"></i> Detail Resep Obat (Masuk: ${fTime})</div>
-                            <strong style="color:var(--text-dark);">Dokter: ${v['Dokter Penanggung Jawab']}</strong>
-                        </div>
-                        <div class="tl-body">
-                            ${resepHTML}
-                            <div style="margin-top:15px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1;">
-                                <p style="font-size:0.85rem; color:var(--text-light); margin:0;">*Catatan: Tindakan & Biaya diproses oleh Admin. Apoteker hanya fokus pada penyerahan obat.</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                timeline.insertAdjacentHTML('afterbegin', btnHtml);
             }
-            document.getElementById('modalRiwayatPasien').classList.add('active');
         }
 
         async function tandaiFarmasiSelesai(rowIndex) {
