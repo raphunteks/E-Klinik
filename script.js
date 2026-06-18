@@ -187,13 +187,9 @@ function navTo(sectionId, pushState = true) {
             }
         }
     } else {
-        // [UPGRADE UI INSTAN]
-        // Render tabel dari cache memori jika data sudah ditarik dari server sebelumnya
-        // Ini menghilangkan lag/loading ketika klik tab Farmasi atau Arsip berulang kali.
         if(targetId === 'arsip' && allPatientsData.length > 0) renderTableArsip(allPatientsData);
         if(targetId === 'farmasi' && allPatientsData.length > 0) renderTableFarmasi(allPatientsData);
         
-        // Fetch ulang dari background. (Pakai silent=true jika memori sdh ada agar user tak terganggu)
         const hasData = allPatientsData.length > 0;
         loadDashboardData(hasData);
     }
@@ -317,7 +313,6 @@ async function loadDashboardData(silent = false) {
         if(result.status === 'success') {
             const currentRawRM = JSON.stringify(result.dataRM);
             
-            // [UPGRADE FIX] Hanya update memori lokal dan render master table JIKA ada perubahan di database
             if (currentRawRM !== lastRawDataRM) {
                 if (lastRawDataRM !== "") {
                     const currentPending = result.dataRM.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
@@ -347,9 +342,6 @@ async function loadDashboardData(silent = false) {
                 lastRawDataRM = currentRawRM;
             }
             
-            // [UPGRADE FIX] Pindahkan Render UI Tabel keluar dari blok "if changed"
-            // Tujuannya agar saat tab pertama kali dibuka, loading spinner ("Menarik arsip...") 
-            // selalu tertimpa oleh data tabel, walau tidak ada perubahan di server.
             if(document.getElementById('arsip').classList.contains('active')) {
                 renderTableArsip(allPatientsData);
             }
@@ -397,7 +389,6 @@ function populateMasterDropdowns() {
         dataListTindakan.innerHTML += `<option value="${tn['Nama Tindakan']} | Rp ${tn['Tarif (Rp)']}"></option>`;
     });
 
-    // Populate ICD-10 Datalist
     if(masterICD10 && masterICD10.length > 0) {
         masterICD10.forEach(icd => {
             dataListICD.innerHTML += `<option value="${icd['Kode ICD-10']} - ${icd['Deskripsi']}"></option>`;
@@ -964,6 +955,9 @@ function getReadOnlyToothSVGOnly(id, position, data) {
     tempDiv.innerHTML = generateToothSVG(id, position);
     let svgEl = tempDiv.querySelector('svg');
     
+    // [UPGRADE FIX] Remove ID to prevent querySelector bleeding/overlap in Document
+    svgEl.removeAttribute('id'); 
+    
     svgEl.querySelectorAll('.surface').forEach(s => {
         s.removeAttribute('onclick');
         s.style.cursor = 'default';
@@ -1014,6 +1008,7 @@ function generateToothSVG(id, position) {
 
 function applyOdontoTool(event, id) {
     const svgEl = document.getElementById('svg-' + id);
+    if (!svgEl) return;
     const clickedSurface = event.target;
 
     let toolType = currentOdontoToolType; 
@@ -1022,7 +1017,8 @@ function applyOdontoTool(event, id) {
     if (toolType === 'norm') {
         svgEl.removeAttribute('data-whole');
         svgEl.removeAttribute('data-root');
-        document.getElementById('label-' + id).textContent = '';
+        let textEl = document.getElementById('label-' + id);
+        if (textEl) textEl.textContent = '';
         svgEl.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
     } 
     else if (toolType === 'surface') {
@@ -1041,8 +1037,10 @@ function applyOdontoTool(event, id) {
     }
     else if (toolType === 'label') {
         let textEl = document.getElementById('label-' + id);
-        if (textEl.textContent === toolValue.toUpperCase()) textEl.textContent = '';
-        else textEl.textContent = toolValue.toUpperCase();
+        if (textEl) {
+            if (textEl.textContent === toolValue.toUpperCase()) textEl.textContent = '';
+            else textEl.textContent = toolValue.toUpperCase();
+        }
     }
     
     generateOdontoTextSummary();
@@ -1085,7 +1083,8 @@ function generateOdontoTextSummary() {
     let results = [];
     let odontoStateJSON = {}; 
 
-    document.querySelectorAll('.odonto-tooth').forEach(wrapper => {
+    // [UPGRADE FIX] Selektor Spesifik: Hanya ambil gigi di dalam form Input, abaikan yang ada di Modal Riwayat!
+    document.querySelectorAll('#odontogramGrid .odonto-tooth').forEach(wrapper => {
         let numEl = wrapper.querySelector('.odonto-num');
         if (!numEl) return;
         
@@ -1139,7 +1138,8 @@ function generateOdontoTextSummary() {
 }
 
 function applyPastOdontoState(stateObj) {
-    document.querySelectorAll('.odonto-tooth').forEach(wrapper => {
+    // [UPGRADE FIX] Selektor Spesifik
+    document.querySelectorAll('#odontogramGrid .odonto-tooth').forEach(wrapper => {
         let numEl = wrapper.querySelector('.odonto-num');
         if (!numEl) return;
         
@@ -1149,13 +1149,14 @@ function applyPastOdontoState(stateObj) {
         let svg = wrapper.querySelector('.tooth-svg');
         svg.removeAttribute('data-whole');
         svg.removeAttribute('data-root');
-        wrapper.querySelector('.odonto-label').textContent = '';
+        let lblEl = wrapper.querySelector('.odonto-label');
+        if (lblEl) lblEl.textContent = '';
         svg.querySelectorAll('.surface').forEach(s => s.setAttribute('data-state', 'norm'));
 
         let data = stateObj[toothId];
         if (!data) return;
 
-        if (data.label) wrapper.querySelector('.odonto-label').textContent = data.label;
+        if (data.label && lblEl) lblEl.textContent = data.label;
         if (data.root) svg.setAttribute('data-root', data.root);
         if (data.whole) svg.setAttribute('data-whole', data.whole);
 
