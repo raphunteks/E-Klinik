@@ -176,7 +176,12 @@ function navTo(sectionId, pushState = true) {
 
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById(targetId).classList.add('active');
+    
+    // Pastikan Mode Verifikasi Dinonaktifkan Saat Navigasi
+    document.body.classList.remove('mode-verifikasi');
+    
+    const targetSection = document.getElementById(targetId);
+    if(targetSection) targetSection.classList.add('active');
     
     const btn = document.getElementById('btn-' + targetId);
     if(btn) btn.classList.add('active');
@@ -197,7 +202,6 @@ function navTo(sectionId, pushState = true) {
     } else {
         if(targetId === 'arsip' && allPatientsData.length > 0) renderTableArsip(allPatientsData);
         if(targetId === 'farmasi' && allPatientsData.length > 0) renderTableFarmasi(allPatientsData);
-        
         const hasData = allPatientsData.length > 0;
         loadDashboardData(hasData);
     }
@@ -2092,10 +2096,236 @@ function showToast(msg, type) {
 // ==================================================================
 // FITUR BARU: VERIFIKASI DOKUMEN & TTE (QR + LOGO KLINIK)
 // ==================================================================
+// MEGA UPGRADE: NATIVE GOOGLE DOCS TO PDF BUILDER (HD)
+// ==================================================================
+
+// 1. Generate HD QR Code & Extract Base64 Image
+function generateHDQRBase64(text) {
+    return new Promise((resolve) => {
+        const tempDiv = document.createElement('div');
+        // Render QR dalam Resolusi Tinggi 400x400 (Level H Wajib agar muat logo)
+        new QRCode(tempDiv, { text: text, width: 400, height: 400, correctLevel : QRCode.CorrectLevel.H });
+        
+        setTimeout(() => {
+            const qrCanvas = tempDiv.querySelector('canvas');
+            if(qrCanvas) {
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = 400; finalCanvas.height = 400;
+                const ctx = finalCanvas.getContext('2d');
+                ctx.drawImage(qrCanvas, 0, 0, 400, 400);
+                
+                const img = new Image();
+                img.crossOrigin = "Anonymous";
+                img.onload = () => {
+                    const size = 110; const pos = (400 - size) / 2;
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(pos - 15, pos - 15, size + 30, size + 30);
+                    ctx.drawImage(img, pos, pos, size, size);
+                    resolve(finalCanvas.toDataURL('image/png').split(',')[1]); // Return Raw Base64 string
+                };
+                img.onerror = () => resolve(finalCanvas.toDataURL('image/png').split(',')[1]); // Fallback no logo
+                
+                let logoUrl = 'axalogo.png';
+                if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
+                img.src = logoUrl;
+            } else { resolve(""); }
+        }, 500); // Tunggu library selesai render
+    });
+}
+
+// 2. Fetch Base64 Logo Klinik untuk Kop Surat Native Docs
+function getLogoBase64(url) {
+    return new Promise((resolve) => {
+        let img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.onload = () => {
+            let canvas = document.createElement('canvas');
+            canvas.width = img.width; canvas.height = img.height;
+            canvas.getContext('2d').drawImage(img, 0, 0);
+            resolve(canvas.toDataURL('image/png').split(',')[1]);
+        };
+        img.onerror = () => resolve("");
+        img.src = url;
+    });
+}
+
+function angkaKeTeks(angka) { 
+    const teks = ["Nol", "Satu", "Dua", "Tiga", "Empat", "Lima", "Enam", "Tujuh", "Delapan", "Sembilan", "Sepuluh", "Sebelas", "Dua Belas", "Tiga Belas", "Empat Belas", "Lima Belas"]; 
+    return teks[angka] || angka.toString(); 
+}
+
+// 3. CETAK SKS (KIRIM DATA MENTAH KE SERVER)
+const inputHari = document.getElementById('sksHari'); const inputMulai = document.getElementById('sksMulai'); const inputSelesai = document.getElementById('sksSelesai');
+function hitungTanggalSelesai() { if(!inputMulai || !inputHari || !inputSelesai) return; const startDate = new Date(inputMulai.value); const days = parseInt(inputHari.value) || 1; startDate.setDate(startDate.getDate() + (days - 1)); inputSelesai.valueAsDate = startDate; }
+if(inputHari) inputHari.addEventListener('input', hitungTanggalSelesai); if(inputMulai) inputMulai.addEventListener('change', hitungTanggalSelesai);
+function bukaModalSks(encodedItem) { tempPasienSks = JSON.parse(decodeURIComponent(encodedItem)); const modalSks = document.getElementById('modalSks'); if(modalSks) modalSks.classList.add('active'); if(inputHari) inputHari.value = 3; if(inputMulai) { inputMulai.valueAsDate = new Date(); hitungTanggalSelesai(); } }
+
+async function eksekusiCetakSKS() {
+    if(!tempPasienSks) return;
+    
+    // Metadata dan Parameter Link
+    const docId = `SKS-${new Date().getTime()}`;
+    const baseUrl = window.location.href.split('?')[0].split('#')[0];
+    const verifyUrl = `${baseUrl}?verify=${docId}`;
+
+    const namaDokter = tempPasienSks['Dokter Penanggung Jawab'] || "______________________";
+    const namaKlinik = masterPengaturan[0] ? masterPengaturan[0]['Nama Klinik'] : "KLINIK CARE MEDIKA";
+    const alamatKlinik = masterPengaturan[0] ? masterPengaturan[0]['Alamat Klinik'] : "Alamat Klinik";
+    const telpKlinik = masterPengaturan[0] ? masterPengaturan[0]['No Telepon'] : "Telp";
+    const logoUrl = masterPengaturan[0] ? masterPengaturan[0]['URL Logo'] : "axalogo.png";
+
+    // Kumpulkan payload
+    const payload = {
+        action: 'generatePDF_HD', tipe: 'SKS', docId: docId,
+        klinikNama: namaKlinik, klinikAlamat: alamatKlinik, klinikTelp: telpKlinik,
+        nama: tempPasienSks['Nama Lengkap'] || "-",
+        usia: tempPasienSks['Usia'] || "-", jk: tempPasienSks['Jenis Kelamin'] || "-",
+        pekerjaan: tempPasienSks['Pekerjaan'] && tempPasienSks['Pekerjaan'] !== '-' ? tempPasienSks['Pekerjaan'] : "Karyawan / Pelajar",
+        alamat: tempPasienSks['Alamat'] || "-",
+        hari: inputHari ? inputHari.value : "1",
+        hariTeks: inputHari ? angkaKeTeks(parseInt(inputHari.value)) : "Satu",
+        mulai: inputMulai ? formatIndoDateOnly(inputMulai.value) : "-",
+        selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-",
+        tglSurat: "Kendari, " + formatIndoDateOnly(new Date().toISOString()),
+        penandatangan: namaDokter,
+        sipDokter: getSIP(namaDokter),
+        pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik"
+    };
+
+    // Tampilkan Loading
+    const overlay = document.getElementById('pdfLoadingOverlay');
+    if(overlay) overlay.style.display = 'flex';
+
+    try {
+        // Render Gambar Base64 di Client
+        payload.qrBase64 = await generateHDQRBase64(verifyUrl);
+        payload.logoBase64 = await getLogoBase64(logoUrl);
+
+        // POST Request ke Server GAS tanpa mode 'no-cors' agar kita dapat membaca URL Response
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+            // Implicit text/plain untuk bypass preflight
+        });
+        
+        const res = await response.json();
+        
+        if (res.status === 'success') {
+            // Sembunyikan Modal
+            const modalSks = document.getElementById('modalSks');
+            if(modalSks) modalSks.classList.remove('active');
+            
+            // Buka Dokumen Asli PDF dari Google Drive di Tab Baru (Siap di Print/Download Full Resolusi)
+            window.open(res.fileUrl, '_blank');
+            showToast("Surat Sakit berhasil diterbitkan!", "success");
+        } else {
+            showToast("Terjadi kesalahan sistem saat menyusun dokumen.", "error");
+        }
+
+    } catch (e) { 
+        console.error("PDF Native Build Error:", e);
+        showToast("Koneksi gagal. Cek konsol web.", "error");
+    } finally {
+        if(overlay) overlay.style.display = 'none';
+    }
+}
+
+// 4. CETAK SURAT RUJUKAN (KIRIM DATA MENTAH KE SERVER)
+function bukaModalRujukan(encodedItem) {
+    tempPasienSks = JSON.parse(decodeURIComponent(encodedItem));
+    const modalRujukan = document.getElementById('modalRujukan');
+    if(modalRujukan) modalRujukan.classList.add('active');
+    
+    const rujukDiagnosa = document.getElementById('rujukDiagnosa');
+    if(rujukDiagnosa) rujukDiagnosa.value = tempPasienSks['Assessment'] && tempPasienSks['Assessment'] !== '-' ? tempPasienSks['Assessment'] : '';
+    
+    let terapiDiberikan = [];
+    if(tempPasienSks['Resep Obat'] && tempPasienSks['Resep Obat'] !== '-' && tempPasienSks['Resep Obat'] !== '[]') terapiDiberikan.push("Pemberian Terapi Obat");
+    if(tempPasienSks['Detail Tindakan'] && tempPasienSks['Detail Tindakan'] !== '-' && tempPasienSks['Detail Tindakan'] !== '[]') terapiDiberikan.push("Tindakan Awal Klinis");
+    
+    const rujukTerapi = document.getElementById('rujukTerapi');
+    if(rujukTerapi) {
+        if(terapiDiberikan.length > 0) rujukTerapi.value = terapiDiberikan.join(', ');
+        else rujukTerapi.value = 'Belum ada terapi spesifik.';
+    }
+}
+
+async function eksekusiCetakRujukan() {
+    if(!tempPasienSks) return;
+
+    // Metadata dan Parameter Link
+    const docId = `RUJUKAN-${new Date().getTime()}`;
+    const baseUrl = window.location.href.split('?')[0].split('#')[0];
+    const verifyUrl = `${baseUrl}?verify=${docId}`;
+
+    const namaDokter = tempPasienSks['Dokter Penanggung Jawab'] || "______________________";
+    const namaKlinik = masterPengaturan[0] ? masterPengaturan[0]['Nama Klinik'] : "KLINIK CARE MEDIKA";
+    const alamatKlinik = masterPengaturan[0] ? masterPengaturan[0]['Alamat Klinik'] : "Alamat Klinik";
+    const telpKlinik = masterPengaturan[0] ? masterPengaturan[0]['No Telepon'] : "Telp";
+    const logoUrl = masterPengaturan[0] ? masterPengaturan[0]['URL Logo'] : "axalogo.png";
+
+    const elRsTujuan = document.getElementById('rujukRs');
+    const elPoliTujuan = document.getElementById('rujukPoli');
+    const elRujukDiagnosa = document.getElementById('rujukDiagnosa');
+    const elRujukTerapi = document.getElementById('rujukTerapi');
+
+    let jkSingkat = '-';
+    if (tempPasienSks['Jenis Kelamin'] === 'Laki-laki') jkSingkat = 'L (Laki-laki)';
+    if (tempPasienSks['Jenis Kelamin'] === 'Perempuan') jkSingkat = 'P (Perempuan)';
+
+    // Kumpulkan payload
+    const payload = {
+        action: 'generatePDF_HD', tipe: 'RUJUKAN', docId: docId,
+        klinikNama: namaKlinik, klinikAlamat: alamatKlinik, klinikTelp: telpKlinik,
+        rujukPoli: elPoliTujuan ? elPoliTujuan.value || '-' : '-',
+        rujukRs: elRsTujuan ? elRsTujuan.value || '-' : '-',
+        nama: tempPasienSks['Nama Lengkap'] || "-",
+        usia: tempPasienSks['Usia'] || "-", jk: jkSingkat,
+        noRm: tempPasienSks['No RM'] || '-',
+        diagnosa: elRujukDiagnosa ? elRujukDiagnosa.value || '-' : '-',
+        terapi: elRujukTerapi ? elRujukTerapi.value || '-' : '-',
+        tglSurat: formatIndoDateOnly(new Date().toISOString()),
+        penandatangan: namaDokter,
+        sipDokter: getSIP(namaDokter),
+        pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik"
+    };
+
+    // Tampilkan Loading
+    const overlay = document.getElementById('pdfLoadingOverlay');
+    if(overlay) overlay.style.display = 'flex';
+
+    try {
+        // Render Gambar Base64 di Client
+        payload.qrBase64 = await generateHDQRBase64(verifyUrl);
+        payload.logoBase64 = await getLogoBase64(logoUrl);
+
+        // POST Request
+        const response = await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+        const res = await response.json();
+        
+        if (res.status === 'success') {
+            const modalRujukan = document.getElementById('modalRujukan');
+            if(modalRujukan) modalRujukan.classList.remove('active');
+            
+            // Buka Dokumen Asli di Tab Baru
+            window.open(res.fileUrl, '_blank');
+            showToast("Surat Rujukan berhasil diterbitkan!", "success");
+        } else { showToast("Terjadi kesalahan sistem.", "error"); }
+
+    } catch (e) { 
+        console.error("PDF Native Build Error:", e); showToast("Koneksi gagal.", "error");
+    } finally {
+        if(overlay) overlay.style.display = 'none';
+    }
+}
+
+// ==================================================================
+// LOGIKA HALAMAN VERIFIKASI DOKUMEN (PREVIEW IFRAME)
+// ==================================================================
 async function bukaHalamanVerifikasi(docId) {
-    // Hide navigasi dan modul aplikasi utama
+    // Isolasi UI
+    document.body.classList.add('mode-verifikasi');
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-    const nav = document.querySelector('nav'); if(nav) nav.style.display = 'none';
     
     const verifPage = document.getElementById('verifikasi-page');
     if(verifPage) {
@@ -2160,45 +2390,4 @@ function reloadViewer() {
             iframe.src = `https://drive.google.com/file/d/${driveId}/preview`;
         }, 400);
     }
-}
-
-function generateQRWithLogo(containerId, text) {
-    return new Promise((resolve) => {
-        let container = document.getElementById(containerId);
-        if(!container) { resolve(); return; }
-        container.innerHTML = '';
-        
-        const tempDiv = document.createElement('div');
-        new QRCode(tempDiv, {
-            text: text, width: 300, height: 300,
-            colorDark : "#000000", colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-        
-        setTimeout(() => {
-            const qrCanvas = tempDiv.querySelector('canvas');
-            if (qrCanvas) {
-                const finalCanvas = document.createElement('canvas');
-                finalCanvas.width = 120; finalCanvas.height = 120;
-                const ctx = finalCanvas.getContext('2d');
-                ctx.drawImage(qrCanvas, 0, 0, 120, 120);
-                
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.onload = () => {
-                    const size = 32; const pos = (120 - size) / 2;
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(pos - 4, pos - 4, size + 8, size + 8);
-                    ctx.drawImage(img, pos, pos, size, size);
-                    container.appendChild(finalCanvas);
-                    resolve();
-                };
-                img.onerror = () => { container.appendChild(finalCanvas); resolve(); };
-                
-                let logoUrl = 'axalogo.png';
-                if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
-                img.src = logoUrl;
-            } else { resolve(); }
-        }, 300);
-    });
 }
