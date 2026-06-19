@@ -1938,19 +1938,36 @@ async function eksekusiCetakSKS() {
     const printSipSks = document.getElementById('printSipSks');
     if(printSipSks) printSipSks.innerText = getSIP(namaDokter);
 
-    // 2. TAMPILKAN OVERLAY TERLEBIH DAHULU AGAR JARINGAN TIDAK DIBLOK BROWSER
+    // 2. TAMPILKAN OVERLAY SEBELUM FETCH
     const overlay = document.getElementById('pdfLoadingOverlay');
     if(overlay) overlay.style.display = 'flex';
-    showToast("Mengunggah dokumen asli ke Server Sistem...", "info");
+    showToast("Memproses Dokumen Visual & Mengunggah ke Server...", "info");
 
     // Eksekusi fungsi Async dalam SetTimeout agar animasi UI berjalan mulus
     setTimeout(async () => {
         try {
-            // Generate Base64
+            // Menyiapkan Asset Base64
             const qrBase64 = await generateQRWithLogoBase64('qrCanvasSks', verifyUrl);
             let logoUrl = 'axalogo.png';
             if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
             const logoBase64 = await getLogoBase64(logoUrl);
+
+            // FITUR BARU: GENERATE PDF DARI HTML SEBAGAI BACKUP
+            const printArea = document.getElementById('printArea');
+            const originalDisplay = printArea.style.display;
+            printArea.style.display = 'block'; 
+            let pdfHtmlBase64 = "";
+            try {
+                const opt = { 
+                    margin: 15, filename: `${docId}_HTML.pdf`, 
+                    image: { type: 'jpeg', quality: 0.98 }, 
+                    html2canvas: { scale: 2, useCORS: true }, 
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+                };
+                const pdfStr = await html2pdf().set(opt).from(printArea).outputPdf('datauristring');
+                pdfHtmlBase64 = pdfStr.split(',')[1];
+            } catch(e) { console.warn("Gagal konversi HTML ke PDF: ", e); }
+            printArea.style.display = originalDisplay;
 
             const payload = {
                 action: 'generatePDF_HD',
@@ -1962,6 +1979,7 @@ async function eksekusiCetakSKS() {
                 tglSurat: formatIndoDateOnly(new Date().toISOString()),
                 qrBase64: qrBase64,
                 logoBase64: logoBase64,
+                pdfHtmlBase64: pdfHtmlBase64, // PARAMETER BACKUP BARU
                 klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
                 klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
                 klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
@@ -1985,9 +2003,8 @@ async function eksekusiCetakSKS() {
             const resData = await response.json();
             
             if(resData.status === 'success') {
-                showToast("Dokumen SKS berhasil dienkripsi ke Server!", "success");
+                showToast("Dokumen SKS & Backup berhasil dienkripsi ke Server!", "success");
             } else {
-                // Menampilkan error persis dari GAS agar user tahu kalau salah URL / Lupa Deploy
                 showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
             }
         } catch(e) {
@@ -2068,7 +2085,7 @@ async function eksekusiCetakRujukan() {
     // TAMPILKAN OVERLAY SEBELUM FETCH
     const overlay = document.getElementById('pdfLoadingOverlay');
     if(overlay) overlay.style.display = 'flex';
-    showToast("Mengunggah dokumen Rujukan ke Server...", "info");
+    showToast("Memproses Dokumen Visual & Mengunggah ke Server...", "info");
 
     // Eksekusi Async untuk Upload terlebih dahulu
     setTimeout(async () => {
@@ -2077,6 +2094,23 @@ async function eksekusiCetakRujukan() {
             let logoUrl = 'axalogo.png';
             if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
             const logoBase64 = await getLogoBase64(logoUrl);
+
+            // FITUR BARU: GENERATE PDF DARI HTML SEBAGAI BACKUP
+            const printAreaRujukan = document.getElementById('printAreaRujukan');
+            const originalDisplayRuj = printAreaRujukan.style.display;
+            printAreaRujukan.style.display = 'block'; 
+            let pdfHtmlBase64 = "";
+            try {
+                const optRuj = { 
+                    margin: 15, filename: `${docId}_HTML.pdf`, 
+                    image: { type: 'jpeg', quality: 0.98 }, 
+                    html2canvas: { scale: 2, useCORS: true }, 
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
+                };
+                const pdfStr = await html2pdf().set(optRuj).from(printAreaRujukan).outputPdf('datauristring');
+                pdfHtmlBase64 = pdfStr.split(',')[1];
+            } catch(e) { console.warn("Gagal konversi HTML ke PDF: ", e); }
+            printAreaRujukan.style.display = originalDisplayRuj;
 
             const payload = {
                 action: 'generatePDF_HD',
@@ -2088,6 +2122,7 @@ async function eksekusiCetakRujukan() {
                 tglSurat: formatIndoDateOnly(new Date().toISOString()),
                 qrBase64: qrBase64,
                 logoBase64: logoBase64,
+                pdfHtmlBase64: pdfHtmlBase64, // PARAMETER BACKUP BARU
                 klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
                 klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
                 klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
@@ -2109,7 +2144,7 @@ async function eksekusiCetakRujukan() {
             const resData = await response.json();
             
             if(resData.status === 'success') {
-                showToast("Rujukan berhasil dienkripsi ke Server!", "success");
+                showToast("Rujukan & Backup berhasil dienkripsi ke Server!", "success");
             } else {
                 showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
             }
