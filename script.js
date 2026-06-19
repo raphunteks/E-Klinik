@@ -1973,7 +1973,8 @@ async function eksekusiCetakSKS() {
                 hari: inputHari ? inputHari.value : 1,
                 hariTeks: inputHari ? angkaKeTeks(parseInt(inputHari.value)) : "Satu",
                 mulai: inputMulai ? formatIndoDateOnly(inputMulai.value) : "-",
-                selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-"
+                selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-",
+                verifyUrl: verifyUrl
             };
             
             // 3. Eksekusi Background Upload ke Google Drive & Database
@@ -2098,7 +2099,8 @@ async function eksekusiCetakRujukan() {
                 jk: jkSingkat,
                 noRm: tempPasienSks['No RM'] || '-',
                 diagnosa: document.getElementById('rujukDiagnosa') ? document.getElementById('rujukDiagnosa').value || '-' : '-',
-                terapi: document.getElementById('rujukTerapi') ? document.getElementById('rujukTerapi').value || '-' : '-'
+                terapi: document.getElementById('rujukTerapi') ? document.getElementById('rujukTerapi').value || '-' : '-',
+                verifyUrl: verifyUrl
             };
             
             const response = await fetch(API_URL, { 
