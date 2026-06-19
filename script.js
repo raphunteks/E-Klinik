@@ -300,6 +300,7 @@ async function simpanPengaturan(e) {
         showToast("Menyimpan pengaturan klinik...", "info");
         const res = await fetch(API_URL, {
             method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // FIX CORS
             body: JSON.stringify({ action: 'updatePengaturan', namaKlinik: nama, alamatKlinik: alamat, noTelp: telp, urlLogo: logo })
         });
         const resultData = await res.json();
@@ -546,6 +547,7 @@ async function simpanMasterData(e, actionType) {
         showToast("Menyimpan ke database...", "info");
         const res = await fetch(API_URL, {
             method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // FIX CORS
             body: JSON.stringify(payload)
         });
         const resultData = await res.json();
@@ -577,6 +579,7 @@ async function hapusMasterData(sheetName, rowIndex) {
         try {
             const res = await fetch(API_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // FIX CORS
                 body: JSON.stringify({ action: 'deleteData', sheetName: sheetName, rowIndex: rowIndex })
             });
             const resultData = await res.json();
@@ -1541,9 +1544,10 @@ if(ermForm) {
         if(btnSpinner) btnSpinner.style.display = 'block';
 
         try {
-            // FIX API PAYLOAD: Gunakan body biasa agar tembus CORS tanpa masalah
+            // FIX API PAYLOAD: Gunakan text/plain agar tembus CORS tanpa masalah
             const res = await fetch(API_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(dataObj)
             });
             const resultData = await res.json();
@@ -1746,6 +1750,7 @@ async function tandaiFarmasiSelesai(rowIndex) {
         try {
             const res = await fetch(API_URL, {
                 method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // FIX CORS
                 body: JSON.stringify({ action: 'updateFarmasi', rowIndex: rowIndex })
             });
             const resultData = await res.json();
@@ -1930,61 +1935,64 @@ async function eksekusiCetakSKS() {
     if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
     const logoBase64 = await getLogoBase64(logoUrl);
 
-    // Munculkan Loading Overlay agar user tidak klik macam-macam saat Upload
-    const overlay = document.getElementById('pdfLoadingOverlay');
-    if(overlay) overlay.style.display = 'flex';
-
-    const payload = {
-        action: 'generatePDF_HD',
-        docId: docId,
-        tipe: 'SKS',
-        pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik",
-        penandatangan: namaDokter,
-        sipDokter: getSIP(namaDokter),
-        tglSurat: formatIndoDateOnly(new Date().toISOString()),
-        qrBase64: qrBase64,
-        logoBase64: logoBase64,
-        klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
-        klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
-        klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
-        nama: tempPasienSks['Nama Lengkap'] || "-",
-        usia: tempPasienSks['Usia'] || "-",
-        jk: tempPasienSks['Jenis Kelamin'] || "-",
-        pekerjaan: tempPasienSks['Pekerjaan'] && tempPasienSks['Pekerjaan'] !== '-' ? tempPasienSks['Pekerjaan'] : "Karyawan / Pelajar",
-        alamat: tempPasienSks['Alamat'] || "-",
-        hari: inputHari ? inputHari.value : 1,
-        hariTeks: inputHari ? angkaKeTeks(parseInt(inputHari.value)) : "Satu",
-        mulai: inputMulai ? formatIndoDateOnly(inputMulai.value) : "-",
-        selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-"
-    };
-    
-    // 3. Eksekusi Background Upload ke Google Drive & Database terlebih dahulu
-    try {
-        const response = await fetch(API_URL, { 
-            method: 'POST', 
-            body: JSON.stringify(payload) 
-        });
-        const resData = await response.json();
-        if(resData.status === 'success') {
-            showToast("Dokumen SKS berhasil dienkripsi ke Server!", "success");
-        } else {
-            showToast("Sistem Gagal mencatat dokumen ke server.", "error");
-        }
-    } catch(e) {
-        showToast("Terjadi kesalahan sinkronisasi.", "error");
-    }
-
-    // Sembunyikan Overlay
-    if(overlay) overlay.style.display = 'none';
-
-    // 4. Eksekusi Print Fisik SETELAH data aman tersimpan di Server
+    // Menutup modal SKS terlebih dahulu
     const modalSks = document.getElementById('modalSks');
     if(modalSks) modalSks.classList.remove('active');
-    
+
+    // MENGHINDARI THREAD BLOCKING: Set layout print dan memanggil window.print() terlebih dahulu
     document.body.classList.add('print-sks');
     setTimeout(() => { 
         window.print(); 
         document.body.classList.remove('print-sks');
+        
+        // SETELAH proses Print di browser selesai/batal, LAKUKAN UPLOAD KE SERVER
+        const overlay = document.getElementById('pdfLoadingOverlay');
+        if(overlay) overlay.style.display = 'flex';
+        showToast("Mengunggah dokumen asli ke Server Sistem...", "info");
+
+        const payload = {
+            action: 'generatePDF_HD',
+            docId: docId,
+            tipe: 'SKS',
+            pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik",
+            penandatangan: namaDokter,
+            sipDokter: getSIP(namaDokter),
+            tglSurat: formatIndoDateOnly(new Date().toISOString()),
+            qrBase64: qrBase64,
+            logoBase64: logoBase64,
+            klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
+            klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
+            klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
+            nama: tempPasienSks['Nama Lengkap'] || "-",
+            usia: tempPasienSks['Usia'] || "-",
+            jk: tempPasienSks['Jenis Kelamin'] || "-",
+            pekerjaan: tempPasienSks['Pekerjaan'] && tempPasienSks['Pekerjaan'] !== '-' ? tempPasienSks['Pekerjaan'] : "Karyawan / Pelajar",
+            alamat: tempPasienSks['Alamat'] || "-",
+            hari: inputHari ? inputHari.value : 1,
+            hariTeks: inputHari ? angkaKeTeks(parseInt(inputHari.value)) : "Satu",
+            mulai: inputMulai ? formatIndoDateOnly(inputMulai.value) : "-",
+            selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-"
+        };
+        
+        fetch(API_URL, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload) 
+        })
+        .then(response => response.json())
+        .then(resData => {
+            if(overlay) overlay.style.display = 'none';
+            if(resData.status === 'success') {
+                showToast("Dokumen SKS berhasil dienkripsi ke Server!", "success");
+            } else {
+                showToast("Sistem Gagal mencatat dokumen ke server.", "error");
+            }
+        })
+        .catch(e => {
+            if(overlay) overlay.style.display = 'none';
+            showToast("Terjadi kesalahan sinkronisasi.", "error");
+        });
+
     }, 500);
 }
 
@@ -2049,60 +2057,63 @@ async function eksekusiCetakRujukan() {
     if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
     const logoBase64 = await getLogoBase64(logoUrl);
 
-    // Munculkan Loading Overlay agar user tidak klik macam-macam saat Upload
-    const overlay = document.getElementById('pdfLoadingOverlay');
-    if(overlay) overlay.style.display = 'flex';
-
-    const payload = {
-        action: 'generatePDF_HD',
-        docId: docId,
-        tipe: 'RUJUKAN',
-        pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik",
-        penandatangan: namaDokter,
-        sipDokter: getSIP(namaDokter),
-        tglSurat: formatIndoDateOnly(new Date().toISOString()),
-        qrBase64: qrBase64,
-        logoBase64: logoBase64,
-        klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
-        klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
-        klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
-        rujukPoli: document.getElementById('rujukPoli') ? document.getElementById('rujukPoli').value || '-' : '-',
-        rujukRs: document.getElementById('rujukRs') ? document.getElementById('rujukRs').value || '-' : '-',
-        nama: tempPasienSks['Nama Lengkap'] || "-",
-        usia: tempPasienSks['Usia'] || "-",
-        jk: jkSingkat,
-        noRm: tempPasienSks['No RM'] || '-',
-        diagnosa: document.getElementById('rujukDiagnosa') ? document.getElementById('rujukDiagnosa').value || '-' : '-',
-        terapi: document.getElementById('rujukTerapi') ? document.getElementById('rujukTerapi').value || '-' : '-'
-    };
-    
-    // 1. Eksekusi Background Upload Backend terlebih dahulu
-    try {
-        const response = await fetch(API_URL, { 
-            method: 'POST', 
-            body: JSON.stringify(payload) 
-        });
-        const resData = await response.json();
-        if(resData.status === 'success') {
-            showToast("Rujukan berhasil dienkripsi ke Server!", "success");
-        } else {
-            showToast("Sistem Gagal mencatat rujukan ke server.", "error");
-        }
-    } catch(e) {
-        showToast("Terjadi kesalahan sinkronisasi.", "error");
-    }
-
-    // Sembunyikan Overlay
-    if(overlay) overlay.style.display = 'none';
-
-    // 2. Eksekusi Print Fisik Langsung SETELAH proses upload selesai
+    // Menutup modal terlebih dahulu
     const modalRujukan = document.getElementById('modalRujukan');
     if(modalRujukan) modalRujukan.classList.remove('active');
-    
+
+    // MENGHINDARI THREAD BLOCKING: Set layout print dan memanggil window.print() terlebih dahulu
     document.body.classList.add('print-rujukan');
     setTimeout(() => { 
         window.print(); 
         document.body.classList.remove('print-rujukan'); 
+        
+        // SETELAH proses Print di browser selesai/batal, LAKUKAN UPLOAD KE SERVER
+        const overlay = document.getElementById('pdfLoadingOverlay');
+        if(overlay) overlay.style.display = 'flex';
+        showToast("Mengunggah dokumen Rujukan ke Server...", "info");
+
+        const payload = {
+            action: 'generatePDF_HD',
+            docId: docId,
+            tipe: 'RUJUKAN',
+            pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik",
+            penandatangan: namaDokter,
+            sipDokter: getSIP(namaDokter),
+            tglSurat: formatIndoDateOnly(new Date().toISOString()),
+            qrBase64: qrBase64,
+            logoBase64: logoBase64,
+            klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
+            klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
+            klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
+            rujukPoli: document.getElementById('rujukPoli') ? document.getElementById('rujukPoli').value || '-' : '-',
+            rujukRs: document.getElementById('rujukRs') ? document.getElementById('rujukRs').value || '-' : '-',
+            nama: tempPasienSks['Nama Lengkap'] || "-",
+            usia: tempPasienSks['Usia'] || "-",
+            jk: jkSingkat,
+            noRm: tempPasienSks['No RM'] || '-',
+            diagnosa: document.getElementById('rujukDiagnosa') ? document.getElementById('rujukDiagnosa').value || '-' : '-',
+            terapi: document.getElementById('rujukTerapi') ? document.getElementById('rujukTerapi').value || '-' : '-'
+        };
+        
+        fetch(API_URL, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload) 
+        })
+        .then(response => response.json())
+        .then(resData => {
+            if(overlay) overlay.style.display = 'none';
+            if(resData.status === 'success') {
+                showToast("Rujukan berhasil dienkripsi ke Server!", "success");
+            } else {
+                showToast("Sistem Gagal mencatat rujukan ke server.", "error");
+            }
+        })
+        .catch(e => {
+            if(overlay) overlay.style.display = 'none';
+            showToast("Terjadi kesalahan sinkronisasi.", "error");
+        });
+
     }, 500);
 }
 
