@@ -1858,11 +1858,44 @@ function getLogoBase64(url) {
     });
 }
 
-// [UPGRADE BARU] 2B. FUNGSI UNTUK MERENDER HTML MENJADI BASE64 PDF VIA HTML2PDF.JS
+// [UPGRADE BARU] 2B. FUNGSI UNTUK MERENDER HTML MENJADI BASE64 PDF VIA HTML2PDF.JS (DENGAN INJEKSI HEADER/FOOTER BUATAN)
 function generateHtmlPdfBase64(elementId) {
     return new Promise((resolve) => {
         const element = document.getElementById(elementId);
         if (!element) { resolve(""); return; }
+
+        // MENGATASI MASALAH 1: Membuat elemen Header & Footer buatan sebelum dirender html2pdf
+        const dateObj = new Date();
+        const yy = dateObj.getFullYear().toString().substr(-2);
+        const mm = ("0" + (dateObj.getMonth() + 1)).slice(-2);
+        const dd = ("0" + dateObj.getDate()).slice(-2);
+        const HH = ("0" + dateObj.getHours()).slice(-2);
+        const min = ("0" + dateObj.getMinutes()).slice(-2);
+        const dateTimeStr = `${dd}/${mm}/${yy}, ${HH}.${min}`;
+
+        // Bikin Header (Kiri Tgl/Jam, Kanan Judul)
+        const headerDiv = document.createElement('div');
+        headerDiv.style.display = 'flex';
+        headerDiv.style.justifyContent = 'space-between';
+        headerDiv.style.fontSize = '8px';
+        headerDiv.style.color = '#777777';
+        headerDiv.style.fontFamily = 'Arial, sans-serif';
+        headerDiv.style.marginBottom = '20px';
+        headerDiv.innerHTML = `<span>${dateTimeStr}</span><span>Sistem E-RM | Klinik Pribadi</span>`;
+        
+        // Bikin Footer (Kiri URL, Kanan Hal 1/1)
+        const footerDiv = document.createElement('div');
+        footerDiv.style.display = 'flex';
+        footerDiv.style.justifyContent = 'space-between';
+        footerDiv.style.fontSize = '8px';
+        footerDiv.style.color = '#777777';
+        footerDiv.style.fontFamily = 'Arial, sans-serif';
+        footerDiv.style.marginTop = '40px'; 
+        footerDiv.innerHTML = `<span>https://axa-eklinik.vercel.app/arsip</span><span>1/1</span>`;
+
+        // Menyuntikkan Header & Footer ke dalam kotak cetak
+        element.insertBefore(headerDiv, element.firstChild);
+        element.appendChild(footerDiv);
 
         // Tampilkan elemen secara sementara agar html2pdf bisa membacanya 
         // (Aman karena tertutup overlay loading)
@@ -1879,6 +1912,11 @@ function generateHtmlPdfBase64(elementId) {
 
         html2pdf().set(opt).from(element).outputPdf('datauristring').then(function(pdfAsString) {
             element.style.display = originalDisplay; // Sembunyikan kembali
+            
+            // Hapus kembali Header dan Footer buatan agar tidak merusak tampilan asli
+            headerDiv.remove();
+            footerDiv.remove();
+
             let base64String = "";
             if (pdfAsString && pdfAsString.includes('base64,')) {
                 base64String = pdfAsString.split('base64,')[1];
@@ -1887,6 +1925,8 @@ function generateHtmlPdfBase64(elementId) {
         }).catch(err => {
             console.error("HTML2PDF Error:", err);
             element.style.display = originalDisplay;
+            headerDiv.remove();
+            footerDiv.remove();
             resolve("");
         });
     });
@@ -1986,7 +2026,7 @@ async function eksekusiCetakSKS() {
             if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
             const logoBase64 = await getLogoBase64(logoUrl);
 
-            // [UPGRADE BARU] Eksekusi render HTML ke PDF Base64
+            // Eksekusi render HTML ke PDF Base64
             const pdfHtmlBase64 = await generateHtmlPdfBase64('printArea');
 
             const payload = {
@@ -2026,7 +2066,6 @@ async function eksekusiCetakSKS() {
             if(resData.status === 'success') {
                 showToast("Dokumen SKS berhasil dienkripsi ke Server!", "success");
             } else {
-                // Menampilkan error persis dari GAS agar user tahu kalau salah URL / Lupa Deploy
                 showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
             }
         } catch(e) {
@@ -2117,7 +2156,7 @@ async function eksekusiCetakRujukan() {
             if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
             const logoBase64 = await getLogoBase64(logoUrl);
 
-            // [UPGRADE BARU] Eksekusi render HTML ke PDF Base64
+            // Eksekusi render HTML ke PDF Base64
             const pdfHtmlBase64 = await generateHtmlPdfBase64('printAreaRujukan');
 
             const payload = {
@@ -2211,20 +2250,30 @@ async function bukaHalamanVerifikasi(docId) {
             const elLinkName = document.getElementById('vfLinkName');
             if(elLinkName) elLinkName.innerText = `Dokumen_${data['Jenis']}.pdf`;
 
-            const fileUrl = data['File URL'];
-            const driveId = data['Drive ID'];
+            // MENGATASI MASALAH 2: Menggunakan Link HTML Backup untuk Iframe Preview!
+            const fileUrlAsli = data['File URL'];
+            const fileHtmlUrl = data['File URL HTML']; 
+            let driveIdUtama = data['Drive ID'];
             
-            // Set Download Asli (via Browser Biasa)
+            // Ekstrak Drive ID khusus dari Link File URL HTML (Jika ada)
+            let htmlDriveId = driveIdUtama; 
+            if(fileHtmlUrl && fileHtmlUrl !== "-" && fileHtmlUrl.includes('/d/')) {
+                const matchRegex = fileHtmlUrl.match(/\/d\/([a-zA-Z0-9_-]+)/);
+                if(matchRegex && matchRegex[1]) {
+                    htmlDriveId = matchRegex[1];
+                }
+            }
+            
+            // Set Link Download pada panel kanan (Mengarah ke File HTML Backup)
             const linkObj = document.getElementById('vfLinkFile');
             if(linkObj) {
-                linkObj.href = fileUrl;
-                linkObj.setAttribute('data-driveid', driveId);
+                linkObj.href = (fileHtmlUrl && fileHtmlUrl !== "-") ? fileHtmlUrl : fileUrlAsli;
             }
 
-            // Set ke iFrame Google Drive Preview Engine
+            // Set ke iFrame Google Drive Preview Engine (Sekarang Pake ID HTML Backup)
             const iframe = document.getElementById('pdfViewerFrame');
             if(iframe) {
-                iframe.setAttribute('data-driveid', driveId);
+                iframe.setAttribute('data-driveid', htmlDriveId); 
             }
 
             // Set Ulang Identitas/Logo Klinik
@@ -2232,6 +2281,9 @@ async function bukaHalamanVerifikasi(docId) {
                 const vfLogo = document.getElementById('vfLogoKlinikTop') || document.getElementById('vfLogoKlinik');
                 if(vfLogo) vfLogo.src = masterPengaturan[0]['URL Logo'];
             }
+            
+            // Panggil Fungsi Muat Viewer setelah drive ID baru di Set
+            reloadViewer();
 
         } else {
             document.getElementById('vfPembuat').innerText = "Tidak Valid/Ditolak";
