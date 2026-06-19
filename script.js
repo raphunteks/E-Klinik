@@ -196,7 +196,16 @@ function navTo(sectionId, pushState = true) {
         }
     } else {
         if(targetId === 'arsip' && allPatientsData.length > 0) renderTableArsip(allPatientsData);
-        if(targetId === 'farmasi' && allPatientsData.length > 0) renderTableFarmasi(allPatientsData);
+        if(targetId === 'farmasi' && allPatientsData.length > 0) {
+            renderTableFarmasi(allPatientsData);
+            
+            // [UPGRADE BARU] Pengecekan Obat Menunggu Proses Saat Buka Tab Farmasi
+            const pendingFarmasi = allPatientsData.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
+            if(pendingFarmasi.length > 0) {
+                playNotifSound();
+                showToast(`Peringatan: Ada ${pendingFarmasi.length} resep yang belum diselesaikan!`, "info");
+            }
+        }
     }
 }
 
@@ -1581,6 +1590,9 @@ if(ermForm) {
                 if(alertFill) alertFill.style.display = 'none'; 
                 memoryPatientData = null;
                 
+                // [UPGRADE BARU] Tarik data real-time seketika setelah RM berhasil disimpan ke Server (Agar Arsip/Farmasi Langsung Update)
+                await loadDashboardData(true);
+                
                 setTimeout(() => navTo('arsip'), 1500);
             } else {
                 showToast("Sistem Gagal: " + (resultData.message || "Unknown error"), "error");
@@ -1755,10 +1767,23 @@ async function tandaiFarmasiSelesai(rowIndex) {
             const resultData = await res.json();
             
             if(resultData.status === 'success') {
-                showToast("Status berhasil diperbarui!", "success");
+                showToast("Status Obat Berhasil Diperbarui!", "success");
+                
+                // [UPGRADE BARU] Play Notifikasi Sound Sukses
+                const successAudio = document.getElementById('successAudio');
+                if(successAudio) successAudio.play().catch(e => console.log("Audio diblokir browser", e));
+
                 const modalRiwayat = document.getElementById('modalRiwayatPasien');
                 if(modalRiwayat) modalRiwayat.classList.remove('active');
-                loadDashboardData(true);
+                
+                // [UPGRADE BARU] Render Perubahan UI Secara Instan di Frontend (Tanpa menunggu reload backend selesai)
+                const patientIndex = allPatientsData.findIndex(p => p.rowIndex == rowIndex);
+                if(patientIndex !== -1) {
+                    allPatientsData[patientIndex]['Status Farmasi'] = 'Selesai Diberikan';
+                    renderTableFarmasi(allPatientsData); // UI langsung berubah 0 detik
+                }
+
+                loadDashboardData(true); // Sinkronisasi bayangan di background
             } else {
                 showToast("Sistem Gagal: " + (resultData.message || "Server error"), "error");
             }
