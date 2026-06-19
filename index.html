@@ -93,38 +93,57 @@
              0. HALAMAN VERIFIKASI DOKUMEN TTE (verifikasi-page)
              ============================================== -->
         <section id="verifikasi-page" class="section">
-            <div class="glass form-container" style="max-width: 850px; margin: 40px auto; padding: 40px;">
-                <div style="text-align:center; margin-bottom: 30px; border-bottom: 2px dashed var(--glass-border); padding-bottom: 20px;">
-                    <img src="axalogo.png" id="vfLogoKlinik" style="height: 80px; margin-bottom: 10px;" alt="Logo Klinik">
-                    <h2 style="color:var(--text-dark); font-size: 1.5rem;">Sistem Verifikasi Dokumen Elektronik</h2>
+            <div class="glass form-container" style="max-width: 1100px; margin: 20px auto; padding: 25px;">
+                <div style="text-align:center; margin-bottom: 25px; border-bottom: 2px dashed var(--glass-border); padding-bottom: 20px;">
+                    <img src="axalogo.png" id="vfLogoKlinikTop" style="height: 70px; margin-bottom: 10px;" alt="Logo Klinik">
+                    <h2 style="color:var(--primary); font-size: 1.6rem; margin-bottom: 5px;">Sistem Verifikasi Dokumen Elektronik</h2>
                     <p style="color:var(--text-light); font-size: 0.9rem;">Keaslian dokumen ini dijamin dan dilindungi oleh sistem terenkripsi Klinik.</p>
                 </div>
                 
-                <div class="table-responsive" style="box-shadow: none; border: 1px solid #e2e8f0; background: #fff;">
-                    <table class="dash-table" style="min-width: 100%;">
-                        <tbody>
+                <div class="verif-layout">
+                    <div class="verif-main-col">
+                        <table class="verif-table">
                             <tr>
-                                <td style="width: 35%; background: #f8fafc;"><strong>Pembuat Draft</strong></td>
-                                <td id="vfPembuat" style="font-size: 0.95rem;">-</td>
+                                <td class="verif-lbl">Pembuat Draft</td>
+                                <td class="verif-val" id="vfPembuat">-</td>
                             </tr>
                             <tr>
-                                <td style="background: #f8fafc;"><strong>Verifikator / Penandatangan</strong></td>
-                                <td>
-                                    <span id="vfPenandatangan" style="color:var(--text-dark); font-weight:600; font-size: 0.95rem; margin-right: 10px;">-</span> 
-                                    <span class="status-badge status-done" style="background: #22c55e; color: white;"><i class="fa-solid fa-check-circle"></i> Approved & Signed</span>
+                                <td class="verif-lbl">Verifikator</td>
+                                <td class="verif-val" id="vfVerifikator">Sistem TTE Terpadu Klinik Care</td>
+                            </tr>
+                            <tr>
+                                <td class="verif-lbl">Penandatangan</td>
+                                <td class="verif-val">
+                                    <span id="vfPenandatangan" style="font-weight: 600;">-</span> 
+                                    <span class="badge-approved">Approved</span>
                                 </td>
                             </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div style="margin-top: 30px; display:flex; justify-content:center; gap: 15px; flex-wrap: wrap;">
-                    <button class="btn btn-primary" onclick="bukaPdfViewer()" style="width: auto; padding: 12px 25px;"><i class="fa-solid fa-file-pdf"></i> Tampilkan Dokumen Asli</button>
-                    <a id="vfLinkFile" href="#" target="_blank" class="btn btn-outline" style="width: auto; padding: 12px 25px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka di Tab Baru</a>
-                </div>
-
-                <div id="pdfViewerContainer" style="display:none; margin-top:30px; height: 75vh; border: 2px solid #cbd5e1; border-radius: 12px; overflow:hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-                    <iframe id="pdfViewerFrame" style="width:100%; height:100%; border:none;"></iframe>
+                            <tr>
+                                <td class="verif-lbl" style="vertical-align: top; padding-top: 20px;">
+                                    Draft Surat
+                                    <br><br>
+                                    <button class="btn-reload" onclick="reloadViewer()"><i class="fa-solid fa-rotate-right"></i> Reload viewer</button>
+                                </td>
+                                <td class="verif-val" style="padding: 0; background: #334155;">
+                                    <div class="iframe-container">
+                                        <iframe id="pdfViewerFrame" src=""></iframe>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="verif-side-col">
+                        <div class="verif-info-card">
+                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">File final :</p>
+                            <p style="margin-bottom: 15px;"><a id="vfLinkFile" target="_blank" href="#"><i class="fa-solid fa-file-pdf"></i> <span id="vfLinkName">Dokumen PDF</span></a></p>
+                            
+                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">Draft selesai pada :</p>
+                            <p style="font-weight: 500; margin-bottom: 15px;" id="vfTimestamp">-</p>
+                            
+                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">Oleh :</p>
+                            <p style="font-weight: 500; margin-bottom: 0;" id="vfOleh">-</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
