@@ -25,17 +25,28 @@
         .print-section { display: none; }
     </style>
     <style media="print">
-        body * { visibility: hidden; }
-        .print-section, .print-section * { visibility: visible; }
-        .print-section { position: absolute; left: 0; top: 0; width: 100%; display: none; }
+        /* [BIG UPGRADE] FIX BLANK PAGE PADA MOBILE PRINTER / PDF */
+        body * { visibility: visible !important; } /* Menimpa gaya lama yang menyebabkan blank */
+        body { background: white !important; color: black; margin: 0; padding: 0; }
+        
+        /* Sembunyikan elemen UI (Menu, Latar Belakang, Modal) secara tuntas dan aman */
+        nav, main, .modal, #toast, .blob, #pdfLoadingOverlay, #audioUnlockOverlay { 
+            display: none !important; 
+        }
+        
+        /* Kembalikan Posisi Cetak ke Normal (Relative), menghindari bug absolute pada iOS/Android */
+        .print-section { 
+            display: none; 
+            position: relative !important; 
+            width: 100%; 
+            left: 0; top: 0; 
+        }
         
         body.print-sks #printArea { display: block !important; }
         body.print-rujukan #printAreaRujukan { display: block !important; }
         
         /* Pengaturan Layout & Tipografi Kertas A4 */
         @page { size: auto; margin: 15mm; }
-        body { background: white !important; color: black; margin: 0; padding: 0; }
-        .blob, nav, main, .modal, #toast { display: none !important; }
         
         .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 25px; }
         .kop-surat img { height: 75px; margin-bottom: 5px; }
