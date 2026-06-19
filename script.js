@@ -1952,22 +1952,37 @@ async function eksekusiCetakSKS() {
             if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
             const logoBase64 = await getLogoBase64(logoUrl);
 
-            // FITUR BARU: GENERATE PDF DARI HTML SEBAGAI BACKUP
+            // FITUR BARU (BUG FIX GAMBAR 1 BLANK/TERPOTONG): CLONE HTML KE LAYER BELAKANG
             const printArea = document.getElementById('printArea');
-            const originalDisplay = printArea.style.display;
-            printArea.style.display = 'block'; 
+            const clone = printArea.cloneNode(true);
+            clone.style.display = 'block';
+            clone.style.position = 'absolute';
+            clone.style.top = '0';
+            clone.style.left = '0';
+            clone.style.zIndex = '-9999'; // Sembunyikan di balik overlay agar user tidak terganggu
+            clone.style.width = '794px';  // Lebar mutlak kertas A4 agar rendering konsisten seperti di desktop
+            clone.style.padding = '20px';
+            clone.style.background = 'white';
+            clone.style.color = 'black';
+            document.body.appendChild(clone);
+
+            // Beri jeda kecil agar Browser memproses "painting" pada DOM clone
+            await new Promise(resolve => setTimeout(resolve, 50));
+
             let pdfHtmlBase64 = "";
             try {
                 const opt = { 
                     margin: 15, filename: `${docId}_HTML.pdf`, 
                     image: { type: 'jpeg', quality: 0.98 }, 
-                    html2canvas: { scale: 2, useCORS: true }, 
+                    html2canvas: { scale: 2, useCORS: true, windowWidth: 800 }, 
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
                 };
-                const pdfStr = await html2pdf().set(opt).from(printArea).outputPdf('datauristring');
+                const pdfStr = await html2pdf().set(opt).from(clone).outputPdf('datauristring');
                 pdfHtmlBase64 = pdfStr.split(',')[1];
             } catch(e) { console.warn("Gagal konversi HTML ke PDF: ", e); }
-            printArea.style.display = originalDisplay;
+            
+            // Hapus Clone setelah dirender
+            document.body.removeChild(clone);
 
             const payload = {
                 action: 'generatePDF_HD',
@@ -2095,22 +2110,35 @@ async function eksekusiCetakRujukan() {
             if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
             const logoBase64 = await getLogoBase64(logoUrl);
 
-            // FITUR BARU: GENERATE PDF DARI HTML SEBAGAI BACKUP
+            // FITUR BARU (BUG FIX GAMBAR 1 BLANK/TERPOTONG): CLONE HTML KE LAYER BELAKANG
             const printAreaRujukan = document.getElementById('printAreaRujukan');
-            const originalDisplayRuj = printAreaRujukan.style.display;
-            printAreaRujukan.style.display = 'block'; 
+            const cloneRuj = printAreaRujukan.cloneNode(true);
+            cloneRuj.style.display = 'block';
+            cloneRuj.style.position = 'absolute';
+            cloneRuj.style.top = '0';
+            cloneRuj.style.left = '0';
+            cloneRuj.style.zIndex = '-9999';
+            cloneRuj.style.width = '794px'; 
+            cloneRuj.style.padding = '20px';
+            cloneRuj.style.background = 'white';
+            cloneRuj.style.color = 'black';
+            document.body.appendChild(cloneRuj);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+
             let pdfHtmlBase64 = "";
             try {
                 const optRuj = { 
                     margin: 15, filename: `${docId}_HTML.pdf`, 
                     image: { type: 'jpeg', quality: 0.98 }, 
-                    html2canvas: { scale: 2, useCORS: true }, 
+                    html2canvas: { scale: 2, useCORS: true, windowWidth: 800 }, 
                     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } 
                 };
-                const pdfStr = await html2pdf().set(optRuj).from(printAreaRujukan).outputPdf('datauristring');
+                const pdfStr = await html2pdf().set(optRuj).from(cloneRuj).outputPdf('datauristring');
                 pdfHtmlBase64 = pdfStr.split(',')[1];
             } catch(e) { console.warn("Gagal konversi HTML ke PDF: ", e); }
-            printAreaRujukan.style.display = originalDisplayRuj;
+            
+            document.body.removeChild(cloneRuj);
 
             const payload = {
                 action: 'generatePDF_HD',
