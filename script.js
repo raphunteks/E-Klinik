@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==================================================================
-// 1. ROUTING SPA & SISTEM LOGIN ADMIN (BUG NAVIGASI TELAH DIPERBAIKI)
+// 1. ROUTING SPA & SISTEM LOGIN ADMIN (BUG NAVIGASI DIPERBAIKI)
 // ==================================================================
 window.onpopstate = function(event) {
     if(event.state && event.state.page) navTo(event.state.page, false);
@@ -185,7 +185,7 @@ function navTo(sectionId, pushState = true) {
 
     if (pushState) history.pushState({page: targetId}, '', '/' + targetId);
     
-    // Perbaikan Bug: Render data lokal dari memory saja (Tidak memanggil loadDashboardData() secara membabi-buta)
+    // Render data lokal dari memory (Tidak memanggil loadDashboardData() secara berulang)
     if(targetId === 'dashboardadmin') {
         if(!isAdminLoggedIn) {
             document.getElementById('adminLoginBox').style.display = 'block';
@@ -730,7 +730,6 @@ function renderFinancialCharts() {
     });
 }
 
-
 // ==================================================================
 // 3. RENDER TABEL FARMASI
 // ==================================================================
@@ -971,7 +970,6 @@ function getReadOnlyToothSVGOnly(id, position, data) {
     tempDiv.innerHTML = generateToothSVG(id, position);
     let svgEl = tempDiv.querySelector('svg');
     
-    // [UPGRADE FIX] Remove ID to prevent querySelector bleeding/overlap in Document
     svgEl.removeAttribute('id'); 
     
     svgEl.querySelectorAll('.surface').forEach(s => {
@@ -1099,7 +1097,6 @@ function generateOdontoTextSummary() {
     let results = [];
     let odontoStateJSON = {}; 
 
-    // [UPGRADE FIX] Selektor Spesifik: Hanya ambil gigi di dalam form Input, abaikan yang ada di Modal Riwayat!
     document.querySelectorAll('#odontogramGrid .odonto-tooth').forEach(wrapper => {
         let numEl = wrapper.querySelector('.odonto-num');
         if (!numEl) return;
@@ -1154,7 +1151,6 @@ function generateOdontoTextSummary() {
 }
 
 function applyPastOdontoState(stateObj) {
-    // [UPGRADE FIX] Selektor Spesifik
     document.querySelectorAll('#odontogramGrid .odonto-tooth').forEach(wrapper => {
         let numEl = wrapper.querySelector('.odonto-num');
         if (!numEl) return;
@@ -1388,7 +1384,6 @@ function tambahBarisResep() {
             <option value="Jika Diperlukan">Jika Diperlukan</option>
         </select></td>
         <td><button type="button" class="btn btn-danger" onclick="hapusBarisObat(this)"><i class="fa-solid fa-trash"></i></button>
-            <!-- Sembunyikan Subtotal tapi hitung di background -->
             <input type="hidden" class="res-sub">
         </td>
     `;
@@ -1457,7 +1452,7 @@ function kalkulasiGrandTotal() {
 }
 
 // ==================================================================
-// 6. PROSES SUBMIT FORM KE GAS
+// 6. PROSES SUBMIT FORM (SAVE RM & TAGIHAN KE GOOGLE SHEETS)
 // ==================================================================
 const ermForm = document.getElementById('ermForm');
 if(ermForm) {
@@ -1749,7 +1744,7 @@ function getSIP(namaDokter) {
     if(dokterInfo && dokterInfo['SIP'] && dokterInfo['SIP'] !== '-') {
         return "SIP: " + dokterInfo['SIP'];
     }
-    // Default Fallback Khusus
+    // Default Fallback Khusus (Bisa disesuaikan)
     if(namaDokter.includes("drg. M. Aksa Arsyad")) {
         return "SIP: HD00002016701725";
     }
@@ -1781,6 +1776,11 @@ async function bukaHalamanVerifikasi(docId) {
             const data = res.data;
             document.getElementById('vfPembuat').innerText = data['Pembuat'] || "Staf Klinik";
             document.getElementById('vfPenandatangan').innerText = "1. " + (data['Penandatangan'] || "-");
+            
+            // Populating UI Tambahan (Tanggal & Link)
+            document.getElementById('vfTimestamp').innerText = formatIndoDateTime(data['Timestamp']);
+            document.getElementById('vfOleh').innerText = data['Pembuat'] || "Staf Klinik";
+            document.getElementById('vfLinkName').innerText = `Dokumen_${data['Jenis']}.pdf`;
 
             const fileUrl = data['File URL'];
             const driveId = data['Drive ID'];
@@ -1796,12 +1796,12 @@ async function bukaHalamanVerifikasi(docId) {
             const iframe = document.getElementById('pdfViewerFrame');
             if(iframe) {
                 iframe.setAttribute('data-driveid', driveId);
-                // Tidak langsung me-load, akan di-load jika tombol diklik
+                // Tidak langsung me-load otomatis agar ringan, akan di-load jika tombol diklik
             }
 
-            // Set Ulang Identitas/Logo
+            // Set Ulang Identitas/Logo Klinik
             if(masterPengaturan && masterPengaturan.length > 0) {
-                const vfLogo = document.getElementById('vfLogoKlinik');
+                const vfLogo = document.getElementById('vfLogoKlinikTop');
                 if(vfLogo) vfLogo.src = masterPengaturan[0]['URL Logo'];
             }
 
@@ -1854,7 +1854,7 @@ function generateQRWithLogo(containerId, text) {
             const qrCanvas = tempDiv.querySelector('canvas');
             if (qrCanvas) {
                 const finalCanvas = document.createElement('canvas');
-                // Mengubah resolusi QR Canvas agar tampil estetik di PDF (mengacu pada gambar 1)
+                // Mengubah resolusi QR Canvas agar tampil estetik dan presisi di PDF
                 finalCanvas.width = 120; finalCanvas.height = 120;
                 const ctx = finalCanvas.getContext('2d');
                 ctx.drawImage(qrCanvas, 0, 0, 120, 120);
@@ -1916,7 +1916,7 @@ function angkaKeTeks(angka) {
 async function eksekusiCetakSKS() {
     if(!tempPasienSks) return;
 
-    // 1. Generate Metadata TTE
+    // 1. Generate Metadata TTE (URL Verifikasi)
     const docId = `SKS-${new Date().getTime()}`;
     const baseUrl = window.location.href.split('?')[0].split('#')[0];
     const verifyUrl = `${baseUrl}?verify=${docId}`;
@@ -1961,7 +1961,7 @@ async function eksekusiCetakSKS() {
     const printSipSks = document.getElementById('printSipSks');
     if(printSipSks) printSipSks.innerText = getSIP(namaDokter);
 
-    // 2. Generate QR Code with Logo pada Kontainer SKS
+    // 2. Generate QR Code with Logo pada Kontainer Cetak SKS
     await generateQRWithLogo('qrCanvasSks', verifyUrl);
 
     // 3. Render PDF Base64 & Upload
@@ -2033,7 +2033,7 @@ function bukaModalRujukan(encodedItem) {
 async function eksekusiCetakRujukan() {
     if(!tempPasienSks) return;
 
-    // 1. Generate Metadata TTE
+    // 1. Generate Metadata TTE (URL Verifikasi)
     const docId = `RUJUKAN-${new Date().getTime()}`;
     const baseUrl = window.location.href.split('?')[0].split('#')[0];
     const verifyUrl = `${baseUrl}?verify=${docId}`;
@@ -2067,7 +2067,7 @@ async function eksekusiCetakRujukan() {
     document.getElementById('printRujukanDokter').innerText = "( " + namaDokter + " )";
     document.getElementById('printRujukanSip').innerText = getSIP(namaDokter);
 
-    // 2. Generate QR Code with Logo pada Kontainer Rujukan
+    // 2. Generate QR Code with Logo pada Kontainer Cetak Rujukan
     await generateQRWithLogo('qrCanvasRujuk', verifyUrl);
 
     // 3. Render PDF Base64 & Upload
