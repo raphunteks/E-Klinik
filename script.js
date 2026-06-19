@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==================================================================
-// 1. ROUTING SPA & SISTEM LOGIN ADMIN
+// 1. ROUTING SPA & SISTEM LOGIN ADMIN (BUG NAVIGASI TELAH DIPERBAIKI)
 // ==================================================================
 window.onpopstate = function(event) {
     if(event.state && event.state.page) navTo(event.state.page, false);
@@ -174,8 +174,10 @@ function navTo(sectionId, pushState = true) {
     let targetId = sectionId;
     if(!document.getElementById(targetId)) targetId = 'beranda';
 
+    // Update class active pada section dan navigasi
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    
     document.getElementById(targetId).classList.add('active');
     
     const btn = document.getElementById('btn-' + targetId);
@@ -183,6 +185,7 @@ function navTo(sectionId, pushState = true) {
 
     if (pushState) history.pushState({page: targetId}, '', '/' + targetId);
     
+    // Perbaikan Bug: Render data lokal dari memory saja (Tidak memanggil loadDashboardData() secara membabi-buta)
     if(targetId === 'dashboardadmin') {
         if(!isAdminLoggedIn) {
             document.getElementById('adminLoginBox').style.display = 'block';
@@ -197,9 +200,6 @@ function navTo(sectionId, pushState = true) {
     } else {
         if(targetId === 'arsip' && allPatientsData.length > 0) renderTableArsip(allPatientsData);
         if(targetId === 'farmasi' && allPatientsData.length > 0) renderTableFarmasi(allPatientsData);
-        
-        const hasData = allPatientsData.length > 0;
-        loadDashboardData(hasData);
     }
 }
 
@@ -350,13 +350,13 @@ async function loadDashboardData(silent = false) {
                 lastRawDataRM = currentRawRM;
             }
             
-            if(document.getElementById('arsip').classList.contains('active')) {
+            if(document.getElementById('arsip') && document.getElementById('arsip').classList.contains('active')) {
                 renderTableArsip(allPatientsData);
             }
-            if(document.getElementById('farmasi').classList.contains('active')) {
+            if(document.getElementById('farmasi') && document.getElementById('farmasi').classList.contains('active')) {
                 renderTableFarmasi(allPatientsData);
             }
-            if(isAdminLoggedIn && document.getElementById('tab-keuangan').classList.contains('active')) {
+            if(isAdminLoggedIn && document.getElementById('tab-keuangan') && document.getElementById('tab-keuangan').classList.contains('active')) {
                 renderFinancialCharts();
             }
         }
@@ -375,29 +375,29 @@ function populateMasterDropdowns() {
     const dataListTindakan = document.getElementById('listDataTindakanServer');
     const dataListICD = document.getElementById('listICD10');
     
-    selectDokter.innerHTML = '<option value="" disabled selected>- Pilih Dokter -</option>';
-    selectPerawat.innerHTML = '<option value="" selected>- Tidak Ada / Pilih Perawat -</option>';
-    dataListObat.innerHTML = '';
-    dataListTindakan.innerHTML = '';
-    dataListICD.innerHTML = '';
+    if(selectDokter) selectDokter.innerHTML = '<option value="" disabled selected>- Pilih Dokter -</option>';
+    if(selectPerawat) selectPerawat.innerHTML = '<option value="" selected>- Tidak Ada / Pilih Perawat -</option>';
+    if(dataListObat) dataListObat.innerHTML = '';
+    if(dataListTindakan) dataListTindakan.innerHTML = '';
+    if(dataListICD) dataListICD.innerHTML = '';
 
     masterOperators.forEach(op => {
         let opt = `<option value="${op['Nama Lengkap']}">${op['Nama Lengkap']}</option>`;
-        if(op['Role'].toLowerCase() === 'dokter') selectDokter.innerHTML += opt;
-        else selectPerawat.innerHTML += opt;
+        if(op['Role'].toLowerCase() === 'dokter' && selectDokter) selectDokter.innerHTML += opt;
+        else if (selectPerawat) selectPerawat.innerHTML += opt;
     });
 
     masterObats.forEach(ob => {
-        if(parseInt(ob['Stok Tersedia']) > 0) {
+        if(parseInt(ob['Stok Tersedia']) > 0 && dataListObat) {
             dataListObat.innerHTML += `<option value="${ob['Nama Obat']} | Rp ${ob['Harga (Rp)']} (Stok: ${ob['Stok Tersedia']})"></option>`;
         }
     });
 
     masterTindakans.forEach(tn => {
-        dataListTindakan.innerHTML += `<option value="${tn['Nama Tindakan']} | Rp ${tn['Tarif (Rp)']}"></option>`;
+        if(dataListTindakan) dataListTindakan.innerHTML += `<option value="${tn['Nama Tindakan']} | Rp ${tn['Tarif (Rp)']}"></option>`;
     });
 
-    if(masterICD10 && masterICD10.length > 0) {
+    if(masterICD10 && masterICD10.length > 0 && dataListICD) {
         masterICD10.forEach(icd => {
             dataListICD.innerHTML += `<option value="${icd['Kode ICD-10']} - ${icd['Deskripsi']}"></option>`;
         });
@@ -410,6 +410,8 @@ function renderMasterLists() {
     const listTindakan = document.getElementById('listMasterTindakan');
     const listAdmin = document.getElementById('listMasterAdmin'); 
     
+    if(!listOp || !listObat || !listTindakan || !listAdmin) return;
+
     listOp.innerHTML = ''; listObat.innerHTML = ''; listTindakan.innerHTML = ''; listAdmin.innerHTML = '';
     
     masterOperators.forEach(o => {
@@ -791,11 +793,14 @@ function renderTableFarmasi(dataArray) {
     fBody.appendChild(fragment);
 }
 
-document.getElementById('searchFarmasi').addEventListener('input', (e) => {
-    const k = e.target.value.toLowerCase().trim();
-    if(k === "") renderTableFarmasi(allPatientsData);
-    else renderTableFarmasi(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
-});
+const searchFarmasi = document.getElementById('searchFarmasi');
+if(searchFarmasi) {
+    searchFarmasi.addEventListener('input', (e) => {
+        const k = e.target.value.toLowerCase().trim();
+        if(k === "") renderTableFarmasi(allPatientsData);
+        else renderTableFarmasi(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
+    });
+}
 
 // ==================================================================
 // 4. RENDER TABEL ARSIP (TERMASUK TOMBOL CETAK RUJUKAN)
@@ -853,11 +858,14 @@ function renderTableArsip(dataArray) {
     tBody.appendChild(fragment);
 }
 
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    const k = e.target.value.toLowerCase().trim();
-    if(k === "") renderTableArsip(allPatientsData);
-    else renderTableArsip(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
-});
+const searchInput = document.getElementById('searchInput');
+if(searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        const k = e.target.value.toLowerCase().trim();
+        if(k === "") renderTableArsip(allPatientsData);
+        else renderTableArsip(allPatientsData.filter(i => (i['Nama Lengkap']||'').toLowerCase().includes(k) || (i['No RM']||'').toLowerCase().includes(k)));
+    });
+}
 
 // ==================================================================
 // LOGIKA ODONTOGRAM SVG INTERAKTIF
@@ -1741,7 +1749,7 @@ function getSIP(namaDokter) {
     if(dokterInfo && dokterInfo['SIP'] && dokterInfo['SIP'] !== '-') {
         return "SIP: " + dokterInfo['SIP'];
     }
-    // Dummy untuk Dokter M. Aksa Arsyad
+    // Default Fallback Khusus
     if(namaDokter.includes("drg. M. Aksa Arsyad")) {
         return "SIP: HD00002016701725";
     }
@@ -1752,7 +1760,10 @@ function getSIP(namaDokter) {
 // FITUR BARU: VERIFIKASI DOKUMEN & TTE (QR + LOGO KLINIK)
 // ==================================================================
 async function bukaHalamanVerifikasi(docId) {
+    // Hide navigasi dan modul aplikasi utama
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+    const nav = document.querySelector('nav'); if(nav) nav.style.display = 'none';
+    
     const verifPage = document.getElementById('verifikasi-page');
     if(verifPage) {
         verifPage.style.display = 'block';
@@ -1769,35 +1780,60 @@ async function bukaHalamanVerifikasi(docId) {
         if(res.status === 'success' && res.data) {
             const data = res.data;
             document.getElementById('vfPembuat').innerText = data['Pembuat'] || "Staf Klinik";
-            document.getElementById('vfPenandatangan').innerText = data['Penandatangan'] || "-";
+            document.getElementById('vfPenandatangan').innerText = "1. " + (data['Penandatangan'] || "-");
 
+            const fileUrl = data['File URL'];
             const driveId = data['Drive ID'];
-            document.getElementById('pdfViewerFrame').setAttribute('data-driveid', driveId);
-            reloadViewer();
             
+            // Set Download Asli (via Browser Biasa)
+            const linkObj = document.getElementById('vfLinkFile');
+            if(linkObj) {
+                linkObj.href = fileUrl;
+                linkObj.setAttribute('data-driveid', driveId);
+            }
+
+            // Set ke iFrame Google Drive Preview Engine
+            const iframe = document.getElementById('pdfViewerFrame');
+            if(iframe) {
+                iframe.setAttribute('data-driveid', driveId);
+                // Tidak langsung me-load, akan di-load jika tombol diklik
+            }
+
+            // Set Ulang Identitas/Logo
             if(masterPengaturan && masterPengaturan.length > 0) {
                 const vfLogo = document.getElementById('vfLogoKlinik');
                 if(vfLogo) vfLogo.src = masterPengaturan[0]['URL Logo'];
             }
 
         } else {
-            document.getElementById('vfPembuat').innerText = "Dokumen Tidak Valid";
-            document.getElementById('vfPenandatangan').innerHTML = "<span style='color:red;'>Belum Disetujui / Dokumen Palsu</span>";
-            showToast("Dokumen tidak ditemukan di database.", "error");
+            document.getElementById('vfPembuat').innerText = "Tidak Valid/Ditolak";
+            document.getElementById('vfPenandatangan').innerHTML = "<span style='color:red;'>Dokumen Palsu / Belum Disetujui</span>";
+            showToast("Dokumen tidak ditemukan di database resmi.", "error");
         }
+
     } catch(e) {
         console.error(e);
         document.getElementById('vfPembuat').innerText = "Koneksi Bermasalah";
-        showToast("Gagal memuat data verifikasi.", "error");
+        document.getElementById('vfPenandatangan').innerHTML = "<span style='color:red;'>Gagal Tersambung ke Server</span>";
+        showToast("Terjadi kesalahan koneksi saat Verifikasi Server.", "error");
     }
+}
+
+function bukaPdfViewer() {
+    const container = document.getElementById('pdfViewerContainer');
+    if(container) container.style.display = 'block';
+    reloadViewer();
 }
 
 function reloadViewer() {
     const iframe = document.getElementById('pdfViewerFrame');
-    const driveId = iframe.getAttribute('data-driveid');
-    if(driveId) {
-        iframe.src = 'about:blank';
-        setTimeout(() => { iframe.src = `https://drive.google.com/file/d/${driveId}/preview`; }, 300);
+    const driveId = iframe ? iframe.getAttribute('data-driveid') : null;
+    
+    if(driveId && iframe) {
+        iframe.src = 'about:blank'; // Mencegah caching error
+        setTimeout(() => {
+            iframe.src = `https://drive.google.com/file/d/${driveId}/preview`;
+        }, 400);
     }
 }
 
@@ -1818,6 +1854,7 @@ function generateQRWithLogo(containerId, text) {
             const qrCanvas = tempDiv.querySelector('canvas');
             if (qrCanvas) {
                 const finalCanvas = document.createElement('canvas');
+                // Mengubah resolusi QR Canvas agar tampil estetik di PDF (mengacu pada gambar 1)
                 finalCanvas.width = 120; finalCanvas.height = 120;
                 const ctx = finalCanvas.getContext('2d');
                 ctx.drawImage(qrCanvas, 0, 0, 120, 120);
@@ -1838,7 +1875,7 @@ function generateQRWithLogo(containerId, text) {
                 if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
                 img.src = logoUrl;
             } else { resolve(); }
-        }, 150);
+        }, 300);
     });
 }
 
@@ -1924,7 +1961,7 @@ async function eksekusiCetakSKS() {
     const printSipSks = document.getElementById('printSipSks');
     if(printSipSks) printSipSks.innerText = getSIP(namaDokter);
 
-    // 2. Generate QR Code with Logo
+    // 2. Generate QR Code with Logo pada Kontainer SKS
     await generateQRWithLogo('qrCanvasSks', verifyUrl);
 
     // 3. Render PDF Base64 & Upload
@@ -2030,7 +2067,7 @@ async function eksekusiCetakRujukan() {
     document.getElementById('printRujukanDokter').innerText = "( " + namaDokter + " )";
     document.getElementById('printRujukanSip').innerText = getSIP(namaDokter);
 
-    // 2. Generate QR Code with Logo
+    // 2. Generate QR Code with Logo pada Kontainer Rujukan
     await generateQRWithLogo('qrCanvasRujuk', verifyUrl);
 
     // 3. Render PDF Base64 & Upload
@@ -2087,118 +2124,4 @@ function showToast(msg, type) {
         t.classList.add('show');
         setTimeout(() => t.classList.remove('show'), 3000);
     }
-}
-
-// ==================================================================
-// FITUR BARU: VERIFIKASI DOKUMEN & TTE (QR + LOGO KLINIK)
-// ==================================================================
-async function bukaHalamanVerifikasi(docId) {
-    // Hide navigasi dan modul aplikasi utama
-    document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-    const nav = document.querySelector('nav'); if(nav) nav.style.display = 'none';
-    
-    const verifPage = document.getElementById('verifikasi-page');
-    if(verifPage) {
-        verifPage.style.display = 'block';
-        verifPage.classList.add('active');
-    }
-
-    try {
-        document.getElementById('vfPembuat').innerText = "Menyelaraskan data...";
-        document.getElementById('vfPenandatangan').innerText = "Mencari status persetujuan...";
-
-        const response = await fetch(`${API_URL}?action=verify&docId=${docId}`);
-        const res = await response.json();
-
-        if(res.status === 'success' && res.data) {
-            const data = res.data;
-            document.getElementById('vfPembuat').innerText = data['Pembuat'] || "Staf Klinik";
-            document.getElementById('vfPenandatangan').innerText = "1. " + (data['Penandatangan'] || "-");
-
-            const fileUrl = data['File URL'];
-            const driveId = data['Drive ID'];
-            
-            // Set Download Asli (via Browser Biasa)
-            const linkObj = document.getElementById('vfLinkFile');
-            if(linkObj) {
-                linkObj.href = fileUrl;
-                linkObj.setAttribute('data-driveid', driveId);
-            }
-
-            // Set ke iFrame Google Drive Preview Engine
-            const iframe = document.getElementById('pdfViewerFrame');
-            if(iframe) {
-                iframe.setAttribute('data-driveid', driveId);
-                reloadViewer();
-            }
-
-            if(masterPengaturan && masterPengaturan.length > 0) {
-                const vfLogo = document.getElementById('vfLogoKlinik');
-                if(vfLogo) vfLogo.src = masterPengaturan[0]['URL Logo'];
-            }
-
-        } else {
-            document.getElementById('vfPembuat').innerText = "Tidak Valid/Ditolak";
-            document.getElementById('vfPenandatangan').innerHTML = "<span style='color:red;'>Dokumen Palsu / Belum Disetujui</span>";
-            showToast("Dokumen tidak ditemukan di database resmi.", "error");
-        }
-
-    } catch(e) {
-        console.error(e);
-        document.getElementById('vfPembuat').innerText = "Koneksi Bermasalah";
-        showToast("Terjadi kesalahan koneksi saat Verifikasi Server.", "error");
-    }
-}
-
-function reloadViewer() {
-    const iframe = document.getElementById('pdfViewerFrame');
-    const driveId = iframe ? iframe.getAttribute('data-driveid') : null;
-    
-    if(driveId && iframe) {
-        iframe.src = 'about:blank'; // Mencegah caching error
-        setTimeout(() => {
-            iframe.src = `https://drive.google.com/file/d/${driveId}/preview`;
-        }, 400);
-    }
-}
-
-function generateQRWithLogo(containerId, text) {
-    return new Promise((resolve) => {
-        let container = document.getElementById(containerId);
-        if(!container) { resolve(); return; }
-        container.innerHTML = '';
-        
-        const tempDiv = document.createElement('div');
-        new QRCode(tempDiv, {
-            text: text, width: 300, height: 300,
-            colorDark : "#000000", colorLight : "#ffffff",
-            correctLevel : QRCode.CorrectLevel.H
-        });
-        
-        setTimeout(() => {
-            const qrCanvas = tempDiv.querySelector('canvas');
-            if (qrCanvas) {
-                const finalCanvas = document.createElement('canvas');
-                finalCanvas.width = 120; finalCanvas.height = 120;
-                const ctx = finalCanvas.getContext('2d');
-                ctx.drawImage(qrCanvas, 0, 0, 120, 120);
-                
-                const img = new Image();
-                img.crossOrigin = "Anonymous";
-                img.onload = () => {
-                    const size = 32; const pos = (120 - size) / 2;
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(pos - 4, pos - 4, size + 8, size + 8);
-                    ctx.drawImage(img, pos, pos, size, size);
-                    container.appendChild(finalCanvas);
-                    resolve();
-                };
-                img.onerror = () => { container.appendChild(finalCanvas); resolve(); };
-                
-                let logoUrl = 'axalogo.png';
-                if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
-                img.src = logoUrl;
-            } else { resolve(); }
-        }, 300);
-    });
 }
