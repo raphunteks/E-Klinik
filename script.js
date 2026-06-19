@@ -1,5 +1,5 @@
 // MASUKKAN URL DEPLOYMENT GAS VERSI 11 ANDA DISINI (Jika sudah deploy baru)
-const API_URL = "https://script.google.com/macros/s/AKfycbyIzSLxK74fqVbtG6FzlgiEXunJT9BqvIpKpMvtAD3iVakn1VmZ2cjJlOXOXEimXlFN/exec"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exec"; 
 
 let allPatientsData = [];
 let masterOperators = [];
@@ -300,7 +300,6 @@ async function simpanPengaturan(e) {
         showToast("Menyimpan pengaturan klinik...", "info");
         const res = await fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'updatePengaturan', namaKlinik: nama, alamatKlinik: alamat, noTelp: telp, urlLogo: logo })
         });
         const resultData = await res.json();
@@ -547,7 +546,6 @@ async function simpanMasterData(e, actionType) {
         showToast("Menyimpan ke database...", "info");
         const res = await fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payload)
         });
         const resultData = await res.json();
@@ -579,7 +577,6 @@ async function hapusMasterData(sheetName, rowIndex) {
         try {
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'deleteData', sheetName: sheetName, rowIndex: rowIndex })
             });
             const resultData = await res.json();
@@ -1544,10 +1541,9 @@ if(ermForm) {
         if(btnSpinner) btnSpinner.style.display = 'block';
 
         try {
-            // FIX API PAYLOAD: Gunakan text/plain agar tembus CORS
+            // FIX API PAYLOAD: Gunakan body biasa agar tembus CORS tanpa masalah
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify(dataObj)
             });
             const resultData = await res.json();
@@ -1750,7 +1746,6 @@ async function tandaiFarmasiSelesai(rowIndex) {
         try {
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'updateFarmasi', rowIndex: rowIndex })
             });
             const resultData = await res.json();
@@ -1935,18 +1930,10 @@ async function eksekusiCetakSKS() {
     if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
     const logoBase64 = await getLogoBase64(logoUrl);
 
-    // 3. Eksekusi Print Fisik Langsung
-    const modalSks = document.getElementById('modalSks');
-    if(modalSks) modalSks.classList.remove('active');
-    
-    document.body.classList.add('print-sks');
-    setTimeout(() => { 
-        window.print(); 
-        document.body.classList.remove('print-sks');
-    }, 500);
+    // Munculkan Loading Overlay agar user tidak klik macam-macam saat Upload
+    const overlay = document.getElementById('pdfLoadingOverlay');
+    if(overlay) overlay.style.display = 'flex';
 
-    // 4. Eksekusi Background Upload ke Google Drive & Database (Menggunakan format fetch baru)
-    showToast("Mengunggah dokumen asli ke Server Sistem...", "info");
     const payload = {
         action: 'generatePDF_HD',
         docId: docId,
@@ -1971,10 +1958,10 @@ async function eksekusiCetakSKS() {
         selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-"
     };
     
+    // 3. Eksekusi Background Upload ke Google Drive & Database terlebih dahulu
     try {
         const response = await fetch(API_URL, { 
             method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
             body: JSON.stringify(payload) 
         });
         const resData = await response.json();
@@ -1986,6 +1973,19 @@ async function eksekusiCetakSKS() {
     } catch(e) {
         showToast("Terjadi kesalahan sinkronisasi.", "error");
     }
+
+    // Sembunyikan Overlay
+    if(overlay) overlay.style.display = 'none';
+
+    // 4. Eksekusi Print Fisik SETELAH data aman tersimpan di Server
+    const modalSks = document.getElementById('modalSks');
+    if(modalSks) modalSks.classList.remove('active');
+    
+    document.body.classList.add('print-sks');
+    setTimeout(() => { 
+        window.print(); 
+        document.body.classList.remove('print-sks');
+    }, 500);
 }
 
 // 4. CETAK RUJUKAN
@@ -2049,18 +2049,10 @@ async function eksekusiCetakRujukan() {
     if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
     const logoBase64 = await getLogoBase64(logoUrl);
 
-    // 1. Eksekusi Print Fisik Langsung
-    const modalRujukan = document.getElementById('modalRujukan');
-    if(modalRujukan) modalRujukan.classList.remove('active');
-    
-    document.body.classList.add('print-rujukan');
-    setTimeout(() => { 
-        window.print(); 
-        document.body.classList.remove('print-rujukan'); 
-    }, 500);
+    // Munculkan Loading Overlay agar user tidak klik macam-macam saat Upload
+    const overlay = document.getElementById('pdfLoadingOverlay');
+    if(overlay) overlay.style.display = 'flex';
 
-    // 2. Eksekusi Background Upload Backend
-    showToast("Mengunggah dokumen Rujukan ke Server...", "info");
     const payload = {
         action: 'generatePDF_HD',
         docId: docId,
@@ -2084,10 +2076,10 @@ async function eksekusiCetakRujukan() {
         terapi: document.getElementById('rujukTerapi') ? document.getElementById('rujukTerapi').value || '-' : '-'
     };
     
+    // 1. Eksekusi Background Upload Backend terlebih dahulu
     try {
         const response = await fetch(API_URL, { 
             method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
             body: JSON.stringify(payload) 
         });
         const resData = await response.json();
@@ -2099,6 +2091,19 @@ async function eksekusiCetakRujukan() {
     } catch(e) {
         showToast("Terjadi kesalahan sinkronisasi.", "error");
     }
+
+    // Sembunyikan Overlay
+    if(overlay) overlay.style.display = 'none';
+
+    // 2. Eksekusi Print Fisik Langsung SETELAH proses upload selesai
+    const modalRujukan = document.getElementById('modalRujukan');
+    if(modalRujukan) modalRujukan.classList.remove('active');
+    
+    document.body.classList.add('print-rujukan');
+    setTimeout(() => { 
+        window.print(); 
+        document.body.classList.remove('print-rujukan'); 
+    }, 500);
 }
 
 
