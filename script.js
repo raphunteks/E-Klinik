@@ -300,7 +300,7 @@ async function simpanPengaturan(e) {
         showToast("Menyimpan pengaturan klinik...", "info");
         const res = await fetch(API_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // FIX CORS
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'updatePengaturan', namaKlinik: nama, alamatKlinik: alamat, noTelp: telp, urlLogo: logo })
         });
         const resultData = await res.json();
@@ -1583,7 +1583,7 @@ if(ermForm) {
                 
                 setTimeout(() => navTo('arsip'), 1500);
             } else {
-                showToast("Server gagal menyimpan: " + resultData.message, "error");
+                showToast("Sistem Gagal: " + (resultData.message || "Unknown error"), "error");
             }
         } catch (error) {
             showToast("Gagal menyambung ke server Google.", "error");
@@ -1760,10 +1760,10 @@ async function tandaiFarmasiSelesai(rowIndex) {
                 if(modalRiwayat) modalRiwayat.classList.remove('active');
                 loadDashboardData(true);
             } else {
-                showToast("Server gagal memproses.", "error");
+                showToast("Sistem Gagal: " + (resultData.message || "Server error"), "error");
             }
         } catch (error) {
-            showToast("Gagal update status.", "error");
+            showToast("Gagal update status jaringan.", "error");
         }
     }, false);
 }
@@ -1784,7 +1784,7 @@ function getSIP(namaDokter) {
     return "SIP: .......................................";
 }
 
-// 1. GENERATE QR CODE KE DALAM BASE64 (DENGAN LOGO)
+// 1. GENERATE QR CODE KE DALAM BASE64 (DENGAN LOGO & PERLINDUNGAN CORS)
 function generateQRWithLogoBase64(containerId, text) {
     return new Promise((resolve) => {
         let container = document.getElementById(containerId);
@@ -1815,11 +1815,17 @@ function generateQRWithLogoBase64(containerId, text) {
                     ctx.fillRect(pos - 4, pos - 4, size + 8, size + 8);
                     ctx.drawImage(img, pos, pos, size, size);
                     container.appendChild(finalCanvas);
-                    resolve(finalCanvas.toDataURL('image/png').split(',')[1]);
+                    try {
+                        resolve(finalCanvas.toDataURL('image/png').split(',')[1]);
+                    } catch(e) {
+                        resolve("");
+                    }
                 };
                 img.onerror = () => { 
                     container.appendChild(finalCanvas); 
-                    resolve(finalCanvas.toDataURL('image/png').split(',')[1]); 
+                    try {
+                        resolve(finalCanvas.toDataURL('image/png').split(',')[1]); 
+                    } catch(e) { resolve(""); }
                 };
                 
                 let logoUrl = 'axalogo.png';
@@ -1830,7 +1836,7 @@ function generateQRWithLogoBase64(containerId, text) {
     });
 }
 
-// 2. AMBIL BASE64 LOGO KLINIK UNTUK KOP SURAT
+// 2. AMBIL BASE64 LOGO KLINIK UNTUK KOP SURAT (DENGAN PERLINDUNGAN CORS)
 function getLogoBase64(url) {
     return new Promise((resolve) => {
         const img = new Image();
@@ -1840,7 +1846,12 @@ function getLogoBase64(url) {
             canvas.width = img.width; canvas.height = img.height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0);
-            resolve(canvas.toDataURL('image/png').split(',')[1]);
+            try {
+                resolve(canvas.toDataURL('image/png').split(',')[1]);
+            } catch(e) {
+                console.warn("Logo Image tainted by CORS");
+                resolve("");
+            }
         };
         img.onerror = () => resolve("");
         img.src = url;
@@ -1927,49 +1938,45 @@ async function eksekusiCetakSKS() {
     const printSipSks = document.getElementById('printSipSks');
     if(printSipSks) printSipSks.innerText = getSIP(namaDokter);
 
-    // 2. Generate QR Code with Logo pada Kontainer Cetak SKS
-    const qrBase64 = await generateQRWithLogoBase64('qrCanvasSks', verifyUrl);
-    
-    let logoUrl = 'axalogo.png';
-    if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
-    const logoBase64 = await getLogoBase64(logoUrl);
-
-    // Menutup modal SKS terlebih dahulu
-    const modalSks = document.getElementById('modalSks');
-    if(modalSks) modalSks.classList.remove('active');
-
-    // 3. TAMPILKAN OVERLAY SEBELUM FETCH
+    // 2. TAMPILKAN OVERLAY TERLEBIH DAHULU AGAR JARINGAN TIDAK DIBLOK BROWSER
     const overlay = document.getElementById('pdfLoadingOverlay');
     if(overlay) overlay.style.display = 'flex';
     showToast("Mengunggah dokumen asli ke Server Sistem...", "info");
 
-    // 4. GUNAKAN TIMEOUT AGAR UI BROWSER SEMPAT ME-RENDER OVERLAY SEBELUM TERTAHAN JARINGAN
+    // Eksekusi fungsi Async dalam SetTimeout agar animasi UI berjalan mulus
     setTimeout(async () => {
-        const payload = {
-            action: 'generatePDF_HD',
-            docId: docId,
-            tipe: 'SKS',
-            pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik",
-            penandatangan: namaDokter,
-            sipDokter: getSIP(namaDokter),
-            tglSurat: formatIndoDateOnly(new Date().toISOString()),
-            qrBase64: qrBase64,
-            logoBase64: logoBase64,
-            klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
-            klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
-            klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
-            nama: tempPasienSks['Nama Lengkap'] || "-",
-            usia: tempPasienSks['Usia'] || "-",
-            jk: tempPasienSks['Jenis Kelamin'] || "-",
-            pekerjaan: tempPasienSks['Pekerjaan'] && tempPasienSks['Pekerjaan'] !== '-' ? tempPasienSks['Pekerjaan'] : "Karyawan / Pelajar",
-            alamat: tempPasienSks['Alamat'] || "-",
-            hari: inputHari ? inputHari.value : 1,
-            hariTeks: inputHari ? angkaKeTeks(parseInt(inputHari.value)) : "Satu",
-            mulai: inputMulai ? formatIndoDateOnly(inputMulai.value) : "-",
-            selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-"
-        };
-        
         try {
+            // Generate Base64
+            const qrBase64 = await generateQRWithLogoBase64('qrCanvasSks', verifyUrl);
+            let logoUrl = 'axalogo.png';
+            if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
+            const logoBase64 = await getLogoBase64(logoUrl);
+
+            const payload = {
+                action: 'generatePDF_HD',
+                docId: docId,
+                tipe: 'SKS',
+                pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik",
+                penandatangan: namaDokter,
+                sipDokter: getSIP(namaDokter),
+                tglSurat: formatIndoDateOnly(new Date().toISOString()),
+                qrBase64: qrBase64,
+                logoBase64: logoBase64,
+                klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
+                klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
+                klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
+                nama: tempPasienSks['Nama Lengkap'] || "-",
+                usia: tempPasienSks['Usia'] || "-",
+                jk: tempPasienSks['Jenis Kelamin'] || "-",
+                pekerjaan: tempPasienSks['Pekerjaan'] && tempPasienSks['Pekerjaan'] !== '-' ? tempPasienSks['Pekerjaan'] : "Karyawan / Pelajar",
+                alamat: tempPasienSks['Alamat'] || "-",
+                hari: inputHari ? inputHari.value : 1,
+                hariTeks: inputHari ? angkaKeTeks(parseInt(inputHari.value)) : "Satu",
+                mulai: inputMulai ? formatIndoDateOnly(inputMulai.value) : "-",
+                selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-"
+            };
+            
+            // 3. Eksekusi Background Upload ke Google Drive & Database
             const response = await fetch(API_URL, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1980,20 +1987,25 @@ async function eksekusiCetakSKS() {
             if(resData.status === 'success') {
                 showToast("Dokumen SKS berhasil dienkripsi ke Server!", "success");
             } else {
-                showToast("Sistem Gagal mencatat dokumen ke server.", "error");
+                // Menampilkan error persis dari GAS agar user tahu kalau salah URL / Lupa Deploy
+                showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
             }
         } catch(e) {
-            showToast("Terjadi kesalahan sinkronisasi.", "error");
+            showToast("Terjadi kesalahan jaringan/CORS.", "error");
+            console.error("Fetch Error: ", e);
         } finally {
             // TUTUP OVERLAY SETELAH PROSES SELESAI
             if(overlay) overlay.style.display = 'none';
 
-            // 5. LAKUKAN PRINT FISIK SETELAH DATA AMAN TERSIMPAN DI SERVER
+            // 4. LAKUKAN PRINT FISIK BROWSER (Aman dari block jaringan)
+            const modalSks = document.getElementById('modalSks');
+            if(modalSks) modalSks.classList.remove('active');
+            
             document.body.classList.add('print-sks');
             setTimeout(() => { 
                 window.print(); 
                 document.body.classList.remove('print-sks');
-            }, 300); // Jeda kecil agar class CSS merender layout print
+            }, 300);
         }
     }, 100);
 }
@@ -2053,47 +2065,42 @@ async function eksekusiCetakRujukan() {
     document.getElementById('printRujukanDokter').innerText = "( " + namaDokter + " )";
     document.getElementById('printRujukanSip').innerText = getSIP(namaDokter);
 
-    // Generate Base64
-    const qrBase64 = await generateQRWithLogoBase64('qrCanvasRujuk', verifyUrl);
-    let logoUrl = 'axalogo.png';
-    if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
-    const logoBase64 = await getLogoBase64(logoUrl);
-
-    // Menutup modal terlebih dahulu
-    const modalRujukan = document.getElementById('modalRujukan');
-    if(modalRujukan) modalRujukan.classList.remove('active');
-
-    // 3. TAMPILKAN OVERLAY SEBELUM FETCH
+    // TAMPILKAN OVERLAY SEBELUM FETCH
     const overlay = document.getElementById('pdfLoadingOverlay');
     if(overlay) overlay.style.display = 'flex';
     showToast("Mengunggah dokumen Rujukan ke Server...", "info");
 
-    // 4. GUNAKAN TIMEOUT AGAR UI BROWSER SEMPAT ME-RENDER OVERLAY SEBELUM TERTAHAN JARINGAN
+    // Eksekusi Async untuk Upload terlebih dahulu
     setTimeout(async () => {
-        const payload = {
-            action: 'generatePDF_HD',
-            docId: docId,
-            tipe: 'RUJUKAN',
-            pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik",
-            penandatangan: namaDokter,
-            sipDokter: getSIP(namaDokter),
-            tglSurat: formatIndoDateOnly(new Date().toISOString()),
-            qrBase64: qrBase64,
-            logoBase64: logoBase64,
-            klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
-            klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
-            klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
-            rujukPoli: document.getElementById('rujukPoli') ? document.getElementById('rujukPoli').value || '-' : '-',
-            rujukRs: document.getElementById('rujukRs') ? document.getElementById('rujukRs').value || '-' : '-',
-            nama: tempPasienSks['Nama Lengkap'] || "-",
-            usia: tempPasienSks['Usia'] || "-",
-            jk: jkSingkat,
-            noRm: tempPasienSks['No RM'] || '-',
-            diagnosa: document.getElementById('rujukDiagnosa') ? document.getElementById('rujukDiagnosa').value || '-' : '-',
-            terapi: document.getElementById('rujukTerapi') ? document.getElementById('rujukTerapi').value || '-' : '-'
-        };
-        
         try {
+            const qrBase64 = await generateQRWithLogoBase64('qrCanvasRujuk', verifyUrl);
+            let logoUrl = 'axalogo.png';
+            if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
+            const logoBase64 = await getLogoBase64(logoUrl);
+
+            const payload = {
+                action: 'generatePDF_HD',
+                docId: docId,
+                tipe: 'RUJUKAN',
+                pembuat: document.getElementById('selectPerawat') ? document.getElementById('selectPerawat').value || "Staf Klinik" : "Staf Klinik",
+                penandatangan: namaDokter,
+                sipDokter: getSIP(namaDokter),
+                tglSurat: formatIndoDateOnly(new Date().toISOString()),
+                qrBase64: qrBase64,
+                logoBase64: logoBase64,
+                klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
+                klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
+                klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
+                rujukPoli: document.getElementById('rujukPoli') ? document.getElementById('rujukPoli').value || '-' : '-',
+                rujukRs: document.getElementById('rujukRs') ? document.getElementById('rujukRs').value || '-' : '-',
+                nama: tempPasienSks['Nama Lengkap'] || "-",
+                usia: tempPasienSks['Usia'] || "-",
+                jk: jkSingkat,
+                noRm: tempPasienSks['No RM'] || '-',
+                diagnosa: document.getElementById('rujukDiagnosa') ? document.getElementById('rujukDiagnosa').value || '-' : '-',
+                terapi: document.getElementById('rujukTerapi') ? document.getElementById('rujukTerapi').value || '-' : '-'
+            };
+            
             const response = await fetch(API_URL, { 
                 method: 'POST', 
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -2104,20 +2111,24 @@ async function eksekusiCetakRujukan() {
             if(resData.status === 'success') {
                 showToast("Rujukan berhasil dienkripsi ke Server!", "success");
             } else {
-                showToast("Sistem Gagal mencatat rujukan ke server.", "error");
+                showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
             }
         } catch(e) {
-            showToast("Terjadi kesalahan sinkronisasi.", "error");
+            showToast("Terjadi kesalahan sinkronisasi/jaringan.", "error");
+            console.error("Fetch Error:", e);
         } finally {
             // TUTUP OVERLAY SETELAH PROSES SELESAI
             if(overlay) overlay.style.display = 'none';
 
-            // 5. LAKUKAN PRINT FISIK SETELAH DATA AMAN TERSIMPAN DI SERVER
+            // LAKUKAN PRINT FISIK SETELAH DATA AMAN
+            const modalRujukan = document.getElementById('modalRujukan');
+            if(modalRujukan) modalRujukan.classList.remove('active');
+            
             document.body.classList.add('print-rujukan');
             setTimeout(() => { 
                 window.print(); 
                 document.body.classList.remove('print-rujukan'); 
-            }, 300); // Jeda kecil agar class CSS merender layout print
+            }, 300);
         }
     }, 100);
 }
