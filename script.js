@@ -94,7 +94,9 @@ function showCustomConfirm(msg, callback, isDanger = true) {
 
 function playNotifSound() {
     const audio = document.getElementById('notifAudio');
-    if(audio) audio.play().catch(e => console.log("Audio diblokir oleh browser.", e));
+    // Note: Browser secara bawaan memblokir Autoplay Audio sampai user interaksi (klik). 
+    // .catch digunakan agar console tidak error jika web baru pertama kali dibuka via link.
+    if(audio) audio.play().catch(e => console.log("Audio autoplay diblokir oleh browser.", e));
 }
 
 function toggleLainnya(selectObj, inputId, triggerValue = 'Lainnya') {
@@ -139,7 +141,7 @@ document.getElementById('inputTtl').addEventListener('input', function(e) {
 // DOM CONTENT LOADED - MASTER INIT
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // [FITUR BARU] Cek Jika Parameter adalah halaman Verifikasi TTE
+    // Cek Jika Parameter adalah halaman Verifikasi TTE
     const urlParams = new URLSearchParams(window.location.search);
     const verifyId = urlParams.get('verify');
     
@@ -199,7 +201,7 @@ function navTo(sectionId, pushState = true) {
         if(targetId === 'farmasi' && allPatientsData.length > 0) {
             renderTableFarmasi(allPatientsData);
             
-            // [UPGRADE BARU] Pengecekan Obat Menunggu Proses Saat Buka Tab Farmasi
+            // Pengecekan Obat Menunggu Proses Saat Navigasi Buka Tab Farmasi
             const pendingFarmasi = allPatientsData.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
             if(pendingFarmasi.length > 0) {
                 playNotifSound();
@@ -342,6 +344,9 @@ async function loadDashboardData(silent = false) {
         if(result.status === 'success') {
             const currentRawRM = JSON.stringify(result.dataRM);
             
+            // [UPGRADE BARU] Detektor Initial Load (Baru pertama web dibuka)
+            let isInitialLoad = (lastRawDataRM === "");
+            
             if (currentRawRM !== lastRawDataRM) {
                 if (lastRawDataRM !== "") {
                     const currentPending = result.dataRM.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
@@ -376,6 +381,17 @@ async function loadDashboardData(silent = false) {
             }
             if(document.getElementById('farmasi') && document.getElementById('farmasi').classList.contains('active')) {
                 renderTableFarmasi(allPatientsData);
+                
+                // [UPGRADE BARU] Notifikasi saat akses link langsung ke /farmasi
+                if(isInitialLoad) {
+                    const pendingFarmasi = allPatientsData.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
+                    if(pendingFarmasi.length > 0) {
+                        setTimeout(() => {
+                            playNotifSound();
+                            showToast(`Peringatan: Ada ${pendingFarmasi.length} resep yang belum diselesaikan!`, "info");
+                        }, 500); // 500ms delay agar UX smooth setelah render tabel
+                    }
+                }
             }
             if(isAdminLoggedIn && document.getElementById('tab-keuangan') && document.getElementById('tab-keuangan').classList.contains('active')) {
                 renderFinancialCharts();
@@ -2091,6 +2107,7 @@ async function eksekusiCetakSKS() {
             if(resData.status === 'success') {
                 showToast("Dokumen SKS berhasil dienkripsi ke Server!", "success");
             } else {
+                // Menampilkan error persis dari GAS agar user tahu kalau salah URL / Lupa Deploy
                 showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
             }
         } catch(e) {
