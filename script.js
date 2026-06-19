@@ -28,8 +28,11 @@ Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
 
 function toggleAccordion(id) {
     const el = document.getElementById(id);
-    if (el.classList.contains('open')) el.classList.remove('open');
-    else el.classList.add('open');
+    if (el.classList.contains('open')) {
+        el.classList.remove('open');
+    } else {
+        el.classList.add('open');
+    }
 }
 
 // ==================================================================
@@ -58,18 +61,8 @@ function formatIndoDateOnly(rawDateStr) {
 }
 
 // ==================================================================
-// Custom Modal Confirm & UI Utils
+// Custom Modal Confirm
 // ==================================================================
-function showToast(msg, type) {
-    const t = document.getElementById('toast');
-    if(t) {
-        t.className = type;
-        t.innerHTML = msg;
-        t.classList.add('show');
-        setTimeout(() => t.classList.remove('show'), 3000);
-    }
-}
-
 function showCustomConfirm(msg, callback, isDanger = true) {
     const modal = document.getElementById('customConfirm');
     document.getElementById('confirmMessage').innerText = msg;
@@ -146,7 +139,7 @@ document.getElementById('inputTtl').addEventListener('input', function(e) {
 // DOM CONTENT LOADED - MASTER INIT
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Cek Jika Parameter adalah halaman Verifikasi TTE
+    // [FITUR BARU] Cek Jika Parameter adalah halaman Verifikasi TTE
     const urlParams = new URLSearchParams(window.location.search);
     const verifyId = urlParams.get('verify');
     
@@ -183,7 +176,6 @@ function navTo(sectionId, pushState = true) {
 
     document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
     document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-    
     document.getElementById(targetId).classList.add('active');
     
     const btn = document.getElementById('btn-' + targetId);
@@ -279,6 +271,16 @@ function applyPengaturanKlinikUI() {
     }
 }
 
+function showToast(msg, type) {
+    const t = document.getElementById('toast');
+    if(t) {
+        t.className = type;
+        t.innerHTML = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+}
+
 async function simpanPengaturan(e) {
     e.preventDefault();
     const nama = document.getElementById('setNamaKlinik').value;
@@ -296,13 +298,17 @@ async function simpanPengaturan(e) {
 
     try {
         showToast("Menyimpan pengaturan klinik...", "info");
-        // FIX API PAYLOAD: Gunakan text/plain agar tembus CORS
-        await fetch(API_URL, {
-            method: 'POST', 
+        const res = await fetch(API_URL, {
+            method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify({ action: 'updatePengaturan', namaKlinik: nama, alamatKlinik: alamat, noTelp: telp, urlLogo: logo })
         });
-        showToast("Pengaturan berhasil diterapkan!", "success");
+        const resultData = await res.json();
+        if(resultData.status === 'success') {
+            showToast("Pengaturan berhasil diterapkan!", "success");
+        } else {
+            showToast("Server gagal merespon.", "error");
+        }
     } catch(e) {
         showToast("Telah diterapkan secara lokal di Browser.", "success");
     }
@@ -539,7 +545,6 @@ async function simpanMasterData(e, actionType) {
 
     try {
         showToast("Menyimpan ke database...", "info");
-        // FIX API PAYLOAD: Gunakan text/plain agar menembus CORS tanpa masalah
         const res = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
