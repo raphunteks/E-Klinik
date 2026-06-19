@@ -1858,6 +1858,40 @@ function getLogoBase64(url) {
     });
 }
 
+// [UPGRADE BARU] 2B. FUNGSI UNTUK MERENDER HTML MENJADI BASE64 PDF VIA HTML2PDF.JS
+function generateHtmlPdfBase64(elementId) {
+    return new Promise((resolve) => {
+        const element = document.getElementById(elementId);
+        if (!element) { resolve(""); return; }
+
+        // Tampilkan elemen secara sementara agar html2pdf bisa membacanya 
+        // (Aman karena tertutup overlay loading)
+        const originalDisplay = element.style.display;
+        element.style.display = 'block';
+
+        const opt = {
+            margin:       15,
+            filename:     'backup_html.pdf',
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true, logging: false },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).outputPdf('datauristring').then(function(pdfAsString) {
+            element.style.display = originalDisplay; // Sembunyikan kembali
+            let base64String = "";
+            if (pdfAsString && pdfAsString.includes('base64,')) {
+                base64String = pdfAsString.split('base64,')[1];
+            }
+            resolve(base64String);
+        }).catch(err => {
+            console.error("HTML2PDF Error:", err);
+            element.style.display = originalDisplay;
+            resolve("");
+        });
+    });
+}
+
 // 3. CETAK SKS 
 const inputHari = document.getElementById('sksHari');
 const inputMulai = document.getElementById('sksMulai');
@@ -1952,6 +1986,9 @@ async function eksekusiCetakSKS() {
             if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
             const logoBase64 = await getLogoBase64(logoUrl);
 
+            // [UPGRADE BARU] Eksekusi render HTML ke PDF Base64
+            const pdfHtmlBase64 = await generateHtmlPdfBase64('printArea');
+
             const payload = {
                 action: 'generatePDF_HD',
                 docId: docId,
@@ -1962,6 +1999,7 @@ async function eksekusiCetakSKS() {
                 tglSurat: formatIndoDateOnly(new Date().toISOString()),
                 qrBase64: qrBase64,
                 logoBase64: logoBase64,
+                pdfHtmlBase64: pdfHtmlBase64,
                 klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
                 klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
                 klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
@@ -2079,6 +2117,9 @@ async function eksekusiCetakRujukan() {
             if(masterPengaturan && masterPengaturan.length > 0 && masterPengaturan[0]['URL Logo']) logoUrl = masterPengaturan[0]['URL Logo'];
             const logoBase64 = await getLogoBase64(logoUrl);
 
+            // [UPGRADE BARU] Eksekusi render HTML ke PDF Base64
+            const pdfHtmlBase64 = await generateHtmlPdfBase64('printAreaRujukan');
+
             const payload = {
                 action: 'generatePDF_HD',
                 docId: docId,
@@ -2089,6 +2130,7 @@ async function eksekusiCetakRujukan() {
                 tglSurat: formatIndoDateOnly(new Date().toISOString()),
                 qrBase64: qrBase64,
                 logoBase64: logoBase64,
+                pdfHtmlBase64: pdfHtmlBase64,
                 klinikNama: document.getElementById('setNamaKlinik') ? document.getElementById('setNamaKlinik').value : "KLINIK CARE MEDIKA",
                 klinikAlamat: document.getElementById('setAlamatKlinik') ? document.getElementById('setAlamatKlinik').value : "-",
                 klinikTelp: document.getElementById('setNoTelp') ? document.getElementById('setNoTelp').value : "-",
