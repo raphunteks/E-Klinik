@@ -1544,7 +1544,6 @@ if(ermForm) {
         if(btnSpinner) btnSpinner.style.display = 'block';
 
         try {
-            // FIX API PAYLOAD: Gunakan text/plain agar tembus CORS tanpa masalah
             const res = await fetch(API_URL, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1750,7 +1749,7 @@ async function tandaiFarmasiSelesai(rowIndex) {
         try {
             const res = await fetch(API_URL, {
                 method: 'POST',
-                headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // FIX CORS
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 body: JSON.stringify({ action: 'updateFarmasi', rowIndex: rowIndex })
             });
             const resultData = await res.json();
@@ -1939,17 +1938,13 @@ async function eksekusiCetakSKS() {
     const modalSks = document.getElementById('modalSks');
     if(modalSks) modalSks.classList.remove('active');
 
-    // MENGHINDARI THREAD BLOCKING: Set layout print dan memanggil window.print() terlebih dahulu
-    document.body.classList.add('print-sks');
-    setTimeout(() => { 
-        window.print(); 
-        document.body.classList.remove('print-sks');
-        
-        // SETELAH proses Print di browser selesai/batal, LAKUKAN UPLOAD KE SERVER
-        const overlay = document.getElementById('pdfLoadingOverlay');
-        if(overlay) overlay.style.display = 'flex';
-        showToast("Mengunggah dokumen asli ke Server Sistem...", "info");
+    // 3. TAMPILKAN OVERLAY SEBELUM FETCH
+    const overlay = document.getElementById('pdfLoadingOverlay');
+    if(overlay) overlay.style.display = 'flex';
+    showToast("Mengunggah dokumen asli ke Server Sistem...", "info");
 
+    // 4. GUNAKAN TIMEOUT AGAR UI BROWSER SEMPAT ME-RENDER OVERLAY SEBELUM TERTAHAN JARINGAN
+    setTimeout(async () => {
         const payload = {
             action: 'generatePDF_HD',
             docId: docId,
@@ -1974,26 +1969,33 @@ async function eksekusiCetakSKS() {
             selesai: inputSelesai ? formatIndoDateOnly(inputSelesai.value) : "-"
         };
         
-        fetch(API_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload) 
-        })
-        .then(response => response.json())
-        .then(resData => {
-            if(overlay) overlay.style.display = 'none';
+        try {
+            const response = await fetch(API_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload) 
+            });
+            const resData = await response.json();
+            
             if(resData.status === 'success') {
                 showToast("Dokumen SKS berhasil dienkripsi ke Server!", "success");
             } else {
                 showToast("Sistem Gagal mencatat dokumen ke server.", "error");
             }
-        })
-        .catch(e => {
-            if(overlay) overlay.style.display = 'none';
+        } catch(e) {
             showToast("Terjadi kesalahan sinkronisasi.", "error");
-        });
+        } finally {
+            // TUTUP OVERLAY SETELAH PROSES SELESAI
+            if(overlay) overlay.style.display = 'none';
 
-    }, 500);
+            // 5. LAKUKAN PRINT FISIK SETELAH DATA AMAN TERSIMPAN DI SERVER
+            document.body.classList.add('print-sks');
+            setTimeout(() => { 
+                window.print(); 
+                document.body.classList.remove('print-sks');
+            }, 300); // Jeda kecil agar class CSS merender layout print
+        }
+    }, 100);
 }
 
 // 4. CETAK RUJUKAN
@@ -2061,17 +2063,13 @@ async function eksekusiCetakRujukan() {
     const modalRujukan = document.getElementById('modalRujukan');
     if(modalRujukan) modalRujukan.classList.remove('active');
 
-    // MENGHINDARI THREAD BLOCKING: Set layout print dan memanggil window.print() terlebih dahulu
-    document.body.classList.add('print-rujukan');
-    setTimeout(() => { 
-        window.print(); 
-        document.body.classList.remove('print-rujukan'); 
-        
-        // SETELAH proses Print di browser selesai/batal, LAKUKAN UPLOAD KE SERVER
-        const overlay = document.getElementById('pdfLoadingOverlay');
-        if(overlay) overlay.style.display = 'flex';
-        showToast("Mengunggah dokumen Rujukan ke Server...", "info");
+    // 3. TAMPILKAN OVERLAY SEBELUM FETCH
+    const overlay = document.getElementById('pdfLoadingOverlay');
+    if(overlay) overlay.style.display = 'flex';
+    showToast("Mengunggah dokumen Rujukan ke Server...", "info");
 
+    // 4. GUNAKAN TIMEOUT AGAR UI BROWSER SEMPAT ME-RENDER OVERLAY SEBELUM TERTAHAN JARINGAN
+    setTimeout(async () => {
         const payload = {
             action: 'generatePDF_HD',
             docId: docId,
@@ -2095,26 +2093,33 @@ async function eksekusiCetakRujukan() {
             terapi: document.getElementById('rujukTerapi') ? document.getElementById('rujukTerapi').value || '-' : '-'
         };
         
-        fetch(API_URL, { 
-            method: 'POST', 
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payload) 
-        })
-        .then(response => response.json())
-        .then(resData => {
-            if(overlay) overlay.style.display = 'none';
+        try {
+            const response = await fetch(API_URL, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload) 
+            });
+            const resData = await response.json();
+            
             if(resData.status === 'success') {
                 showToast("Rujukan berhasil dienkripsi ke Server!", "success");
             } else {
                 showToast("Sistem Gagal mencatat rujukan ke server.", "error");
             }
-        })
-        .catch(e => {
-            if(overlay) overlay.style.display = 'none';
+        } catch(e) {
             showToast("Terjadi kesalahan sinkronisasi.", "error");
-        });
+        } finally {
+            // TUTUP OVERLAY SETELAH PROSES SELESAI
+            if(overlay) overlay.style.display = 'none';
 
-    }, 500);
+            // 5. LAKUKAN PRINT FISIK SETELAH DATA AMAN TERSIMPAN DI SERVER
+            document.body.classList.add('print-rujukan');
+            setTimeout(() => { 
+                window.print(); 
+                document.body.classList.remove('print-rujukan'); 
+            }, 300); // Jeda kecil agar class CSS merender layout print
+        }
+    }, 100);
 }
 
 
