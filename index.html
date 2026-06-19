@@ -10,10 +10,12 @@
     <link rel="apple-touch-icon" href="axalogo.png">
     <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis, farmasi, dan akuntansi terintegrasi.">
 
-    <!-- Fonts, Icons & Chart.js -->
+    <!-- Fonts, Icons, Chart.js, QRCode & PDF Generator -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <!-- LINK KE FILE CSS EKSTERNAL -->
     <link rel="stylesheet" href="styles.css">
@@ -62,11 +64,18 @@
 </head>
 <body>
 
+    <!-- Loading Overlay saat memproses PDF -->
+    <div id="pdfLoadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+        <h3 style="color: var(--text-dark);">Memproses TTE & Dokumen Digital...</h3>
+        <p style="color: var(--text-light);">Mohon tunggu sebentar, dokumen sedang dienkripsi ke Server.</p>
+    </div>
+
     <div class="blob blob-1"></div>
     <div class="blob blob-2"></div>
 
     <nav>
-        <div class="brand" onclick="navTo('beranda')">
+        <div class="brand" onclick="window.location.href='/'">
             <img src="axalogo.png" id="navLogo" alt="Logo" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fa-solid fa-tooth\'></i>')">
             <span id="navBrandName">Klinik<span style="color:var(--text-dark)">Care</span></span>
         </div>
@@ -80,6 +89,46 @@
     </nav>
 
     <main>
+        <!-- ==============================================
+             0. HALAMAN VERIFIKASI DOKUMEN TTE (verifikasi-page)
+             ============================================== -->
+        <section id="verifikasi-page" class="section">
+            <div class="glass form-container" style="max-width: 850px; margin: 40px auto; padding: 40px;">
+                <div style="text-align:center; margin-bottom: 30px; border-bottom: 2px dashed var(--glass-border); padding-bottom: 20px;">
+                    <img src="axalogo.png" id="vfLogoKlinik" style="height: 80px; margin-bottom: 10px;" alt="Logo Klinik">
+                    <h2 style="color:var(--text-dark); font-size: 1.5rem;">Sistem Verifikasi Dokumen Elektronik</h2>
+                    <p style="color:var(--text-light); font-size: 0.9rem;">Keaslian dokumen ini dijamin dan dilindungi oleh sistem terenkripsi Klinik.</p>
+                </div>
+                
+                <div class="table-responsive" style="box-shadow: none; border: 1px solid #e2e8f0; background: #fff;">
+                    <table class="dash-table" style="min-width: 100%;">
+                        <tbody>
+                            <tr>
+                                <td style="width: 35%; background: #f8fafc;"><strong>Pembuat Draft</strong></td>
+                                <td id="vfPembuat" style="font-size: 0.95rem;">-</td>
+                            </tr>
+                            <tr>
+                                <td style="background: #f8fafc;"><strong>Verifikator / Penandatangan</strong></td>
+                                <td>
+                                    <span id="vfPenandatangan" style="color:var(--text-dark); font-weight:600; font-size: 0.95rem; margin-right: 10px;">-</span> 
+                                    <span class="status-badge status-done" style="background: #22c55e; color: white;"><i class="fa-solid fa-check-circle"></i> Approved & Signed</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div style="margin-top: 30px; display:flex; justify-content:center; gap: 15px; flex-wrap: wrap;">
+                    <button class="btn btn-primary" onclick="bukaPdfViewer()" style="width: auto; padding: 12px 25px;"><i class="fa-solid fa-file-pdf"></i> Tampilkan Dokumen Asli</button>
+                    <a id="vfLinkFile" href="#" target="_blank" class="btn btn-outline" style="width: auto; padding: 12px 25px;"><i class="fa-solid fa-arrow-up-right-from-square"></i> Buka di Tab Baru</a>
+                </div>
+
+                <div id="pdfViewerContainer" style="display:none; margin-top:30px; height: 75vh; border: 2px solid #cbd5e1; border-radius: 12px; overflow:hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                    <iframe id="pdfViewerFrame" style="width:100%; height:100%; border:none;"></iframe>
+                </div>
+            </div>
+        </section>
+
         <!-- ==============================================
              1. BERANDA (beranda)
              ============================================== -->
@@ -1072,7 +1121,8 @@
         </div>
         <div class="sks-signature">
             <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
-            <br><br><br>
+            <!-- Kontainer QR Code TTE -->
+            <div id="qrCanvasSks" style="display: flex; justify-content: right; margin: 10px 0;"></div>
             <p><strong style="text-decoration: underline;" id="printDokterSks">( ______________________ )</strong><br><span id="printSipSks">SIP: .......................................</span></p>
         </div>
     </div>
@@ -1110,7 +1160,8 @@
         
         <div class="sks-signature" style="text-align: right;">
             <p>Salam Sejawat, <span id="printRujukanTgl"></span></p>
-            <br><br><br>
+            <!-- Kontainer QR Code TTE -->
+            <div id="qrCanvasRujuk" style="display: flex; justify-content: right; margin: 10px 0;"></div>
             <p><strong style="text-decoration: underline;" id="printRujukanDokter">( ______________________ )</strong><br><span id="printRujukanSip">SIP: .......................................</span></p>
         </div>
     </div>
