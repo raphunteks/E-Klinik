@@ -1,4 +1,4 @@
-// MASUKKAN URL DEPLOYMENT GAS VERSI 11 ANDA DISINI (Jika sudah deploy baru)
+// MASUKKAN URL DEPLOYMENT GAS VERSI 12 ANDA DISINI (Jika sudah deploy baru)
 const API_URL = "https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exec"; 
 
 let allPatientsData = [];
@@ -33,6 +33,89 @@ function toggleAccordion(id) {
     } else {
         el.classList.add('open');
     }
+}
+
+// ==========================================
+// [FITUR BARU] LOGIKA FOTO KLINIS & KOMPRESI
+// ==========================================
+function handlePhotoUpload(inputObj, imgPreviewId, iconId, hiddenInputId, btnGroupAmbilId, btnGroupEditId) {
+    if (inputObj.files && inputObj.files[0]) {
+        let file = inputObj.files[0];
+        
+        // Cek jika yang diupload adalah gambar
+        if (!file.type.startsWith('image/')) {
+            showToast("Hanya file gambar/foto yang diizinkan!", "error");
+            return;
+        }
+
+        let reader = new FileReader();
+        reader.onload = function(e) {
+            let img = new Image();
+            img.src = e.target.result;
+            
+            img.onload = function() {
+                // KOMPRESI GAMBAR AGAR TIDAK TIME-OUT DI GOOGLE APPS SCRIPT
+                let canvas = document.createElement('canvas');
+                let ctx = canvas.getContext('2d');
+                
+                // Set batas resolusi (Bagus tapi tetap ringan)
+                let MAX_WIDTH = 1080;
+                let MAX_HEIGHT = 1080;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                } else {
+                    if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Export ke Base64 (Kualitas 70% JPEG)
+                let dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                
+                // Tampilkan Preview ke UI
+                document.getElementById(iconId).style.display = 'none';
+                let previewImg = document.getElementById(imgPreviewId);
+                previewImg.src = dataUrl;
+                previewImg.style.display = 'block';
+
+                // Masukkan Base64 ke Hidden Input agar terkirim ke form
+                document.getElementById(hiddenInputId).value = dataUrl;
+
+                // Ganti tombol Ambil menjadi Edit/Ulang/Hapus
+                document.getElementById(btnGroupAmbilId).style.display = 'none';
+                document.getElementById(btnGroupEditId).style.display = 'flex';
+                
+                showToast("Foto berhasil direkam & siap diunggah!", "success");
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function hapusFoto(imgPreviewId, iconId, hiddenInputId, btnGroupAmbilId, btnGroupEditId) {
+    showCustomConfirm("Yakin ingin menghapus foto klinis ini?", (confirmed) => {
+        if (!confirmed) return;
+        
+        // Reset Preview UI
+        let previewImg = document.getElementById(imgPreviewId);
+        previewImg.src = '';
+        previewImg.style.display = 'none';
+        document.getElementById(iconId).style.display = 'block';
+
+        // Kosongkan Hidden Input
+        document.getElementById(hiddenInputId).value = "";
+
+        // Kembalikan Tombol seperti semula
+        document.getElementById(btnGroupAmbilId).style.display = 'block';
+        document.getElementById(btnGroupEditId).style.display = 'none';
+        
+        showToast("Foto dibatalkan/dihapus.", "info");
+    });
 }
 
 // ==================================================================
@@ -1556,6 +1639,12 @@ if(ermForm) {
         dataObj.riwayatPenyakit = strPenyakit; 
         dataObj.riwayatAlergi = strAlergi; 
         
+        // Tangkap Base64 dari Hidden Input Foto
+        const inputRA = document.getElementById('b64RahangAtas');
+        const inputRB = document.getElementById('b64RahangBawah');
+        dataObj.fotoRahangAtas = inputRA ? inputRA.value : "";
+        dataObj.fotoRahangBawah = inputRB ? inputRB.value : "";
+
         dataObj.detailTindakan = JSON.stringify(tindakanArray);
         dataObj.resepObat = JSON.stringify(resepArray);
         dataObj.action = "saveRM";
@@ -1563,6 +1652,10 @@ if(ermForm) {
         const btn = document.getElementById('submitBtn'); 
         const btnText = document.getElementById('btnText'); 
         const btnSpinner = document.getElementById('btnSpinner');
+        
+        // Tampilkan Overlay Loading Besar karena Upload Foto Butuh Waktu
+        const overlay = document.getElementById('pdfLoadingOverlay');
+        if(overlay) overlay.style.display = 'flex';
         
         if(btn) btn.disabled = true; 
         if(btnText) btnText.style.display = 'none'; 
@@ -1577,7 +1670,7 @@ if(ermForm) {
             const resultData = await res.json();
             
             if(resultData.status === 'success') {
-                showToast("Rekam Medis & Finansial Berhasil Disimpan!", "success");
+                showToast("Rekam Medis, Finansial & Foto Berhasil Disimpan!", "success");
                 e.target.reset(); 
                 if(document.getElementById('tanggalPelayanan')) {
                     document.getElementById('tanggalPelayanan').valueAsDate = new Date(); 
@@ -1606,7 +1699,28 @@ if(ermForm) {
                 if(alertFill) alertFill.style.display = 'none'; 
                 memoryPatientData = null;
                 
-                // [UPGRADE BARU] Tarik data real-time seketika setelah RM berhasil disimpan ke Server (Agar Arsip/Farmasi Langsung Update)
+                // Reset Gambar & UI Foto
+                const previewRA = document.getElementById('previewRA');
+                if (previewRA) { previewRA.src = ''; previewRA.style.display = 'none'; }
+                const iconRA = document.getElementById('iconRA');
+                if (iconRA) iconRA.style.display = 'block';
+                if (inputRA) inputRA.value = '';
+                const btnAmbilRA = document.getElementById('btnGroupAmbilRA');
+                if (btnAmbilRA) btnAmbilRA.style.display = 'block';
+                const btnEditRA = document.getElementById('btnGroupEditRA');
+                if (btnEditRA) btnEditRA.style.display = 'none';
+
+                const previewRB = document.getElementById('previewRB');
+                if (previewRB) { previewRB.src = ''; previewRB.style.display = 'none'; }
+                const iconRB = document.getElementById('iconRB');
+                if (iconRB) iconRB.style.display = 'block';
+                if (inputRB) inputRB.value = '';
+                const btnAmbilRB = document.getElementById('btnGroupAmbilRB');
+                if (btnAmbilRB) btnAmbilRB.style.display = 'block';
+                const btnEditRB = document.getElementById('btnGroupEditRB');
+                if (btnEditRB) btnEditRB.style.display = 'none';
+                
+                // Tarik data real-time seketika setelah RM berhasil disimpan ke Server (Agar Arsip/Farmasi Langsung Update)
                 await loadDashboardData(true);
                 
                 setTimeout(() => navTo('arsip'), 1500);
@@ -1619,6 +1733,7 @@ if(ermForm) {
             if(btn) btn.disabled = false; 
             if(btnText) btnText.style.display = 'block'; 
             if(btnSpinner) btnSpinner.style.display = 'none';
+            if(overlay) overlay.style.display = 'none'; // Sembunyikan overlay
         }
     });
 }
@@ -1679,6 +1794,17 @@ function bukaRiwayatKunjungan(rmFilter, nama) {
                 `;
             }
 
+            // [FITUR BARU] Menampilkan Link Foto Klinis di Riwayat Pasien
+            let fotoHTML = '';
+            let urlRA = v['URL Foto Rahang Atas'];
+            let urlRB = v['URL Foto Rahang Bawah'];
+            if ((urlRA && urlRA !== '-') || (urlRB && urlRB !== '-')) {
+                fotoHTML = '<div style="margin-top:15px; border-top: 1px dashed #cbd5e1; padding-top: 10px;"><strong><i class="fa-solid fa-image"></i> Arsip Foto Klinis (IO):</strong><br>';
+                if(urlRA && urlRA !== '-') fotoHTML += `<a href="${urlRA}" target="_blank" class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; display:inline-block; margin-right:5px; margin-top:5px; background: white;"><i class="fa-solid fa-eye"></i> Rahang Atas</a>`;
+                if(urlRB && urlRB !== '-') fotoHTML += `<a href="${urlRB}" target="_blank" class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; display:inline-block; margin-top:5px; background: white;"><i class="fa-solid fa-eye"></i> Rahang Bawah</a>`;
+                fotoHTML += '</div>';
+            }
+
             timeline.innerHTML += `
                 <div class="timeline-item">
                     <div class="tl-header" style="display:flex; justify-content:space-between;">
@@ -1723,6 +1849,8 @@ function bukaRiwayatKunjungan(rmFilter, nama) {
                                 <strong>O (Objektif):</strong> ${v['Objective']}<br>
                                 <strong>A (Asesmen / ICD-10):</strong> ${v['Assessment']}<br>
                                 <strong>P (Plan):</strong> <span style="color:#10b981; font-weight:600;">${v['Plan']}</span>
+                                
+                                ${fotoHTML}
                             </div>
                         </details>
 
