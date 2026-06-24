@@ -1,1234 +1,1301 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem E-RM | Klinik Pribadi</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem E-RM | Klinik Pribadi</title>
 
-    <!-- Meta Tags -->
-    <link rel="icon" type="image/png" id="faviconMeta" href="axalogo.png">
-    <link rel="apple-touch-icon" href="axalogo.png">
-    <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis, farmasi, dan akuntansi terintegrasi.">
+    <!-- Meta Tags -->
+    <link rel="icon" type="image/png" id="faviconMeta" href="axalogo.png">
+    <link rel="apple-touch-icon" href="axalogo.png">
+    <meta name="description" content="Sistem E-RM Klinik Pribadi - Manajemen pencatatan klinis, farmasi, dan akuntansi terintegrasi.">
 
-    <!-- Fonts, Icons, Chart.js, QRCode & PDF Generator -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
-    <!-- LINK KE FILE CSS EKSTERNAL -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- Fonts, Icons, Chart.js, QRCode & PDF Generator -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- LINK KE FILE CSS EKSTERNAL -->
+    <link rel="stylesheet" href="styles.css">
 
-    <!-- CSS ISOLASI KHUSUS CETAK SKS & RUJUKAN -->
-    <style>
-        .print-section { display: none; }
-    </style>
-    <style media="print">
-        /* [BIG UPGRADE] FIX BLANK PAGE PADA MOBILE PRINTER / PDF */
-        body * { visibility: visible !important; } /* Menimpa gaya lama yang menyebabkan blank */
-        body { background: white !important; color: black; margin: 0; padding: 0; }
-        
-        /* Sembunyikan elemen UI (Menu, Latar Belakang, Modal) secara tuntas dan aman */
-        nav, main, .modal, #toast, .blob, #pdfLoadingOverlay, #audioUnlockOverlay { 
-            display: none !important; 
-        }
-        
-        /* Kembalikan Posisi Cetak ke Normal (Relative), menghindari bug absolute pada iOS/Android */
-        .print-section { 
-            display: none; 
-            position: relative !important; 
-            width: 100%; 
-            left: 0; top: 0; 
-        }
-        
-        body.print-sks #printArea { display: block !important; }
-        body.print-rujukan #printAreaRujukan { display: block !important; }
-        
-        /* Pengaturan Layout & Tipografi Kertas A4 */
-        @page { size: auto; margin: 15mm; }
-        
-        .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 25px; }
-        .kop-surat img { height: 75px; margin-bottom: 5px; }
-        .sks-title { text-align: center; text-decoration: underline; font-weight: bold; font-size: 14pt; margin-bottom: 20px;}
-        .sks-body { font-size: 11pt; line-height: 1.6; }
-        .sks-signature { margin-top: 40px; }
-    </style>
+    <!-- CSS ISOLASI KHUSUS CETAK SKS & RUJUKAN -->
+    <style>
+        .print-section { display: none; }
+        /* Style Khusus Fitur Foto Klinis */
+        .photo-card { background: rgba(255,255,255,0.6); border: 2px dashed #94a3b8; border-radius: 12px; padding: 20px; text-align: center; transition: all 0.3s; }
+        .photo-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.9); }
+        .photo-preview-container { width: 100%; height: 200px; background: #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
+        .photo-preview-container img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .photo-preview-container i.placeholder-icon { font-size: 3rem; color: #94a3b8; }
+    </style>
+    <style media="print">
+        /* [BIG UPGRADE] FIX BLANK PAGE PADA MOBILE PRINTER / PDF */
+        body * { visibility: visible !important; } /* Menimpa gaya lama yang menyebabkan blank */
+        body { background: white !important; color: black; margin: 0; padding: 0; }
+        
+        /* Sembunyikan elemen UI (Menu, Latar Belakang, Modal) secara tuntas dan aman */
+        nav, main, .modal, #toast, .blob, #pdfLoadingOverlay, #audioUnlockOverlay { 
+            display: none !important; 
+        }
+        
+        /* Kembalikan Posisi Cetak ke Normal (Relative), menghindari bug absolute pada iOS/Android */
+        .print-section { 
+            display: none; 
+            position: relative !important; 
+            width: 100%; 
+            left: 0; top: 0; 
+        }
+        
+        body.print-sks #printArea { display: block !important; }
+        body.print-rujukan #printAreaRujukan { display: block !important; }
+        
+        /* Pengaturan Layout & Tipografi Kertas A4 */
+        @page { size: auto; margin: 15mm; }
+        
+        .kop-surat { text-align: center; border-bottom: 3px double black; padding-bottom: 10px; margin-bottom: 25px; }
+        .kop-surat img { height: 75px; margin-bottom: 5px; }
+        .sks-title { text-align: center; text-decoration: underline; font-weight: bold; font-size: 14pt; margin-bottom: 20px;}
+        .sks-body { font-size: 11pt; line-height: 1.6; }
+        .sks-signature { margin-top: 40px; }
+    </style>
 
-    <!-- Definisi Pola (Patterns) SVG untuk Odontogram -->
-    <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
-        <defs>
-            <pattern id="pat-cof" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="6" height="6" fill="#ffffff" />
-                <line x1="0" y1="0" x2="0" y2="6" stroke="#10b981" stroke-width="2.5" />
-            </pattern>
-            <pattern id="pat-fis" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                <rect width="6" height="6" fill="#ffffff" />
-                <line x1="0" y1="0" x2="0" y2="6" stroke="#ef4444" stroke-width="2.5" />
-            </pattern>
-            <pattern id="pat-poc" width="6" height="6" patternUnits="userSpaceOnUse">
-                <rect width="6" height="6" fill="transparent" />
-                <line x1="3" y1="0" x2="3" y2="6" stroke="#1e293b" stroke-width="1.5" />
-            </pattern>
-        </defs>
-    </svg>
+    <!-- Definisi Pola (Patterns) SVG untuk Odontogram -->
+    <svg style="width:0;height:0;position:absolute;" aria-hidden="true" focusable="false">
+        <defs>
+            <pattern id="pat-cof" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="6" height="6" fill="#ffffff" />
+                <line x1="0" y1="0" x2="0" y2="6" stroke="#10b981" stroke-width="2.5" />
+            </pattern>
+            <pattern id="pat-fis" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                <rect width="6" height="6" fill="#ffffff" />
+                <line x1="0" y1="0" x2="0" y2="6" stroke="#ef4444" stroke-width="2.5" />
+            </pattern>
+            <pattern id="pat-poc" width="6" height="6" patternUnits="userSpaceOnUse">
+                <rect width="6" height="6" fill="transparent" />
+                <line x1="3" y1="0" x2="3" y2="6" stroke="#1e293b" stroke-width="1.5" />
+            </pattern>
+        </defs>
+    </svg>
 </head>
 <body>
 
-    <!-- OVERLAY IZIN AUDIO (BYPASS AUTOPLAY BROWSER) -->
-    <div id="audioUnlockOverlay" onclick="unlockSystemAudio()" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#ef4444; color:white; padding:12px 24px; border-radius:50px; z-index:10000; cursor:pointer; box-shadow:0 10px 25px rgba(239, 68, 68, 0.4); font-weight:600; align-items:center; gap:10px;">
-        <i class="fa-solid fa-volume-high fa-beat"></i> Ketuk untuk Aktifkan Suara Peringatan Resep!
-    </div>
+    <!-- OVERLAY IZIN AUDIO (BYPASS AUTOPLAY BROWSER) -->
+    <div id="audioUnlockOverlay" onclick="unlockSystemAudio()" style="display:none; position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#ef4444; color:white; padding:12px 24px; border-radius:50px; z-index:10000; cursor:pointer; box-shadow:0 10px 25px rgba(239, 68, 68, 0.4); font-weight:600; align-items:center; gap:10px;">
+        <i class="fa-solid fa-volume-high fa-beat"></i> Ketuk untuk Aktifkan Suara Peringatan Resep!
+    </div>
 
-    <!-- Loading Overlay saat memproses PDF -->
-    <div id="pdfLoadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
-        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
-        <h3 style="color: var(--text-dark);">Memproses TTE & Dokumen Digital...</h3>
-        <p style="color: var(--text-light);">Mohon tunggu sebentar, dokumen sedang dienkripsi ke Server.</p>
-    </div>
+    <!-- Loading Overlay saat memproses PDF -->
+    <div id="pdfLoadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
+        <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
+        <h3 style="color: var(--text-dark);">Memproses Data...</h3>
+        <p style="color: var(--text-light);">Mohon tunggu sebentar, dokumen/foto sedang diunggah ke Server.</p>
+    </div>
 
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
 
-    <nav>
-        <div class="brand" onclick="window.location.href='/'">
-            <img src="axalogo.png" id="navLogo" alt="Logo" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fa-solid fa-tooth\'></i>')">
-            <span id="navBrandName">Klinik<span style="color:var(--text-dark)">Care</span></span>
-        </div>
-        <div class="nav-links">
-            <button class="nav-btn active" onclick="navTo('beranda')" id="btn-beranda"><i class="fa-solid fa-house"></i> <span>Beranda</span></button>
-            <button class="nav-btn" onclick="navTo('inputrm')" id="btn-inputrm"><i class="fa-solid fa-notes-medical"></i> <span>Input E-RM</span></button>
-            <button class="nav-btn" onclick="navTo('arsip')" id="btn-arsip"><i class="fa-solid fa-folder-open"></i> <span>Arsip</span></button>
-            <button class="nav-btn" onclick="navTo('farmasi')" id="btn-farmasi"><i class="fa-solid fa-pills"></i> <span>Farmasi</span></button>
-            <button class="nav-btn" onclick="navTo('dashboardadmin')" id="btn-dashboardadmin"><i class="fa-solid fa-cog"></i> <span>Admin</span></button>
-        </div>
-    </nav>
+    <nav>
+        <div class="brand" onclick="window.location.href='/'">
+            <img src="axalogo.png" id="navLogo" alt="Logo" onerror="this.style.display='none'; this.insertAdjacentHTML('afterend', '<i class=\'fa-solid fa-tooth\'></i>')">
+            <span id="navBrandName">Klinik<span style="color:var(--text-dark)">Care</span></span>
+        </div>
+        <div class="nav-links">
+            <button class="nav-btn active" onclick="navTo('beranda')" id="btn-beranda"><i class="fa-solid fa-house"></i> <span>Beranda</span></button>
+            <button class="nav-btn" onclick="navTo('inputrm')" id="btn-inputrm"><i class="fa-solid fa-notes-medical"></i> <span>Input E-RM</span></button>
+            <button class="nav-btn" onclick="navTo('arsip')" id="btn-arsip"><i class="fa-solid fa-folder-open"></i> <span>Arsip</span></button>
+            <button class="nav-btn" onclick="navTo('farmasi')" id="btn-farmasi"><i class="fa-solid fa-pills"></i> <span>Farmasi</span></button>
+            <button class="nav-btn" onclick="navTo('dashboardadmin')" id="btn-dashboardadmin"><i class="fa-solid fa-cog"></i> <span>Admin</span></button>
+        </div>
+    </nav>
 
-    <main>
-        <!-- ==============================================
-             0. HALAMAN VERIFIKASI DOKUMEN TTE (verifikasi-page)
-             ============================================== -->
-        <section id="verifikasi-page" class="section">
-            <div class="glass form-container" style="max-width: 1100px; margin: 20px auto; padding: 25px;">
-                <div style="text-align:center; margin-bottom: 25px; border-bottom: 2px dashed var(--glass-border); padding-bottom: 20px;">
-                    <img src="axalogo.png" id="vfLogoKlinikTop" style="height: 70px; margin-bottom: 10px;" alt="Logo Klinik">
-                    <h2 style="color:var(--primary); font-size: 1.6rem; margin-bottom: 5px;">Sistem Verifikasi Dokumen Elektronik</h2>
-                    <p style="color:var(--text-light); font-size: 0.9rem;">Keaslian dokumen ini dijamin dan dilindungi oleh sistem terenkripsi Klinik.</p>
-                </div>
-                
-                <div class="verif-layout">
-                    <div class="verif-main-col">
-                        <table class="verif-table">
-                            <tr>
-                                <td class="verif-lbl">Pembuat Draft</td>
-                                <td class="verif-val" id="vfPembuat">-</td>
-                            </tr>
-                            <tr>
-                                <td class="verif-lbl">Verifikator</td>
-                                <td class="verif-val" id="vfVerifikator">Sistem TTE Terpadu Klinik Care</td>
-                            </tr>
-                            <tr>
-                                <td class="verif-lbl">Penandatangan</td>
-                                <td class="verif-val">
-                                    <span id="vfPenandatangan" style="font-weight: 600;">-</span> 
-                                    <span class="badge-approved">Approved</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="verif-lbl" style="vertical-align: top; padding-top: 20px;">
-                                    Draft Surat
-                                    <br><br>
-                                    <button class="btn-reload" onclick="reloadViewer()"><i class="fa-solid fa-rotate-right"></i> Reload</button>
-                                </td>
-                                <td class="verif-val" style="padding-top: 20px;">
-                                    <div class="iframe-container">
-                                        <iframe id="pdfViewerFrame" src=""></iframe>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                    <div class="verif-side-col">
-                        <div class="verif-info-card">
-                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">File final :</p>
-                            <p style="margin-bottom: 15px;"><a id="vfLinkFile" target="_blank" href="#"><i class="fa-solid fa-file-pdf"></i> <span id="vfLinkName">Dokumen PDF</span></a></p>
+    <main>
+        <!-- ==============================================
+             0. HALAMAN VERIFIKASI DOKUMEN TTE (verifikasi-page)
+             ============================================== -->
+        <section id="verifikasi-page" class="section">
+            <div class="glass form-container" style="max-width: 1100px; margin: 20px auto; padding: 25px;">
+                <div style="text-align:center; margin-bottom: 25px; border-bottom: 2px dashed var(--glass-border); padding-bottom: 20px;">
+                    <img src="axalogo.png" id="vfLogoKlinikTop" style="height: 70px; margin-bottom: 10px;" alt="Logo Klinik">
+                    <h2 style="color:var(--primary); font-size: 1.6rem; margin-bottom: 5px;">Sistem Verifikasi Dokumen Elektronik</h2>
+                    <p style="color:var(--text-light); font-size: 0.9rem;">Keaslian dokumen ini dijamin dan dilindungi oleh sistem terenkripsi Klinik.</p>
+                </div>
+                
+                <div class="verif-layout">
+                    <div class="verif-main-col">
+                        <table class="verif-table">
+                            <tr>
+                                <td class="verif-lbl">Pembuat Draft</td>
+                                <td class="verif-val" id="vfPembuat">-</td>
+                            </tr>
+                            <tr>
+                                <td class="verif-lbl">Verifikator</td>
+                                <td class="verif-val" id="vfVerifikator">Sistem TTE Terpadu Klinik Care</td>
+                            </tr>
+                            <tr>
+                                <td class="verif-lbl">Penandatangan</td>
+                                <td class="verif-val">
+                                    <span id="vfPenandatangan" style="font-weight: 600;">-</span> 
+                                    <span class="badge-approved">Approved</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="verif-lbl" style="vertical-align: top; padding-top: 20px;">
+                                    Draft Surat
+                                    <br><br>
+                                    <button class="btn-reload" onclick="reloadViewer()"><i class="fa-solid fa-rotate-right"></i> Reload</button>
+                                </td>
+                                <td class="verif-val" style="padding-top: 20px;">
+                                    <div class="iframe-container">
+                                        <iframe id="pdfViewerFrame" src=""></iframe>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="verif-side-col">
+                        <div class="verif-info-card">
+                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">File final :</p>
+                            <p style="margin-bottom: 15px;"><a id="vfLinkFile" target="_blank" href="#"><i class="fa-solid fa-file-pdf"></i> <span id="vfLinkName">Dokumen PDF</span></a></p>
+                            
+                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">Draft selesai pada :</p>
+                            <p style="font-weight: 500; margin-bottom: 15px;" id="vfTimestamp">-</p>
+                            
+                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">Oleh :</p>
+                            <p style="font-weight: 500; margin-bottom: 0;" id="vfOleh">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================
+             1. BERANDA (beranda)
+             ============================================== -->
+        <section id="beranda" class="section active">
+            <div class="glass" style="text-align: center; padding: 60px 20px; max-width: 800px; margin: auto; margin-top: 5vh;">
+                <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Sistem E-RM Terpadu</h1>
+                <p style="color: var(--text-light); margin-bottom: 30px; line-height: 1.6;">Solusi cerdas rekam medis digital berbasis SOAP, lengkap dengan e-Resep Farmasi otomatis.</p>
+                <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
+                    <button class="btn btn-primary" onclick="navTo('inputrm')" style="width: auto;"><i class="fa-solid fa-plus"></i> Pasien Baru / Lama</button>
+                    <button class="btn" style="background: white; border: 1px solid var(--glass-border); width: auto;" onclick="navTo('arsip')"><i class="fa-solid fa-folder-open"></i> Buka Arsip Database</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==============================================
+             2. FORMULIR INPUT E-RM (inputrm)
+             ============================================== -->
+        <section id="inputrm" class="section">
+            <div class="glass form-container">
+                <h2 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-file-medical"></i> Formulir Rekam Medis</h2>
+                
+                <!-- BUBBLE UI AUTO FILL -->
+                <div class="auto-fill-bubble" id="autoFillAlert">
+                    <div style="display:flex; align-items:center;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        <div class="auto-fill-text">
+                            <strong>Halo! Data Pasien Ditemukan.</strong><br>
+                            Mengingat ini adalah pasien lama, Anda dapat memuat riwayat Demografi, Fisik, Sosial, dan Tanda Vital sebelumnya untuk menghemat waktu.
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="eksekusiAutoFill()"><i class="fa-solid fa-bolt"></i> Ya, Muat Otomatis</button>
+                </div>
+
+                <form id="ermForm">
+                    
+                    <!-- 0. Operator & Perawat -->
+                    <h3 class="module-title" style="margin-top: 0;"><i class="fa-solid fa-user-doctor"></i> Operator Pelaksana</h3>
+                    <div class="form-grid" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
+                        <div class="input-group">
+                            <label>Dokter / Tenaga Medis <span class="req">*</span></label>
+                            <select name="dokter" id="selectDokter" required>
+                                <option value="" disabled selected>Memuat data...</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>Perawat / Bidan / Nutrisionist / Sanitarian</label>
+                            <select name="perawat" id="selectPerawat">
+                                <option value="" disabled selected>Memuat data...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 1. Demografi -->
+                    <h3 class="module-title"><i class="fa-solid fa-id-card"></i> Demografi Pasien</h3>
+                    <div class="form-grid">
+                        <div class="input-group">
+                            <label>Tanggal Pelayanan</label>
+                            <div class="date-wrapper">
+                                <input type="date" id="tanggalPelayanan" name="tanggalPelayanan" required>
+                            </div>
+                        </div>
+                        <div class="input-group"><label>No RM</label><input type="text" id="inputNoRm" name="noRm" placeholder="Ketik No RM untuk Cek Memori" required oninput="checkPastVisits(event)"></div>
+                        <div class="input-group"><label>NIK Pasien</label><input type="number" id="inputNik" name="nik" placeholder="16 Digit NIK" required oninput="checkPastVisits(event)"></div>
+                        <div class="input-group"><label>Nama Lengkap</label><input type="text" id="inputNama" name="namaLengkap" placeholder="Nama sesuai KTP" required oninput="checkPastVisits(event)"></div>
+                        
+                        <div class="input-group">
+                            <label>Tempat, Tanggal Bulan Tahun Lahir</label>
+                            <input type="text" id="inputTtl" name="tempatTanggalLahir" placeholder="Cth: Kendari, 20 Januari 2002" required>
+                        </div>
+                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required></div>
+                        
+                        <div class="input-group">
+                            <label>Jenis Kelamin</label>
+                            <select name="jenisKelamin" required>
+                                <option value="" disabled selected>- Pilih -</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label>Alamat Sesuai KTP</label>
+                        <textarea name="alamat" rows="2" placeholder="Alamat lengkap pasien..." required></textarea>
+                    </div>
+
+                    <!-- 2. Status Fisis, Neurologis, Sosial Ekonomi -->
+                    <h3 class="module-title"><i class="fa-solid fa-users"></i> Status Fisis, Neurologis, Mental & Sosial Ekonomi</h3>
+                    <div class="form-grid-3" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
+                        <div class="input-group"><label>Menggunakan alat bantu saat beraktifitas?</label><select name="alatBantu"><option value="Tidak" selected>Tidak</option><option value="Ya">Ya</option></select></div>
+                        <div class="input-group"><label>Agama/Kepercayaan</label><input type="text" name="agama" placeholder="ISLAM, KRISTEN, dll" value="ISLAM"></div>
+                        <div class="input-group"><label>Kendala Komunikasi</label><select name="kendalaKomunikasi"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
+                        <div class="input-group"><label>Ada yang merawat dirumah?</label><select name="perawatDiRumah"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
+                        <div class="input-group"><label>Butuh bantuan orang lain saat beraktifitas?</label><select name="bantuanAktifitas"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
+                        
+                        <!-- Ekspresi dan Emosi -->
+                        <div class="input-group">
+                            <label>Ekspresi dan Emosi</label>
+                            <select name="ekspresiEmosi">
+                                <option value="Tenang" selected>Tenang</option>
+                                <option value="Cemas">Cemas</option>
+                                <option value="Takut">Takut</option>
+                                <option value="Gelisah">Gelisah</option>
+                                <option value="Sedih">Sedih</option>
+                                <option value="Marah">Marah</option>
+                            </select>
+                        </div>
+
+                        <!-- Bahasa yang digunakan -->
+                        <div class="input-group">
+                            <label>Bahasa yang digunakan</label>
+                            <select name="bahasa" id="selBahasa" onchange="toggleLainnya(this, 'inputBahasaLain')">
+                                <option value="Indonesia" selected>Indonesia</option>
+                                <option value="Daerah">Daerah</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                            <input type="text" id="inputBahasaLain" name="bahasaLain" placeholder="Sebutkan bahasa..." style="display:none; margin-top:6px;">
+                        </div>
+
+                        <div class="input-group"><label>Pekerjaan</label><input type="text" name="pekerjaan" placeholder="Pekerjaan pasien"></div>
+                        
+                        <!-- Tinggal Dengan -->
+                        <div class="input-group">
+                            <label>Tinggal Dengan</label>
+                            <select name="tinggalDengan" id="selTinggal" onchange="toggleLainnya(this, 'inputTinggalLain')">
+                                <option value="Orangtua" selected>Orangtua</option>
+                                <option value="Suami/Istri">Suami/Istri</option>
+                                <option value="Anak">Anak</option>
+                                <option value="Sendiri">Sendiri</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                            <input type="text" id="inputTinggalLain" name="tinggalLain" placeholder="Sebutkan tinggal dengan siapa..." style="display:none; margin-top:6px;">
+                        </div>
+
+                        <div class="input-group"><label>Sosial Ekonomi</label><select name="sosialEkonomi"><option value="Baik" selected>Baik</option><option value="Cukup">Cukup</option><option value="Kurang">Kurang</option></select></div>
+                        
+                        <!-- Jaminan -->
+                        <div class="input-group">
+                            <label>Jaminan</label>
+                            <select name="jaminan" id="selJaminan" onchange="toggleLainnya(this, 'inputJaminanLain', 'Asuransi Lain')">
+                                <option value="Mandiri" selected>Mandiri</option>
+                                <option value="BPJS Kesehatan">BPJS Kesehatan</option>
+                                <option value="Asuransi Lain">Lainnya (Asuransi Lain)</option>
+                            </select>
+                            <input type="text" id="inputJaminanLain" name="jaminanLain" placeholder="Sebutkan nama asuransi..." style="display:none; margin-top:6px;">
+                        </div>
+
+                        <div class="input-group"><label>Gangguan jiwa dimasa lalu</label><select name="gangguanJiwa"><option value="Tidak" selected>Tidak</option><option value="Ya">Ya</option></select></div>
+                        <div class="input-group"><label>Status Perkawinan</label><select name="statusPerkawinan"><option value="BELUM KAWIN" selected>BELUM KAWIN</option><option value="KAWIN">KAWIN</option><option value="CERAI">CERAI</option></select></div>
+                        <div class="input-group"><label>Status Ekonomi</label><select name="statusEkonomi"><option value="Baik" selected>Baik</option><option value="Cukup">Cukup</option><option value="Kurang">Kurang</option></select></div>
+                        
+                        <!-- Hubungan dengan keluarga -->
+                        <div class="input-group">
+                            <label>Hubungan dengan keluarga</label>
+                            <select name="hubunganKeluarga">
+                                <option value="Harmonis" selected>Harmonis</option>
+                                <option value="Kurang Harmonis">Kurang Harmonis</option>
+                                <option value="Tidak harmonis">Tidak harmonis</option>
+                                <option value="Konflik besar">Konflik besar</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 3. Riwayat Penyakit & Alergi -->
+                    <h3 class="module-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penyakit & Alergi Pasien</h3>
+                    <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+                        
+                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-viruses"></i> A. Riwayat Penyakit Sistemik</h4>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
+                            <input type="checkbox" id="chkTidakAdaPenyakit" checked style="width: 18px; height: 18px;" onchange="document.getElementById('penyakitContainer').style.display = this.checked ? 'none' : 'block'">
+                            Tidak Ada Riwayat Penyakit
+                        </label>
+                        <div id="penyakitContainer" style="display: none; margin-bottom: 25px;">
+                            <div id="penyakitList">
+                                <div class="input-group" style="margin-bottom: 10px; flex-direction: row; gap: 10px;">
+                                    <input type="text" class="penyakit-input" placeholder="Contoh: Hipertensi, Diabetes Melitus, Asma..." style="flex:1;">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline" onclick="tambahPenyakit()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Penyakit</button>
+                        </div>
+
+                        <hr style="border-top: 1px dashed var(--glass-border); margin: 20px 0;">
+
+                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-hand-dots"></i> B. Riwayat Alergi</h4>
+                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
+                            <input type="checkbox" id="chkTidakAdaAlergi" checked style="width: 18px; height: 18px;" onchange="document.getElementById('alergiContainer').style.display = this.checked ? 'none' : 'block'">
+                            Tidak Ada Riwayat Alergi
+                        </label>
+                        <div id="alergiContainer" style="display: none;">
+                            <div id="alergiList">
+                                <div class="input-group" style="margin-bottom: 10px; flex-direction: row; gap: 10px;">
+                                    <input type="text" class="alergi-input" placeholder="Contoh: Alergi Amoxicillin, Alergi Cuaca Dingin..." style="flex:1;">
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline" onclick="tambahAlergi()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Alergi</button>
+                        </div>
+
+                    </div>
+
+                    <!-- 4. Pemeriksaan Fisik Terpadu -->
+                    <h3 class="module-title"><i class="fa-solid fa-stethoscope"></i> Pemeriksaan Fisik Tanda Vital</h3>
+                    <div class="form-grid-small" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 25px;">
+                        <div class="input-group">
+                            <label>1. Kesadaran</label>
+                            <select name="kesadaran">
+                                <option value="Compos Mentis" selected>Compos Mentis</option>
+                                <option value="Apatis">Apatis</option>
+                                <option value="Somnolen">Somnolen</option>
+                                <option value="Sopor">Sopor</option>
+                                <option value="Koma">Koma</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>2. Sistole (mmHg)</label><input type="number" name="sistole" placeholder="120"></div>
+                        <div class="input-group"><label>3. Diastole (mmHg)</label><input type="number" name="diastole" placeholder="80"></div>
+                        <div class="input-group"><label>4. Berat Badan (kg)</label><input type="number" step="0.1" name="beratBadan" placeholder="65.5"></div>
+                        <div class="input-group"><label>5. Tinggi Badan (cm)</label><input type="number" name="tinggiBadan" placeholder="165"></div>
+                        <div class="input-group">
+                            <label>Cara Ukur TB</label>
+                            <select name="caraUkurTb">
+                                <option value="Berdiri" selected>Berdiri</option>
+                                <option value="Terlentang">Terlentang</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>6. Lingkar Perut (cm)</label><input type="number" name="lingkarPerut" placeholder="80"></div>
+                        <div class="input-group"><label>7. Detak Nadi (x/mnt)</label><input type="number" name="nadi" placeholder="80"></div>
+                        <div class="input-group"><label>8. Nafas (x/mnt)</label><input type="number" name="nafas" placeholder="20"></div>
+                        <div class="input-group"><label>9. Suhu (°C)</label><input type="number" step="0.1" name="suhu" placeholder="36.5"></div>
+                        <div class="input-group"><label>10. Saturasi (%)</label><input type="number" name="saturasi" placeholder="98"></div>
+                    </div>
+
+                    <!-- FITUR BARU: Pemeriksaan Dasar Gigi -->
+                    <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Pemeriksaan Dasar Gigi</h3>
+                    <div class="form-grid-3" style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 25px;">
+                        
+                        <!-- Kolom 1: Extraoral -->
+                        <div>
+                            <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border);">A. Pemeriksaan Extraoral</h4>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Bengkak</label>
+                                <select name="pdgBengkak">
+                                    <option value="" disabled selected></option>
+                                    <option value="Ya">Ya</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Konsistensi</label>
+                                <select name="pdgKonsistensi">
+                                    <option value="" disabled selected></option>
+                                    <option value="Lunak">Lunak</option>
+                                    <option value="Kenyal">Kenyal</option>
+                                    <option value="Keras">Keras</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Warna Kulit</label>
+                                <select name="pdgWarnaKulit">
+                                    <option value="" disabled selected></option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Kemerahan">Kemerahan</option>
+                                    <option value="Merah Kebiruan">Merah Kebiruan</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Suhu Kulit</label>
+                                <select name="pdgSuhuKulit">
+                                    <option value="" disabled selected></option>
+                                    <option value="Panas">Panas</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Kolom 2: Intraoral 1 -->
+                        <div>
+                            <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border);">B. Pemeriksaan Intraoral</h4>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Goyang</label>
+                                <select name="pdgGoyang">
+                                    <option value="" disabled selected></option>
+                                    <option value="Ya">Ya</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Warna Gusi</label>
+                                <select name="pdgWarnaGusi">
+                                    <option value="" disabled selected></option>
+                                    <option value="Normal">Normal</option>
+                                    <option value="Kemerahan">Kemerahan</option>
+                                    <option value="Merah Kebiruan">Merah Kebiruan</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Karies Gigi</label>
+                                <select name="pdgKaries">
+                                    <option value="" selected></option>
+                                    <option value="Insisal">Insisal</option>
+                                    <option value="Mesial">Mesial</option>
+                                    <option value="Distal">Distal</option>
+                                    <option value="Oklusal">Oklusal</option>
+                                    <option value="Disto Oklusal">Disto Oklusal</option>
+                                    <option value="Mesio Oklusal">Mesio Oklusal</option>
+                                    <option value="Bukal">Bukal</option>
+                                    <option value="Disto Bukal">Disto Bukal</option>
+                                    <option value="Mesio Bukal">Mesio Bukal</option>
+                                    <option value="Labial">Labial</option>
+                                    <option value="Palatal">Palatal</option>
+                                    <option value="Disto Palatal">Disto Palatal</option>
+                                    <option value="Mesio Palatal">Mesio Palatal</option>
+                                    <option value="Lingual">Lingual</option>
+                                    <option value="Mod">Mod</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Pembengkakan</label>
+                                <select name="pdgPembengkakan">
+                                    <option value="" disabled selected></option>
+                                    <option value="Ada">Ada</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Kolom 3: Intraoral 2 (Lanjutan) -->
+                        <div>
+                            <h4 style="font-size: 0.95rem; color: transparent; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border); user-select: none;">C. Lanjutan</h4>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Perkusi</label>
+                                <select name="pdgPerkusi">
+                                    <option value="" disabled selected></option>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Druk</label>
+                                <select name="pdgDruk">
+                                    <option value="" disabled selected></option>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Palpasi</label>
+                                <select name="pdgPalpasi">
+                                    <option value="" disabled selected></option>
+                                    <option value="Sakit">Sakit</option>
+                                    <option value="Tidak">Tidak</option>
+                                </select>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 10px;">
+                                <label>Status Karies</label>
+                                <select name="pdgStatusKaries">
+                                    <option value="" disabled selected></option>
+                                    <option value="+">+</option>
+                                    <option value="-">-</option>
+                                </select>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 5. Data Klinis, ODONTOGRAM & SOAP -->
+                    <h3 class="module-title" style="justify-content: space-between;">
+                        <span><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</span>
+                    </h3>
+                    
+                    <div class="accordion-box">
+                        <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
+                            <span><i class="fa-solid fa-clock-rotate-left"></i> Ringkasan Riwayat Odontogram Lama</span>
+                            <i class="fa-solid fa-chevron-down"></i>
+                        </div>
+                        <div class="accordion-body" id="riwayatOdontoBody">
+                            <div class="table-responsive">
+                                <table class="dash-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tanggal Kunjungan</th>
+                                            <th>Teks Detail Perawatan Elemen Gigi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="riwayatOdontoList">
+                                        <!-- Data riwayat akan dimuat otomatis -->
+                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Isi No RM / NIK / Nama pasien di atas untuk melacak memori riwayat.</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <label style="margin: 0;">Pemetaan Odontogram Interaktif</label>
+                        <a href="https://drive.google.com/file/d/1kv2sd6zHcW7sL-Oo2xtY8d5WBVgKIjd6/view?usp=sharing" target="_blank" class="btn btn-primary" style="font-size: 0.75rem; padding: 5px 10px; width: auto;"><i class="fa-solid fa-file-pdf"></i> Lihat Panduan</a>
+                    </div>
+                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">
+                        *Pilih Alat (Tool) pada kategori di bawah ini, lalu klik kotak area gigi untuk menerapkan tindakan.
+                    </p>
+                    
+                    <div class="odonto-tools-container">
+                        <!-- Kategori 1 -->
+                        <div class="tools-category">1. Keadaan Gigi (Klik Sembarang Area Gigi)</div>
+                        <div class="tools-grid">
+                            <button type="button" class="tool-btn active" onclick="setOdontoTool('norm', 'norm', this, 'SOU (Normal/Sehat): Gigi dalam keadaan sehat, normal, dan tanpa kelainan. Klik untuk menghapus status/coretan sebelumnya.')"><div class="tc-norm"></div> SOU (Normal)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('non', 'label', this, 'NON (Tidak Ada): Gigi tidak ada atau tidak diketahui keberadaannya.')"><div class="tc-lbl">NON</div> NON (Tdk Ada)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('une', 'label', this, 'UNE (Un-erupted): Gigi belum tumbuh (biasanya perlu dukungan foto Rontgen pada usia dewasa).')"><div class="tc-lbl">UNE</div> UNE (Un-erupt)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('pre', 'label', this, 'PRE (Partial Erupted): Gigi baru tumbuh sebagian.')"><div class="tc-lbl">PRE</div> PRE (Partial)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('imv', 'label', this, 'IMV (Impacted Visible): Gigi mengalami impaksi / terhalang pertumbuhannya.')"><div class="tc-lbl">IMV</div> IMV (Impaksi)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('ano', 'label', this, 'ANO (Anomali): Terdapat kelainan bentuk pada gigi (Peg shape, rudimeter, supernumerary, dll).')"><div class="tc-lbl">ANO</div> ANO (Anomali)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('dia', 'label', this, 'DIA (Diastema): Terdapat jarak/celah yang tidak normal antar gigi.')"><div class="tc-lbl">DIA</div> DIA (Diastema)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('att', 'label', this, 'ATT (Atrisi): Terdapat keausan gigi akibat gesekan antar gigi.')"><div class="tc-lbl">ATT</div> ATT (Atrisi)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('abr', 'label', this, 'ABR (Abrasi): Terdapat keausan gigi akibat proses mekanis (misal: sikat gigi terlalu keras).')"><div class="tc-lbl">ABR</div> ABR (Abrasi)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('cfr', 'whole', this, 'CFR (Crown Fracture): Terjadi fraktur/patah pada mahkota gigi.')"><div class="tc-cfr"></div> CFR (Fracture)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('nvt', 'root', this, 'NVT (Non-Vital): Gigi sudah mati/non-vital (biasanya diikuti kondisi karies/tumpatan).')"><div class="tc-nvt"></div> NVT (Non Vital)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('rrx', 'whole', this, 'RRX (Radix): Mahkota habis, hanya tersisa akar gigi.')"><div class="tc-rrx"></div> RRX (Sisa Akar)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('mis', 'whole', this, 'MIS (Missing): Gigi telah hilang/dicabut.')"><div class="tc-mis"></div> MIS (Hilang)</button>
+                        </div>
+
+                        <!-- Kategori 2 -->
+                        <div class="tools-category">2. Bahan Restorasi & Karies (Klik Permukaan/Sisi Kotak Gigi)</div>
+                        <div class="tools-grid">
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('car', 'surface', this, 'CAR (Caries): Terdapat karies/lubang pada gigi. (Klik permukaan spesifik: MODVL untuk menandai area karies).')"><div class="tc-car"></div> CAR (Caries)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('amf', 'surface', this, 'AMF (Amalgam Filling): Tambalan Amalgam pada permukaan gigi.')"><div class="tc-amf"></div> AMF (Amalgam)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('gif', 'surface', this, 'GIF (GIC/Silika): Tambalan Glass Ionomer Cement (Silika) pada permukaan gigi.')"><div class="tc-gif"></div> GIF (GIC/Silika)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('cof', 'surface', this, 'COF (Composite Filling): Tambalan Komposit (Arsir Hijau) pada permukaan gigi.')"><div class="tc-cof"></div> COF (Composite)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('fis', 'surface', this, 'FIS (Fissure Sealant): Tindakan pencegahan dengan menutupi pit dan fissure gigi (Arsir Merah).')"><div class="tc-fis"></div> FIS (Sealant)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('inl', 'label', this, 'INL (Inlay): Restorasi Inlay pada gigi.')"><div class="tc-lbl">INL</div> INL (Inlay)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('onl', 'label', this, 'ONL (Onlay): Restorasi Onlay pada gigi.')"><div class="tc-lbl">ONL</div> ONL (Onlay)</button>
+                        </div>
+
+                        <!-- Kategori 3 -->
+                        <div class="tools-category">3. Restorasi (Klik Sembarang Area Gigi)</div>
+                        <div class="tools-grid">
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('fmc', 'whole', this, 'FMC (Full Metal Crown): Restorasi mahkota penuh berbahan logam.')"><div class="tc-fmc"></div> FMC (Metal Crwn)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('poc', 'whole', this, 'POC (Porcelain Crown): Restorasi mahkota berbahan porselen.')"><div class="tc-poc"></div> POC (Porc. Crwn)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('mpc', 'label', this, 'MPC (Metal Porcelain Crown): Restorasi mahkota kombinasi logam dan porselen.')"><div class="tc-lbl">MPC</div> MPC (Met-Porc)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('gmc', 'label', this, 'GMC (Gold Metal Crown): Restorasi mahkota berbahan logam emas.')"><div class="tc-lbl">GMC</div> GMC (Gold)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('rct', 'root', this, 'RCT (Root Canal Treatment): Perawatan saluran akar (biasanya diikuti tumpatan/restorasi mahkota).')"><div class="tc-rct"></div> RCT (Sal. Akar)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('ipx', 'label', this, 'IPX (Implant): Pemasangan implan gigi.')"><div class="tc-lbl">IPX</div> IPX (Implan)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('meb', 'label', this, 'MEB (Metal Bridge): Pembuatan jembatan gigi berbahan logam.')"><div class="tc-lbl">MEB</div> MEB (Met. Brdg)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('pob', 'label', this, 'POB (Porcelain Bridge): Pembuatan jembatan gigi berbahan porselen.')"><div class="tc-lbl">POB</div> POB (Porc. Brdg)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('pon', 'label', this, 'PON (Pontic): Gigi palsu pengganti pada jembatan (Bridge).')"><div class="tc-lbl">PON</div> PON (Pontic)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('abu', 'label', this, 'ABU (Abutment): Gigi penyangga utama untuk jembatan (Bridge).')"><div class="tc-lbl">ABU</div> ABU (Abutment)</button>
+                        </div>
+
+                        <!-- Kategori 4 -->
+                        <div class="tools-category">4. Protesa (Klik Sembarang Area Gigi)</div>
+                        <div class="tools-grid">
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('prd', 'label', this, 'PRD (Partial Denture): Pemasangan Gigi Tiruan Sebagian pada area ini.')"><div class="tc-lbl">PRD</div> PRD (P. Denture)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('fld', 'label', this, 'FLD (Full Denture): Pemasangan Gigi Tiruan Lengkap.')"><div class="tc-lbl">FLD</div> FLD (F. Denture)</button>
+                            <button type="button" class="tool-btn" onclick="setOdontoTool('acr', 'label', this, 'ACR (Acrylic): Bahan protesa menggunakan material Akrilik.')"><div class="tc-lbl">ACR</div> ACR (Acrylic)</button>
+                        </div>
+                    </div>
+
+                    <div class="odonto-grid-container">
+                        <div class="scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk melihat seluruh gigi</div>
+                        <div id="odontogramGrid" class="odonto-grid">
+                            <!-- Odontogram SVG Grid Akan Dirender Disini -->
+                        </div>
+                    </div>
+
+                    <!-- Hidden Input untuk menyimpan JSON State Odontogram -->
+                    <input type="hidden" name="odontoVisualData" id="odontoVisualInput">
+
+                    <div class="input-group" style="margin-bottom: 20px;">
+                        <label>Teks Terjemahan Hasil Odontogram (Otomatis)</label>
+                        <input type="text" id="elemenGigiInput" name="elemenGigi" placeholder="Klik area gigi di atas untuk generate teks otomatis..." required>
+                    </div>
+
+                            <!-- ========================================== -->
+                            <!-- FITUR BARU: FOTO KLINIS (IO) KHUSUS MOBILE -->
+                            <!-- ========================================== -->
+                            <h3 class="module-title"><i class="fa-solid fa-camera"></i> Foto Klinis (IO)</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">*Ketuk tombol di bawah untuk membuka kamera HP secara otomatis. Jika salah ambil, bisa diulang/dihapus kapan saja.</p>
                             
-                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">Draft selesai pada :</p>
-                            <p style="font-weight: 500; margin-bottom: 15px;" id="vfTimestamp">-</p>
-                            
-                            <p style="color: #64748b; font-size: 0.8rem; margin-bottom: 5px;">Oleh :</p>
-                            <p style="font-weight: 500; margin-bottom: 0;" id="vfOleh">-</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==============================================
-             1. BERANDA (beranda)
-             ============================================== -->
-        <section id="beranda" class="section active">
-            <div class="glass" style="text-align: center; padding: 60px 20px; max-width: 800px; margin: auto; margin-top: 5vh;">
-                <h1 style="font-size: 2.5rem; margin-bottom: 20px;">Sistem E-RM Terpadu</h1>
-                <p style="color: var(--text-light); margin-bottom: 30px; line-height: 1.6;">Solusi cerdas rekam medis digital berbasis SOAP, lengkap dengan e-Resep Farmasi otomatis.</p>
-                <div style="display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
-                    <button class="btn btn-primary" onclick="navTo('inputrm')" style="width: auto;"><i class="fa-solid fa-plus"></i> Pasien Baru / Lama</button>
-                    <button class="btn" style="background: white; border: 1px solid var(--glass-border); width: auto;" onclick="navTo('arsip')"><i class="fa-solid fa-folder-open"></i> Buka Arsip Database</button>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==============================================
-             2. FORMULIR INPUT E-RM (inputrm)
-             ============================================== -->
-        <section id="inputrm" class="section">
-            <div class="glass form-container">
-                <h2 style="margin-bottom: 20px; color: var(--primary);"><i class="fa-solid fa-file-medical"></i> Formulir Rekam Medis</h2>
-                
-                <!-- BUBBLE UI AUTO FILL -->
-                <div class="auto-fill-bubble" id="autoFillAlert">
-                    <div style="display:flex; align-items:center;">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <div class="auto-fill-text">
-                            <strong>Halo! Data Pasien Ditemukan.</strong><br>
-                            Mengingat ini adalah pasien lama, Anda dapat memuat riwayat Demografi, Fisik, Sosial, dan Tanda Vital sebelumnya untuk menghemat waktu.
-                        </div>
-                    </div>
-                    <button type="button" class="btn btn-success" onclick="eksekusiAutoFill()"><i class="fa-solid fa-bolt"></i> Ya, Muat Otomatis</button>
-                </div>
-
-                <form id="ermForm">
-                    
-                    <!-- 0. Operator & Perawat -->
-                    <h3 class="module-title" style="margin-top: 0;"><i class="fa-solid fa-user-doctor"></i> Operator Pelaksana</h3>
-                    <div class="form-grid" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
-                        <div class="input-group">
-                            <label>Dokter / Tenaga Medis <span class="req">*</span></label>
-                            <select name="dokter" id="selectDokter" required>
-                                <option value="" disabled selected>Memuat data...</option>
-                            </select>
-                        </div>
-                        <div class="input-group">
-                            <label>Perawat / Bidan / Nutrisionist / Sanitarian</label>
-                            <select name="perawat" id="selectPerawat">
-                                <option value="" disabled selected>Memuat data...</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- 1. Demografi -->
-                    <h3 class="module-title"><i class="fa-solid fa-id-card"></i> Demografi Pasien</h3>
-                    <div class="form-grid">
-                        <div class="input-group">
-                            <label>Tanggal Pelayanan</label>
-                            <div class="date-wrapper">
-                                <input type="date" id="tanggalPelayanan" name="tanggalPelayanan" required>
-                            </div>
-                        </div>
-                        <div class="input-group"><label>No RM</label><input type="text" id="inputNoRm" name="noRm" placeholder="Ketik No RM untuk Cek Memori" required oninput="checkPastVisits(event)"></div>
-                        <div class="input-group"><label>NIK Pasien</label><input type="number" id="inputNik" name="nik" placeholder="16 Digit NIK" required oninput="checkPastVisits(event)"></div>
-                        <div class="input-group"><label>Nama Lengkap</label><input type="text" id="inputNama" name="namaLengkap" placeholder="Nama sesuai KTP" required oninput="checkPastVisits(event)"></div>
-                        
-                        <div class="input-group">
-                            <label>Tempat, Tanggal Bulan Tahun Lahir</label>
-                            <input type="text" id="inputTtl" name="tempatTanggalLahir" placeholder="Cth: Kendari, 20 Januari 2002" required>
-                        </div>
-                        <div class="input-group"><label>Usia (Tahun)</label><input type="number" id="inputUsia" name="usia" placeholder="Otomatis terisi..." required></div>
-                        
-                        <div class="input-group">
-                            <label>Jenis Kelamin</label>
-                            <select name="jenisKelamin" required>
-                                <option value="" disabled selected>- Pilih -</option>
-                                <option value="Laki-laki">Laki-laki</option>
-                                <option value="Perempuan">Perempuan</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 20px;">
-                        <label>Alamat Sesuai KTP</label>
-                        <textarea name="alamat" rows="2" placeholder="Alamat lengkap pasien..." required></textarea>
-                    </div>
-
-                    <!-- 2. Status Fisis, Neurologis, Sosial Ekonomi -->
-                    <h3 class="module-title"><i class="fa-solid fa-users"></i> Status Fisis, Neurologis, Mental & Sosial Ekonomi</h3>
-                    <div class="form-grid-3" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px;">
-                        <div class="input-group"><label>Menggunakan alat bantu saat beraktifitas?</label><select name="alatBantu"><option value="Tidak" selected>Tidak</option><option value="Ya">Ya</option></select></div>
-                        <div class="input-group"><label>Agama/Kepercayaan</label><input type="text" name="agama" placeholder="ISLAM, KRISTEN, dll" value="ISLAM"></div>
-                        <div class="input-group"><label>Kendala Komunikasi</label><select name="kendalaKomunikasi"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
-                        <div class="input-group"><label>Ada yang merawat dirumah?</label><select name="perawatDiRumah"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
-                        <div class="input-group"><label>Butuh bantuan orang lain saat beraktifitas?</label><select name="bantuanAktifitas"><option value="Tidak Ada" selected>Tidak Ada</option><option value="Ada">Ada</option></select></div>
-                        
-                        <!-- Ekspresi dan Emosi -->
-                        <div class="input-group">
-                            <label>Ekspresi dan Emosi</label>
-                            <select name="ekspresiEmosi">
-                                <option value="Tenang" selected>Tenang</option>
-                                <option value="Cemas">Cemas</option>
-                                <option value="Takut">Takut</option>
-                                <option value="Gelisah">Gelisah</option>
-                                <option value="Sedih">Sedih</option>
-                                <option value="Marah">Marah</option>
-                            </select>
-                        </div>
-
-                        <!-- Bahasa yang digunakan -->
-                        <div class="input-group">
-                            <label>Bahasa yang digunakan</label>
-                            <select name="bahasa" id="selBahasa" onchange="toggleLainnya(this, 'inputBahasaLain')">
-                                <option value="Indonesia" selected>Indonesia</option>
-                                <option value="Daerah">Daerah</option>
-                                <option value="Lainnya">Lainnya</option>
-                            </select>
-                            <input type="text" id="inputBahasaLain" name="bahasaLain" placeholder="Sebutkan bahasa..." style="display:none; margin-top:6px;">
-                        </div>
-
-                        <div class="input-group"><label>Pekerjaan</label><input type="text" name="pekerjaan" placeholder="Pekerjaan pasien"></div>
-                        
-                        <!-- Tinggal Dengan -->
-                        <div class="input-group">
-                            <label>Tinggal Dengan</label>
-                            <select name="tinggalDengan" id="selTinggal" onchange="toggleLainnya(this, 'inputTinggalLain')">
-                                <option value="Orangtua" selected>Orangtua</option>
-                                <option value="Suami/Istri">Suami/Istri</option>
-                                <option value="Anak">Anak</option>
-                                <option value="Sendiri">Sendiri</option>
-                                <option value="Lainnya">Lainnya</option>
-                            </select>
-                            <input type="text" id="inputTinggalLain" name="tinggalLain" placeholder="Sebutkan tinggal dengan siapa..." style="display:none; margin-top:6px;">
-                        </div>
-
-                        <div class="input-group"><label>Sosial Ekonomi</label><select name="sosialEkonomi"><option value="Baik" selected>Baik</option><option value="Cukup">Cukup</option><option value="Kurang">Kurang</option></select></div>
-                        
-                        <!-- Jaminan -->
-                        <div class="input-group">
-                            <label>Jaminan</label>
-                            <select name="jaminan" id="selJaminan" onchange="toggleLainnya(this, 'inputJaminanLain', 'Asuransi Lain')">
-                                <option value="Mandiri" selected>Mandiri</option>
-                                <option value="BPJS Kesehatan">BPJS Kesehatan</option>
-                                <option value="Asuransi Lain">Lainnya (Asuransi Lain)</option>
-                            </select>
-                            <input type="text" id="inputJaminanLain" name="jaminanLain" placeholder="Sebutkan nama asuransi..." style="display:none; margin-top:6px;">
-                        </div>
-
-                        <div class="input-group"><label>Gangguan jiwa dimasa lalu</label><select name="gangguanJiwa"><option value="Tidak" selected>Tidak</option><option value="Ya">Ya</option></select></div>
-                        <div class="input-group"><label>Status Perkawinan</label><select name="statusPerkawinan"><option value="BELUM KAWIN" selected>BELUM KAWIN</option><option value="KAWIN">KAWIN</option><option value="CERAI">CERAI</option></select></div>
-                        <div class="input-group"><label>Status Ekonomi</label><select name="statusEkonomi"><option value="Baik" selected>Baik</option><option value="Cukup">Cukup</option><option value="Kurang">Kurang</option></select></div>
-                        
-                        <!-- Hubungan dengan keluarga -->
-                        <div class="input-group">
-                            <label>Hubungan dengan keluarga</label>
-                            <select name="hubunganKeluarga">
-                                <option value="Harmonis" selected>Harmonis</option>
-                                <option value="Kurang Harmonis">Kurang Harmonis</option>
-                                <option value="Tidak harmonis">Tidak harmonis</option>
-                                <option value="Konflik besar">Konflik besar</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- 3. Riwayat Penyakit & Alergi -->
-                    <h3 class="module-title"><i class="fa-solid fa-clock-rotate-left"></i> Riwayat Penyakit & Alergi Pasien</h3>
-                    <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
-                        
-                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-viruses"></i> A. Riwayat Penyakit Sistemik</h4>
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
-                            <input type="checkbox" id="chkTidakAdaPenyakit" checked style="width: 18px; height: 18px;" onchange="document.getElementById('penyakitContainer').style.display = this.checked ? 'none' : 'block'">
-                            Tidak Ada Riwayat Penyakit
-                        </label>
-                        <div id="penyakitContainer" style="display: none; margin-bottom: 25px;">
-                            <div id="penyakitList">
-                                <div class="input-group" style="margin-bottom: 10px; flex-direction: row; gap: 10px;">
-                                    <input type="text" class="penyakit-input" placeholder="Contoh: Hipertensi, Diabetes Melitus, Asma..." style="flex:1;">
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-outline" onclick="tambahPenyakit()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Penyakit</button>
-                        </div>
-
-                        <hr style="border-top: 1px dashed var(--glass-border); margin: 20px 0;">
-
-                        <h4 style="font-size: 0.95rem; margin-bottom: 10px; color: var(--text-dark);"><i class="fa-solid fa-hand-dots"></i> B. Riwayat Alergi</h4>
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.95rem; margin-bottom: 15px;">
-                            <input type="checkbox" id="chkTidakAdaAlergi" checked style="width: 18px; height: 18px;" onchange="document.getElementById('alergiContainer').style.display = this.checked ? 'none' : 'block'">
-                            Tidak Ada Riwayat Alergi
-                        </label>
-                        <div id="alergiContainer" style="display: none;">
-                            <div id="alergiList">
-                                <div class="input-group" style="margin-bottom: 10px; flex-direction: row; gap: 10px;">
-                                    <input type="text" class="alergi-input" placeholder="Contoh: Alergi Amoxicillin, Alergi Cuaca Dingin..." style="flex:1;">
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-outline" onclick="tambahAlergi()" style="padding: 6px 12px; font-size: 0.8rem;"><i class="fa-solid fa-plus"></i> Tambah Alergi</button>
-                        </div>
-
-                    </div>
-
-                    <!-- 4. Pemeriksaan Fisik Terpadu -->
-                    <h3 class="module-title"><i class="fa-solid fa-stethoscope"></i> Pemeriksaan Fisik Tanda Vital</h3>
-                    <div class="form-grid-small" style="background: rgba(255,255,255,0.4); padding: 15px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 25px;">
-                        <div class="input-group">
-                            <label>1. Kesadaran</label>
-                            <select name="kesadaran">
-                                <option value="Compos Mentis" selected>Compos Mentis</option>
-                                <option value="Apatis">Apatis</option>
-                                <option value="Somnolen">Somnolen</option>
-                                <option value="Sopor">Sopor</option>
-                                <option value="Koma">Koma</option>
-                            </select>
-                        </div>
-                        <div class="input-group"><label>2. Sistole (mmHg)</label><input type="number" name="sistole" placeholder="120"></div>
-                        <div class="input-group"><label>3. Diastole (mmHg)</label><input type="number" name="diastole" placeholder="80"></div>
-                        <div class="input-group"><label>4. Berat Badan (kg)</label><input type="number" step="0.1" name="beratBadan" placeholder="65.5"></div>
-                        <div class="input-group"><label>5. Tinggi Badan (cm)</label><input type="number" name="tinggiBadan" placeholder="165"></div>
-                        <div class="input-group">
-                            <label>Cara Ukur TB</label>
-                            <select name="caraUkurTb">
-                                <option value="Berdiri" selected>Berdiri</option>
-                                <option value="Terlentang">Terlentang</option>
-                            </select>
-                        </div>
-                        <div class="input-group"><label>6. Lingkar Perut (cm)</label><input type="number" name="lingkarPerut" placeholder="80"></div>
-                        <div class="input-group"><label>7. Detak Nadi (x/mnt)</label><input type="number" name="nadi" placeholder="80"></div>
-                        <div class="input-group"><label>8. Nafas (x/mnt)</label><input type="number" name="nafas" placeholder="20"></div>
-                        <div class="input-group"><label>9. Suhu (°C)</label><input type="number" step="0.1" name="suhu" placeholder="36.5"></div>
-                        <div class="input-group"><label>10. Saturasi (%)</label><input type="number" name="saturasi" placeholder="98"></div>
-                    </div>
-
-                    <!-- FITUR BARU: Pemeriksaan Dasar Gigi -->
-                    <h3 class="module-title"><i class="fa-solid fa-tooth"></i> Pemeriksaan Dasar Gigi</h3>
-                    <div class="form-grid-3" style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); margin-bottom: 25px;">
-                        
-                        <!-- Kolom 1: Extraoral -->
-                        <div>
-                            <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border);">A. Pemeriksaan Extraoral</h4>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Bengkak</label>
-                                <select name="pdgBengkak">
-                                    <option value="" disabled selected></option>
-                                    <option value="Ya">Ya</option>
-                                    <option value="Tidak">Tidak</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Konsistensi</label>
-                                <select name="pdgKonsistensi">
-                                    <option value="" disabled selected></option>
-                                    <option value="Lunak">Lunak</option>
-                                    <option value="Kenyal">Kenyal</option>
-                                    <option value="Keras">Keras</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Warna Kulit</label>
-                                <select name="pdgWarnaKulit">
-                                    <option value="" disabled selected></option>
-                                    <option value="Normal">Normal</option>
-                                    <option value="Kemerahan">Kemerahan</option>
-                                    <option value="Merah Kebiruan">Merah Kebiruan</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Suhu Kulit</label>
-                                <select name="pdgSuhuKulit">
-                                    <option value="" disabled selected></option>
-                                    <option value="Panas">Panas</option>
-                                    <option value="Tidak">Tidak</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Kolom 2: Intraoral 1 -->
-                        <div>
-                            <h4 style="font-size: 0.95rem; color: var(--primary); margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border);">B. Pemeriksaan Intraoral</h4>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Goyang</label>
-                                <select name="pdgGoyang">
-                                    <option value="" disabled selected></option>
-                                    <option value="Ya">Ya</option>
-                                    <option value="Tidak">Tidak</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Warna Gusi</label>
-                                <select name="pdgWarnaGusi">
-                                    <option value="" disabled selected></option>
-                                    <option value="Normal">Normal</option>
-                                    <option value="Kemerahan">Kemerahan</option>
-                                    <option value="Merah Kebiruan">Merah Kebiruan</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Karies Gigi</label>
-                                <select name="pdgKaries">
-                                    <option value="" selected></option>
-                                    <option value="Insisal">Insisal</option>
-                                    <option value="Mesial">Mesial</option>
-                                    <option value="Distal">Distal</option>
-                                    <option value="Oklusal">Oklusal</option>
-                                    <option value="Disto Oklusal">Disto Oklusal</option>
-                                    <option value="Mesio Oklusal">Mesio Oklusal</option>
-                                    <option value="Bukal">Bukal</option>
-                                    <option value="Disto Bukal">Disto Bukal</option>
-                                    <option value="Mesio Bukal">Mesio Bukal</option>
-                                    <option value="Labial">Labial</option>
-                                    <option value="Palatal">Palatal</option>
-                                    <option value="Disto Palatal">Disto Palatal</option>
-                                    <option value="Mesio Palatal">Mesio Palatal</option>
-                                    <option value="Lingual">Lingual</option>
-                                    <option value="Mod">Mod</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Pembengkakan</label>
-                                <select name="pdgPembengkakan">
-                                    <option value="" disabled selected></option>
-                                    <option value="Ada">Ada</option>
-                                    <option value="Tidak">Tidak</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Kolom 3: Intraoral 2 (Lanjutan) -->
-                        <div>
-                            <h4 style="font-size: 0.95rem; color: transparent; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid var(--glass-border); user-select: none;">C. Lanjutan</h4>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Perkusi</label>
-                                <select name="pdgPerkusi">
-                                    <option value="" disabled selected></option>
-                                    <option value="Sakit">Sakit</option>
-                                    <option value="Tidak">Tidak</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Druk</label>
-                                <select name="pdgDruk">
-                                    <option value="" disabled selected></option>
-                                    <option value="Sakit">Sakit</option>
-                                    <option value="Tidak">Tidak</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Palpasi</label>
-                                <select name="pdgPalpasi">
-                                    <option value="" disabled selected></option>
-                                    <option value="Sakit">Sakit</option>
-                                    <option value="Tidak">Tidak</option>
-                                </select>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 10px;">
-                                <label>Status Karies</label>
-                                <select name="pdgStatusKaries">
-                                    <option value="" disabled selected></option>
-                                    <option value="+">+</option>
-                                    <option value="-">-</option>
-                                </select>
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <!-- 5. Data Klinis, ODONTOGRAM & SOAP -->
-                    <h3 class="module-title" style="justify-content: space-between;">
-                        <span><i class="fa-solid fa-tooth"></i> Diagnostik Spesifik & S.O.A.P</span>
-                    </h3>
-                    
-                    <div class="accordion-box">
-                        <div class="accordion-header" onclick="toggleAccordion('riwayatOdontoBody')">
-                            <span><i class="fa-solid fa-clock-rotate-left"></i> Ringkasan Riwayat Odontogram Lama</span>
-                            <i class="fa-solid fa-chevron-down"></i>
-                        </div>
-                        <div class="accordion-body" id="riwayatOdontoBody">
-                            <div class="table-responsive">
-                                <table class="dash-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Tanggal Kunjungan</th>
-                                            <th>Teks Detail Perawatan Elemen Gigi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="riwayatOdontoList">
-                                        <!-- Data riwayat akan dimuat otomatis -->
-                                        <tr><td colspan="2" style="text-align:center; color: var(--text-light);">Isi No RM / NIK / Nama pasien di atas untuk melacak memori riwayat.</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- AREA ODONTOGRAM VISUAL SVG INTERAKTIF -->
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                        <label style="margin: 0;">Pemetaan Odontogram Interaktif</label>
-                        <a href="https://drive.google.com/file/d/1kv2sd6zHcW7sL-Oo2xtY8d5WBVgKIjd6/view?usp=sharing" target="_blank" class="btn btn-primary" style="font-size: 0.75rem; padding: 5px 10px; width: auto;"><i class="fa-solid fa-file-pdf"></i> Lihat Panduan</a>
-                    </div>
-                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">
-                        *Pilih Alat (Tool) pada kategori di bawah ini, lalu klik kotak area gigi untuk menerapkan tindakan.
-                    </p>
-                    
-                    <div class="odonto-tools-container">
-                        <!-- Kategori 1 -->
-                        <div class="tools-category">1. Keadaan Gigi (Klik Sembarang Area Gigi)</div>
-                        <div class="tools-grid">
-                            <button type="button" class="tool-btn active" onclick="setOdontoTool('norm', 'norm', this, 'SOU (Normal/Sehat): Gigi dalam keadaan sehat, normal, dan tanpa kelainan. Klik untuk menghapus status/coretan sebelumnya.')"><div class="tc-norm"></div> SOU (Normal)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('non', 'label', this, 'NON (Tidak Ada): Gigi tidak ada atau tidak diketahui keberadaannya.')"><div class="tc-lbl">NON</div> NON (Tdk Ada)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('une', 'label', this, 'UNE (Un-erupted): Gigi belum tumbuh (biasanya perlu dukungan foto Rontgen pada usia dewasa).')"><div class="tc-lbl">UNE</div> UNE (Un-erupt)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('pre', 'label', this, 'PRE (Partial Erupted): Gigi baru tumbuh sebagian.')"><div class="tc-lbl">PRE</div> PRE (Partial)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('imv', 'label', this, 'IMV (Impacted Visible): Gigi mengalami impaksi / terhalang pertumbuhannya.')"><div class="tc-lbl">IMV</div> IMV (Impaksi)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('ano', 'label', this, 'ANO (Anomali): Terdapat kelainan bentuk pada gigi (Peg shape, rudimeter, supernumerary, dll).')"><div class="tc-lbl">ANO</div> ANO (Anomali)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('dia', 'label', this, 'DIA (Diastema): Terdapat jarak/celah yang tidak normal antar gigi.')"><div class="tc-lbl">DIA</div> DIA (Diastema)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('att', 'label', this, 'ATT (Atrisi): Terdapat keausan gigi akibat gesekan antar gigi.')"><div class="tc-lbl">ATT</div> ATT (Atrisi)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('abr', 'label', this, 'ABR (Abrasi): Terdapat keausan gigi akibat proses mekanis (misal: sikat gigi terlalu keras).')"><div class="tc-lbl">ABR</div> ABR (Abrasi)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('cfr', 'whole', this, 'CFR (Crown Fracture): Terjadi fraktur/patah pada mahkota gigi.')"><div class="tc-cfr"></div> CFR (Fracture)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('nvt', 'root', this, 'NVT (Non-Vital): Gigi sudah mati/non-vital (biasanya diikuti kondisi karies/tumpatan).')"><div class="tc-nvt"></div> NVT (Non Vital)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('rrx', 'whole', this, 'RRX (Radix): Mahkota habis, hanya tersisa akar gigi.')"><div class="tc-rrx"></div> RRX (Sisa Akar)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('mis', 'whole', this, 'MIS (Missing): Gigi telah hilang/dicabut.')"><div class="tc-mis"></div> MIS (Hilang)</button>
-                        </div>
-
-                        <!-- Kategori 2 -->
-                        <div class="tools-category">2. Bahan Restorasi & Karies (Klik Permukaan/Sisi Kotak Gigi)</div>
-                        <div class="tools-grid">
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('car', 'surface', this, 'CAR (Caries): Terdapat karies/lubang pada gigi. (Klik permukaan spesifik: MODVL untuk menandai area karies).')"><div class="tc-car"></div> CAR (Caries)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('amf', 'surface', this, 'AMF (Amalgam Filling): Tambalan Amalgam pada permukaan gigi.')"><div class="tc-amf"></div> AMF (Amalgam)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('gif', 'surface', this, 'GIF (GIC/Silika): Tambalan Glass Ionomer Cement (Silika) pada permukaan gigi.')"><div class="tc-gif"></div> GIF (GIC/Silika)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('cof', 'surface', this, 'COF (Composite Filling): Tambalan Komposit (Arsir Hijau) pada permukaan gigi.')"><div class="tc-cof"></div> COF (Composite)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('fis', 'surface', this, 'FIS (Fissure Sealant): Tindakan pencegahan dengan menutupi pit dan fissure gigi (Arsir Merah).')"><div class="tc-fis"></div> FIS (Sealant)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('inl', 'label', this, 'INL (Inlay): Restorasi Inlay pada gigi.')"><div class="tc-lbl">INL</div> INL (Inlay)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('onl', 'label', this, 'ONL (Onlay): Restorasi Onlay pada gigi.')"><div class="tc-lbl">ONL</div> ONL (Onlay)</button>
-                        </div>
-
-                        <!-- Kategori 3 -->
-                        <div class="tools-category">3. Restorasi (Klik Sembarang Area Gigi)</div>
-                        <div class="tools-grid">
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('fmc', 'whole', this, 'FMC (Full Metal Crown): Restorasi mahkota penuh berbahan logam.')"><div class="tc-fmc"></div> FMC (Metal Crwn)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('poc', 'whole', this, 'POC (Porcelain Crown): Restorasi mahkota berbahan porselen.')"><div class="tc-poc"></div> POC (Porc. Crwn)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('mpc', 'label', this, 'MPC (Metal Porcelain Crown): Restorasi mahkota kombinasi logam dan porselen.')"><div class="tc-lbl">MPC</div> MPC (Met-Porc)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('gmc', 'label', this, 'GMC (Gold Metal Crown): Restorasi mahkota berbahan logam emas.')"><div class="tc-lbl">GMC</div> GMC (Gold)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('rct', 'root', this, 'RCT (Root Canal Treatment): Perawatan saluran akar (biasanya diikuti tumpatan/restorasi mahkota).')"><div class="tc-rct"></div> RCT (Sal. Akar)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('ipx', 'label', this, 'IPX (Implant): Pemasangan implan gigi.')"><div class="tc-lbl">IPX</div> IPX (Implan)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('meb', 'label', this, 'MEB (Metal Bridge): Pembuatan jembatan gigi berbahan logam.')"><div class="tc-lbl">MEB</div> MEB (Met. Brdg)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('pob', 'label', this, 'POB (Porcelain Bridge): Pembuatan jembatan gigi berbahan porselen.')"><div class="tc-lbl">POB</div> POB (Porc. Brdg)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('pon', 'label', this, 'PON (Pontic): Gigi palsu pengganti pada jembatan (Bridge).')"><div class="tc-lbl">PON</div> PON (Pontic)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('abu', 'label', this, 'ABU (Abutment): Gigi penyangga utama untuk jembatan (Bridge).')"><div class="tc-lbl">ABU</div> ABU (Abutment)</button>
-                        </div>
-
-                        <!-- Kategori 4 -->
-                        <div class="tools-category">4. Protesa (Klik Sembarang Area Gigi)</div>
-                        <div class="tools-grid">
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('prd', 'label', this, 'PRD (Partial Denture): Pemasangan Gigi Tiruan Sebagian pada area ini.')"><div class="tc-lbl">PRD</div> PRD (P. Denture)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('fld', 'label', this, 'FLD (Full Denture): Pemasangan Gigi Tiruan Lengkap.')"><div class="tc-lbl">FLD</div> FLD (F. Denture)</button>
-                            <button type="button" class="tool-btn" onclick="setOdontoTool('acr', 'label', this, 'ACR (Acrylic): Bahan protesa menggunakan material Akrilik.')"><div class="tc-lbl">ACR</div> ACR (Acrylic)</button>
-                        </div>
-                    </div>
-
-                    <div class="odonto-grid-container">
-                        <div class="scroll-hint"><i class="fa-solid fa-arrows-left-right"></i> Geser untuk melihat seluruh gigi</div>
-                        <div id="odontogramGrid" class="odonto-grid">
-                            <!-- Odontogram SVG Grid Akan Dirender Disini -->
-                        </div>
-                    </div>
-
-                    <!-- Hidden Input untuk menyimpan JSON State Odontogram -->
-                    <input type="hidden" name="odontoVisualData" id="odontoVisualInput">
-
-                    <div class="input-group" style="margin-bottom: 20px;">
-                        <label>Teks Terjemahan Hasil Odontogram (Otomatis)</label>
-                        <input type="text" id="elemenGigiInput" name="elemenGigi" placeholder="Klik area gigi di atas untuk generate teks otomatis..." required>
-                    </div>
-
-                    <div class="soap-section">
-                        <label><span class="soap-badge bg-s">S</span> Subjective (Keluhan Utama / Anamnesis)</label>
-                        <textarea name="subjective" id="fSubjective" rows="3" placeholder="Keluhan utama pasien hari ini, riwayat perjalanan penyakit, faktor pemicu sakit..." required></textarea>
-                    </div>
-                    <div class="soap-section">
-                        <label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis & Radiografi)</label>
-                        <textarea name="objective" id="fObjective" rows="3" placeholder="Hasil pemeriksaan klinis ekstraoral & intraoral hari ini, tes vitalitas, interpretasi rontgen..." required></textarea>
-                    </div>
-                    
-                    <!-- NEW ICD-10 DATALIST -->
-                    <datalist id="listICD10">
-                        <!-- Akan diisi secara dinamis melalui JavaScript (loadDashboardData) -->
-                    </datalist>
-
-                    <div class="soap-section">
-                        <label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis & Klasifikasi Penyakit)</label>
-                        <!-- Diubah menjadi input text dengan autocomplete list ICD10 -->
-                        <input type="text" name="assessment" id="fAssessment" list="listICD10" placeholder="Pilih atau cari kode/nama ICD-10 (Cth: K04.1 Necrosis of pulp)..." autocomplete="off" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; transition: border 0.3s; font-size: 0.95rem;">
-                        <p style="font-size: 0.75rem; color: var(--text-light); margin-top: 5px;">*Database ICD-10 K00-K14 terhubung secara otomatis.</p>
-                    </div>
-
-                    <div class="soap-section">
-                        <label><span class="soap-badge bg-p">P</span> Plan (Rencana Perawatan & Tindakan)</label>
-                        <textarea name="plan" id="fPlan" rows="3" placeholder="Rencana perawatan & instruksi pasien..." required></textarea>
-                    </div>
-
-                    <!-- NEW: TINDAKAN MEDIS TERINTEGRASI -->
-                    <h3 class="module-title"><i class="fa-solid fa-hand-holding-medical"></i> Tindakan Medis & Tagihan</h3>
-                    
-                    <datalist id="listDataTindakanServer">
-                        <!-- Otomatis diisi oleh JS dari Master Tindakan -->
-                    </datalist>
-
-                    <div class="table-responsive" style="margin-bottom: 15px;">
-                        <table class="multi-table" id="tblTindakan">
-                            <thead>
-                                <tr>
-                                    <th style="min-width: 250px;">Nama Tindakan / Perawatan</th>
-                                    <th style="min-width: 80px;">Gigi/Regio</th>
-                                    <th style="min-width: 150px;">Tarif Satuan (Rp)</th>
-                                    <th style="min-width: 60px;">Jumlah</th>
-                                    <th style="min-width: 150px;">Sub Total (Rp)</th>
-                                    <th style="min-width: 50px;">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tindakanBody">
-                                <!-- Baris Tindakan Dinamis -->
-                            </tbody>
-                        </table>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 30px; flex-wrap: wrap; gap:15px;">
-                        <button type="button" class="btn btn-outline" onclick="tambahBarisTindakan()" style="width: auto;"><i class="fa-solid fa-plus"></i> Tambah Tindakan</button>
-                        <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">Total Biaya Tindakan: <span id="labelTotalTindakan">Rp 0</span></div>
-                        <input type="hidden" id="inputTotalBiayaTindakan" name="totalBiayaTindakan" value="0">
-                    </div>
-
-
-                    <!-- 6. E-Resep Obat AUTOCOMPLETE -->
-                    <h3 class="module-title"><i class="fa-solid fa-pills"></i> Resep Obat Dokter</h3>
-                    
-                    <datalist id="listJenisRacikan">
-                        <option value="Tablet">
-                        <option value="Kapsul">
-                        <option value="Sirup">
-                        <option value="Salep / Krim">
-                        <option value="Serbuk / Puyer">
-                        <option value="Injeksi">
-                    </datalist>
-                    <datalist id="listDataObatServer">
-                        <!-- Otomatis diisi oleh JS -->
-                    </datalist>
-
-                    <div class="table-responsive" style="margin-bottom: 15px;">
-                        <table class="multi-table" id="tblResep">
-                            <thead>
-                                <tr>
-                                    <th style="min-width: 100px;">Racikan</th>
-                                    <th style="min-width: 80px;">Qty Resep</th>
-                                    <th style="min-width: 120px;">Jenis Sediaan</th>
-                                    <th style="min-width: 200px;">Nama Obat (Stok)</th>
-                                    <th style="min-width: 80px;">Jml Ambil</th>
-                                    <th style="min-width: 130px;">Harga Satuan</th>
-                                    <th style="min-width: 120px;">Signa</th>
-                                    <th style="min-width: 140px;">Aturan Pakai</th>
-                                    <th style="min-width: 50px;">Aksi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="resepBody">
-                                <!-- Baris Resep Dinamis -->
-                            </tbody>
-                        </table>
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 40px; flex-wrap: wrap; gap:15px; border-bottom: 2px solid var(--glass-border); padding-bottom: 20px;">
-                        <button type="button" class="btn btn-outline" onclick="tambahBarisResep()" style="width: auto;"><i class="fa-solid fa-plus"></i> Tambah Obat</button>
-                        <div style="font-size: 1.2rem; font-weight: 700; color: var(--success);">Estimasi Biaya Obat: <span id="labelTotalObat">Rp 0</span></div>
-                        <input type="hidden" id="inputTotalBiayaObat" name="totalBiayaObat" value="0">
-                    </div>
-
-                    <!-- Rekapitulasi Akhir Tagihan -->
-                    <div style="background: rgba(255,255,255,0.7); padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: right; border: 2px dashed var(--primary);">
-                        <h3 style="margin-bottom: 5px; color: var(--text-dark);">GRAND TOTAL TAGIHAN</h3>
-                        <div style="font-size: 2rem; font-weight: 800; color: var(--danger);" id="labelGrandTotal">Rp 0</div>
-                        <input type="hidden" id="inputGrandTotalBiaya" name="grandTotalBiaya" value="0">
-                        <p style="font-size: 0.8rem; color: var(--text-light); margin-top:5px;">*Total ini akan direkam otomatis ke Laporan Keuangan Dasbor Admin.</p>
-                    </div>
-
-                    <!-- Tombol Submit Utama -->
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;" id="submitBtn">
-                        <span id="btnText"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan Rekam Medis & Cetak Tagihan</span>
-                        <div class="spinner" id="btnSpinner"></div>
-                    </button>
-                </form>
-            </div>
-        </section>
-
-        <!-- ==============================================
-             3. ARSIP DATABASE (arsip)
-             ============================================== -->
-        <section id="arsip" class="section">
-            <div class="glass dashboard-container">
-                <div class="dash-header">
-                    <h2><i class="fa-solid fa-server"></i> Arsip Basis Data Pasien</h2>
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="searchInput" placeholder="Cari Nama, No RM...">
-                    </div>
-                </div>
-                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Klik 2x (Double-Click) pada baris pasien untuk melihat seluruh histori kunjungan terperinci.</p>
-
-                <div class="table-responsive">
-                    <table class="dash-table">
-                        <thead>
-                            <tr>
-                                <th>Tgl / Aksi Dokumen</th>
-                                <th>No RM</th>
-                                <th>Identitas Pasien</th>
-                                <th>Fisik & SOAP (Kunjungan Terakhir)</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody">
-                            <tr><td colspan="4" style="text-align: center; padding: 30px;">Mengambil data...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==============================================
-             4. MODUL FARMASI (farmasi)
-             ============================================== -->
-        <section id="farmasi" class="section">
-            <div class="glass dashboard-container">
-                <div class="dash-header">
-                    <h2><i class="fa-solid fa-pills"></i> Antrean Resep Farmasi</h2>
-                    <div class="search-box">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="searchFarmasi" placeholder="Cari Pasien...">
-                    </div>
-                </div>
-                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar antrean khusus resep obat. Tindakan medis tidak ditampilkan di sini.</p>
-
-                <div class="table-responsive">
-                    <table class="dash-table">
-                        <thead>
-                            <tr>
-                                <th>Waktu Masuk</th>
-                                <th>Pasien & Dokter</th>
-                                <th>Rincian Obat & Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="farmasiBody">
-                            <tr><td colspan="3" style="text-align: center; padding: 30px;">Menarik data resep...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==============================================
-             5. DASHBOARD ADMIN (dashboardadmin)
-             ============================================== -->
-        <section id="dashboardadmin" class="section">
-            
-            <!-- A. LOGIN BOX ADMIN -->
-            <div class="glass dashboard-container" id="adminLoginBox" style="max-width: 450px; margin: auto; margin-top: 10vh; text-align: center;">
-                <h2 style="color: var(--primary); margin-bottom: 25px;"><i class="fa-solid fa-lock"></i> Portal Admin Master</h2>
-                <form onsubmit="prosesLoginAdmin(event)">
-                    <div class="input-group" style="margin-bottom: 15px; text-align: left;">
-                        <label>Username</label>
-                        <input type="text" id="loginUser" placeholder="Silahkan masukkan username" required>
-                    </div>
-                    <div class="input-group" style="margin-bottom: 25px; text-align: left;">
-                        <label>Password</label>
-                        <input type="password" id="loginPass" placeholder="Silahkan masukkan password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;"><i class="fa-solid fa-right-to-bracket"></i> Masuk Dasbor</button>
-                </form>
-            </div>
-
-            <!-- B. ISI DASHBOARD ADMIN (DISEMBUNYIKAN SEBELUM LOGIN) -->
-            <div class="glass dashboard-container" id="adminDashboard" style="display: none; padding: 25px;">
-                <div class="dash-header" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;">
-                    <h2 style="color: var(--primary); margin:0;"><i class="fa-solid fa-shield-halved"></i> Dasbor Administrator</h2>
-                    <button class="btn btn-danger" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Keluar</button>
-                </div>
-
-                <!-- NAVIGASI TAB ADMIN -->
-                <div class="admin-tabs" style="margin-top: 20px;">
-                    <button class="admin-tab-btn active" onclick="switchAdminTab('tab-master')"><i class="fa-solid fa-database"></i> Master Data</button>
-                    <button class="admin-tab-btn" onclick="switchAdminTab('tab-keuangan')"><i class="fa-solid fa-chart-line"></i> Laporan Keuangan</button>
-                    <button class="admin-tab-btn" onclick="switchAdminTab('tab-pengaturan')"><i class="fa-solid fa-building"></i> Pengaturan Klinik</button>
-                </div>
-                
-                <!-- TAB 1: MASTER DATA -->
-                <div id="tab-master" class="admin-tab-content active">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
-                        
-                        <!-- Form Operator (Ditingkatkan: Tambah SIP) -->
-                        <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formOp">
-                            <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-user-plus"></i> <span id="titleOp">Tambah Tenaga Medis</span></h3>
-                            <form onsubmit="simpanMasterData(event, 'addOperator')">
-                                <div class="input-group" style="margin-bottom: 10px;">
-                                    <label>Peran (Role)</label>
-                                    <select id="adminOpRole" required>
-                                        <option value="Dokter">Dokter</option>
-                                        <option value="Perawat">Perawat / Bidan</option>
-                                    </select>
-                                </div>
-                                <div class="input-group" style="margin-bottom: 10px;">
-                                    <label>Nama Lengkap & Gelar</label>
-                                    <input type="text" id="adminOpNama" placeholder="Cth: drg. Budi Santoso" required>
-                                </div>
-                                <div class="input-group" style="margin-bottom: 15px;">
-                                    <label>Nomor SIP (Surat Izin Praktik)</label>
-                                    <input type="text" id="adminOpSip" placeholder="Opsional (Cth: HD0000...)">
-                                </div>
-                                <button type="submit" class="btn btn-primary" id="btnSubmitOp" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Operator</button>
-                            </form>
-                        </div>
-
-                        <!-- Form Obat -->
-                        <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formObat">
-                            <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-capsules"></i> <span id="titleObat">Tambah Master Obat</span></h3>
-                            <form onsubmit="simpanMasterData(event, 'addObat')">
-                                <div class="input-group" style="margin-bottom: 10px;">
-                                    <label>Nama Obat</label>
-                                    <input type="text" id="adminObatNama" placeholder="Cth: Amoxicillin 500mg" required>
-                                </div>
-                                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                                    <div class="input-group" style="flex: 1;">
-                                        <label>Harga (Rp)</label>
-                                        <input type="number" id="adminObatHarga" placeholder="5000" required>
+                            <div class="form-grid" style="margin-bottom: 25px;">
+                                <!-- RAHANG ATAS -->
+                                <div class="photo-card">
+                                    <h4 style="color: var(--primary); margin-bottom: 10px;">Rahang Atas</h4>
+                                    <div class="photo-preview-container">
+                                        <i class="fa-solid fa-image placeholder-icon" id="iconRA"></i>
+                                        <img id="previewRA" alt="Preview Rahang Atas">
                                     </div>
-                                    <div class="input-group" style="flex: 1;">
-                                        <label>Stok Awal</label>
-                                        <input type="number" id="adminObatStok" placeholder="100" required>
+                                    
+                                    <div id="btnGroupAmbilRA">
+                                        <label class="btn btn-primary" style="cursor: pointer; display: inline-block; width: 100%;">
+                                            <i class="fa-solid fa-camera"></i> Ambil Foto RA
+                                            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')">
+                                        </label>
                                     </div>
+                                    
+                                    <div id="btnGroupEditRA" style="display: none; gap: 10px;">
+                                        <label class="btn btn-outline" style="cursor: pointer; flex: 1;">
+                                            <i class="fa-solid fa-rotate"></i> Ulang
+                                            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')">
+                                        </label>
+                                        <button type="button" class="btn btn-danger" style="flex: 1;" onclick="hapusFoto('previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                                    </div>
+                                    
+                                    <input type="hidden" name="fotoRahangAtas" id="b64RahangAtas">
                                 </div>
-                                <button type="submit" class="btn btn-primary" id="btnSubmitObat" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Obat</button>
-                            </form>
-                        </div>
 
-                        <!-- Form Tindakan -->
-                        <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formTindakan">
-                            <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-hand-holding-medical"></i> <span id="titleTindakan">Tambah Tindakan Klinik</span></h3>
-                            <form onsubmit="simpanMasterData(event, 'addTindakan')">
-                                <div class="input-group" style="margin-bottom: 10px;">
-                                    <label>Nama Tindakan</label>
-                                    <input type="text" id="adminTindakanNama" placeholder="Cth: Cabut Gigi Anterior" required>
+                                <!-- RAHANG BAWAH -->
+                                <div class="photo-card">
+                                    <h4 style="color: var(--primary); margin-bottom: 10px;">Rahang Bawah</h4>
+                                    <div class="photo-preview-container">
+                                        <i class="fa-solid fa-image placeholder-icon" id="iconRB"></i>
+                                        <img id="previewRB" alt="Preview Rahang Bawah">
+                                    </div>
+                                    
+                                    <div id="btnGroupAmbilRB">
+                                        <label class="btn btn-primary" style="cursor: pointer; display: inline-block; width: 100%;">
+                                            <i class="fa-solid fa-camera"></i> Ambil Foto RB
+                                            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')">
+                                        </label>
+                                    </div>
+                                    
+                                    <div id="btnGroupEditRB" style="display: none; gap: 10px;">
+                                        <label class="btn btn-outline" style="cursor: pointer; flex: 1;">
+                                            <i class="fa-solid fa-rotate"></i> Ulang
+                                            <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')">
+                                        </label>
+                                        <button type="button" class="btn btn-danger" style="flex: 1;" onclick="hapusFoto('previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')"><i class="fa-solid fa-trash"></i> Hapus</button>
+                                    </div>
+                                    
+                                    <input type="hidden" name="fotoRahangBawah" id="b64RahangBawah">
                                 </div>
-                                <div class="input-group" style="margin-bottom: 15px;">
-                                    <label>Tarif Dasar (Rp)</label>
-                                    <input type="number" id="adminTindakanHarga" placeholder="150000" required>
-                                </div>
-                                <button type="submit" class="btn btn-primary" id="btnSubmitTindakan" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Tindakan</button>
-                            </form>
-                        </div>
-                        
-                        <!-- Form Manajemen Admin -->
-                        <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formAdminData">
-                            <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-user-shield"></i> <span id="titleAdminData">Tambah Akun Admin</span></h3>
-                            <form onsubmit="simpanMasterData(event, 'addAdmin')">
-                                <div class="input-group" style="margin-bottom: 10px;">
-                                    <label>Username Login</label>
-                                    <input type="text" id="adminDataUser" placeholder="Cth: admin_baru" required>
-                                </div>
-                                <div class="input-group" style="margin-bottom: 10px;">
-                                    <label>Password Login</label>
-                                    <input type="text" id="adminDataPass" placeholder="Cth: pass123" required>
-                                </div>
-                                <div class="input-group" style="margin-bottom: 15px;">
-                                    <label>Role Akun</label>
-                                    <select id="adminDataRole" required>
-                                        <option value="Super Admin">Super Admin</option>
-                                        <option value="Admin Master">Admin Master</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-primary" id="btnSubmitAdmin" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Admin</button>
-                            </form>
-                        </div>
-
-                    </div>
-
-                    <!-- TAMPILAN TABEL DAFTAR MASTER DATA REALTIME -->
-                    <div style="margin-top: 40px;">
-                        <h3 style="margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-list"></i> Daftar Lengkap Master Data</h3>
-                        <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">*Gunakan tombol Edit untuk memperbarui data, atau Hapus untuk menghilangkan dari database secara realtime.</p>
-                        
-                        <div class="table-responsive" style="margin-bottom: 25px;">
-                            <h4 style="margin: 10px 15px; color: var(--primary);">1. Operator & Tenaga Medis</h4>
-                            <table class="dash-table">
-                                <thead><tr><th>ID</th><th>Role</th><th>Nama Lengkap</th><th>Nomor SIP</th><th style="text-align:right;">Aksi</th></tr></thead>
-                                <tbody id="listMasterOp"><tr><td colspan="5">Memuat data...</td></tr></tbody>
-                            </table>
-                        </div>
-
-                        <div class="table-responsive" style="margin-bottom: 25px;">
-                            <h4 style="margin: 10px 15px; color: var(--success);">2. Obat-obatan (Farmasi)</h4>
-                            <table class="dash-table">
-                                <thead><tr><th>ID</th><th>Nama Obat</th><th>Harga (Rp)</th><th>Stok</th><th style="text-align:right;">Aksi</th></tr></thead>
-                                <tbody id="listMasterObat"><tr><td colspan="5">Memuat data...</td></tr></tbody>
-                            </table>
-                        </div>
-
-                        <div class="table-responsive" style="margin-bottom: 25px;">
-                            <h4 style="margin: 10px 15px; color: #6366f1;">3. Tindakan Klinik</h4>
-                            <table class="dash-table">
-                                <thead><tr><th>ID</th><th>Nama Tindakan</th><th>Tarif Dasar (Rp)</th><th style="text-align:right;">Aksi</th></tr></thead>
-                                <tbody id="listMasterTindakan"><tr><td colspan="4">Memuat data...</td></tr></tbody>
-                            </table>
-                        </div>
-                        
-                        <div class="table-responsive">
-                            <h4 style="margin: 10px 15px; color: #f59e0b;">4. Akun Administrator Sistem</h4>
-                            <table class="dash-table">
-                                <thead><tr><th>ID</th><th>Username</th><th>Password</th><th>Role</th><th style="text-align:right;">Aksi</th></tr></thead>
-                                <tbody id="listMasterAdmin"><tr><td colspan="5">Memuat data...</td></tr></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div> <!-- END TAB MASTER -->
-
-                <!-- TAB 2: LAPORAN KEUANGAN -->
-                <div id="tab-keuangan" class="admin-tab-content">
-                    
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
-                        <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
-                            <h4 style="margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Total Pendapatan (Bulan Ini)</h4>
-                            <h2 style="font-size: 1.8rem; margin: 0;" id="kpiTotalBulan">Rp 0</h2>
-                        </div>
-                        <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(59,130,246,0.3);">
-                            <h4 style="margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Total Pendapatan Tindakan</h4>
-                            <h2 style="font-size: 1.5rem; margin: 0;" id="kpiTotalTindakan">Rp 0</h2>
-                        </div>
-                        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(245,158,11,0.3);">
-                            <h4 style="margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Total Pendapatan Obat</h4>
-                            <h2 style="font-size: 1.5rem; margin: 0;" id="kpiTotalObat">Rp 0</h2>
-                        </div>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-bottom: 30px;">
-                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
-                            <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Tren Pendapatan Harian (30 Hari Terakhir)</h3>
-                            <div style="position: relative; height: 300px; width: 100%;">
-                                <canvas id="chartHarian"></canvas>
                             </div>
-                        </div>
-                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
-                            <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Komparasi Pendapatan Bulanan</h3>
-                            <div style="position: relative; height: 300px; width: 100%;">
-                                <canvas id="chartBulanan"></canvas>
-                            </div>
-                        </div>
-                    </div>
+                            <!-- ========================================== -->
 
-                    <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); max-width: 500px; margin: 0 auto;">
-                        <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Distribusi Sumber Pendapatan Keseluruhan</h3>
-                        <div style="position: relative; height: 300px; width: 100%;">
-                            <canvas id="chartPie"></canvas>
-                        </div>
-                    </div>
+                    <div class="soap-section">
+                        <label><span class="soap-badge bg-s">S</span> Subjective (Keluhan Utama / Anamnesis)</label>
+                        <textarea name="subjective" id="fSubjective" rows="3" placeholder="Keluhan utama pasien hari ini, riwayat perjalanan penyakit, faktor pemicu sakit..." required></textarea>
+                    </div>
+                    <div class="soap-section">
+                        <label><span class="soap-badge bg-o">O</span> Objective (Pemeriksaan Klinis & Radiografi)</label>
+                        <textarea name="objective" id="fObjective" rows="3" placeholder="Hasil pemeriksaan klinis ekstraoral & intraoral hari ini, tes vitalitas, interpretasi rontgen..." required></textarea>
+                    </div>
+                    
+                    <!-- NEW ICD-10 DATALIST -->
+                    <datalist id="listICD10">
+                        <!-- Akan diisi secara dinamis melalui JavaScript (loadDashboardData) -->
+                    </datalist>
 
-                </div> <!-- END TAB KEUANGAN -->
+                    <div class="soap-section">
+                        <label><span class="soap-badge bg-a">A</span> Assessment (Diagnosis & Klasifikasi Penyakit)</label>
+                        <!-- Diubah menjadi input text dengan autocomplete list ICD10 -->
+                        <input type="text" name="assessment" id="fAssessment" list="listICD10" placeholder="Pilih atau cari kode/nama ICD-10 (Cth: K04.1 Necrosis of pulp)..." autocomplete="off" required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; transition: border 0.3s; font-size: 0.95rem;">
+                        <p style="font-size: 0.75rem; color: var(--text-light); margin-top: 5px;">*Database ICD-10 K00-K14 terhubung secara otomatis.</p>
+                    </div>
 
-                <!-- TAB 3: PENGATURAN KLINIK (BARU) -->
-                <div id="tab-pengaturan" class="admin-tab-content">
-                    <div style="background: rgba(255,255,255,0.8); padding: 30px; border-radius: 12px; border: 1px solid var(--glass-border); max-width: 600px; margin: 0 auto;">
-                        <h3 style="font-size: 1.3rem; margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-building-user"></i> Identitas Klinik</h3>
-                        <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 25px;">Pengaturan ini akan berdampak pada Kop Surat cetak Surat Keterangan Sakit & Surat Rujukan.</p>
-                        
-                        <form onsubmit="simpanPengaturan(event)">
-                            <div class="input-group" style="margin-bottom: 15px;">
-                                <label>Nama Klinik Utama</label>
-                                <input type="text" id="setNamaKlinik" value="KLINIK CARE MEDIKA" required>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 15px;">
-                                <label>Alamat Lengkap</label>
-                                <textarea id="setAlamatKlinik" rows="2" required>Jl. Kesehatan No. 123, Kota Anda</textarea>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 15px;">
-                                <label>Nomor Telepon / WhatsApp</label>
-                                <input type="text" id="setNoTelp" value="(021) 1234567" required>
-                            </div>
-                            <div class="input-group" style="margin-bottom: 25px;">
-                                <label>URL Logo Klinik (Link Gambar/Path)</label>
-                                <input type="text" id="setUrlLogo" value="axalogo.png" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary" id="btnSubmitPengaturan" style="width: 100%; padding: 15px; font-size: 1.05rem;"><i class="fa-solid fa-save"></i> Terapkan Pengaturan Identitas</button>
-                        </form>
-                    </div>
-                </div> <!-- END TAB PENGATURAN -->
+                    <div class="soap-section">
+                        <label><span class="soap-badge bg-p">P</span> Plan (Rencana Perawatan & Tindakan)</label>
+                        <textarea name="plan" id="fPlan" rows="3" placeholder="Rencana perawatan & instruksi pasien..." required></textarea>
+                    </div>
 
-            </div>
-        </section>
-    </main>
+                    <!-- NEW: TINDAKAN MEDIS TERINTEGRASI -->
+                    <h3 class="module-title"><i class="fa-solid fa-hand-holding-medical"></i> Tindakan Medis & Tagihan</h3>
+                    
+                    <datalist id="listDataTindakanServer">
+                        <!-- Otomatis diisi oleh JS dari Master Tindakan -->
+                    </datalist>
 
-    <!-- Modal Generate SKS -->
-    <div id="modalSks" class="modal">
-        <div class="modal-content" style="max-width:400px;">
-            <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalSks').classList.remove('active')"></i>
-            <h3 style="margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Terbitkan Surat Sakit</h3>
-            <div class="input-group" style="margin-bottom: 15px;">
-                <label>Lama Istirahat (Hari)</label>
-                <input type="number" id="sksHari" value="3" min="1">
-            </div>
-            
-            <div class="input-group" style="margin-bottom: 15px;">
-                <label>Dari Tanggal</label>
-                <div class="date-wrapper">
-                    <input type="date" id="sksMulai" style="width: 100%;">
-                </div>
-            </div>
-            <div class="input-group" style="margin-bottom: 25px;">
-                <label>Sampai Tanggal</label>
-                <div class="date-wrapper">
-                    <input type="date" id="sksSelesai" style="width: 100%;">
-                </div>
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" style="flex: 1;" onclick="eksekusiCetakSKS()"><i class="fa-solid fa-print"></i> Cetak SKS</button>
-            </div>
-        </div>
-    </div>
+                    <div class="table-responsive" style="margin-bottom: 15px;">
+                        <table class="multi-table" id="tblTindakan">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 250px;">Nama Tindakan / Perawatan</th>
+                                    <th style="min-width: 80px;">Gigi/Regio</th>
+                                    <th style="min-width: 150px;">Tarif Satuan (Rp)</th>
+                                    <th style="min-width: 60px;">Jumlah</th>
+                                    <th style="min-width: 150px;">Sub Total (Rp)</th>
+                                    <th style="min-width: 50px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tindakanBody">
+                                <!-- Baris Tindakan Dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 30px; flex-wrap: wrap; gap:15px;">
+                        <button type="button" class="btn btn-outline" onclick="tambahBarisTindakan()" style="width: auto;"><i class="fa-solid fa-plus"></i> Tambah Tindakan</button>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">Total Biaya Tindakan: <span id="labelTotalTindakan">Rp 0</span></div>
+                        <input type="hidden" id="inputTotalBiayaTindakan" name="totalBiayaTindakan" value="0">
+                    </div>
 
-    <!-- Modal Generate SURAT RUJUKAN -->
-    <div id="modalRujukan" class="modal">
-        <div class="modal-content" style="max-width:500px;">
-            <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalRujukan').classList.remove('active')"></i>
-            <h3 style="margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-file-export"></i> Terbitkan Surat Rujukan</h3>
-            <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Lengkapi data tujuan rujukan ke Fasilitas Kesehatan (RS/Klinik) tingkat lanjut.</p>
-            
-            <div class="input-group" style="margin-bottom: 15px;">
-                <label>Rumah Sakit / Fasilitas Tujuan</label>
-                <input type="text" id="rujukRs" placeholder="Cth: BLUD RSU BAHTERAMAS">
-            </div>
-            <div class="input-group" style="margin-bottom: 15px;">
-                <label>TS dr. Poli (Teman Sejawat)</label>
-                <input type="text" id="rujukPoli" placeholder="Cth: GIGI ENDODONSI">
-            </div>
-            
-            <!-- Diagnosa Rujukan Terhubung dengan Datalist ICD-10 -->
-            <div class="input-group" style="margin-bottom: 15px;">
-                <label>Diagnosa Sementara (ICD-10)</label>
-                <input type="text" id="rujukDiagnosa" list="listICD10" placeholder="Pilih atau ketik diagnosa..." autocomplete="off">
-            </div>
-            
-            <div class="input-group" style="margin-bottom: 15px;">
-                <label>Terapi / Tindakan yang Telah Diberikan</label>
-                <textarea id="rujukTerapi" rows="2"></textarea>
-            </div>
-            <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="eksekusiCetakRujukan()"><i class="fa-solid fa-print"></i> Cetak Surat Rujukan</button>
-        </div>
-    </div>
 
-    <!-- Modal Riwayat Kunjungan Pasien LENGKAP -->
-    <div id="modalRiwayatPasien" class="modal">
-        <div class="modal-content">
-            <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalRiwayatPasien').classList.remove('active')"></i>
-            <h3 style="margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-book-medical"></i> Rekam Jejak Medis Komprehensif</h3>
-            <p style="font-size:0.95rem; color:var(--text-light); margin-bottom: 20px; border-bottom: 2px solid var(--glass-border); padding-bottom: 10px;">
-                Nama: <strong id="histNama" style="color:var(--text-dark)">-</strong> | No RM: <strong id="histRm" style="color:var(--text-dark)">-</strong>
-            </p>
-            
-            <div class="timeline" id="historyTimeline">
-                <!-- Diisi via JS -->
-            </div>
-        </div>
-    </div>
+                    <!-- 6. E-Resep Obat AUTOCOMPLETE -->
+                    <h3 class="module-title"><i class="fa-solid fa-pills"></i> Resep Obat Dokter</h3>
+                    
+                    <datalist id="listJenisRacikan">
+                        <option value="Tablet">
+                        <option value="Kapsul">
+                        <option value="Sirup">
+                        <option value="Salep / Krim">
+                        <option value="Serbuk / Puyer">
+                        <option value="Injeksi">
+                    </datalist>
+                    <datalist id="listDataObatServer">
+                        <!-- Otomatis diisi oleh JS -->
+                    </datalist>
 
-    <!-- Modal Konfirmasi Custom -->
-    <div id="customConfirm" class="modal">
-        <div class="modal-content" style="max-width:400px; text-align:center;">
-            <h3 style="margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-circle-exclamation" style="color: #f59e0b;"></i> Konfirmasi</h3>
-            <p id="confirmMessage" style="margin-bottom: 25px; color: var(--text-light); line-height: 1.5;"></p>
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="btnConfirmCancel" class="btn btn-outline" style="flex:1;">Batal</button>
-                <button id="btnConfirmOk" class="btn btn-danger" style="flex:1;">Ya, Lanjutkan</button>
-            </div>
-        </div>
-    </div>
+                    <div class="table-responsive" style="margin-bottom: 15px;">
+                        <table class="multi-table" id="tblResep">
+                            <thead>
+                                <tr>
+                                    <th style="min-width: 100px;">Racikan</th>
+                                    <th style="min-width: 80px;">Qty Resep</th>
+                                    <th style="min-width: 120px;">Jenis Sediaan</th>
+                                    <th style="min-width: 200px;">Nama Obat (Stok)</th>
+                                    <th style="min-width: 80px;">Jml Ambil</th>
+                                    <th style="min-width: 130px;">Harga Satuan</th>
+                                    <th style="min-width: 120px;">Signa</th>
+                                    <th style="min-width: 140px;">Aturan Pakai</th>
+                                    <th style="min-width: 50px;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="resepBody">
+                                <!-- Baris Resep Dinamis -->
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 40px; flex-wrap: wrap; gap:15px; border-bottom: 2px solid var(--glass-border); padding-bottom: 20px;">
+                        <button type="button" class="btn btn-outline" onclick="tambahBarisResep()" style="width: auto;"><i class="fa-solid fa-plus"></i> Tambah Obat</button>
+                        <div style="font-size: 1.2rem; font-weight: 700; color: var(--success);">Estimasi Biaya Obat: <span id="labelTotalObat">Rp 0</span></div>
+                        <input type="hidden" id="inputTotalBiayaObat" name="totalBiayaObat" value="0">
+                    </div>
 
-    <!-- AREA CETAK SKS (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
-    <div id="printArea" class="print-section">
-        <div class="kop-surat">
-            <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
-            <h1 class="print-nama-klinik" style="font-size: 20pt; margin: 0; text-transform: uppercase;">KLINIK CARE MEDIKA</h1>
-            <p class="print-alamat-klinik" style="font-size: 11pt; margin: 0;">Jl. Kesehatan No. 123, Kota Anda, Telp: (021) 1234567</p>
-        </div>
-        <div class="sks-title">SURAT KETERANGAN SAKIT</div>
-        <div class="sks-body">
-            <p>Yang bertanda tangan di bawah ini menerangkan bahwa:</p>
-            <table style="width: 100%; margin: 15px 0; border: none; font-size: 12pt;">
-                <tr><td style="width: 150px; padding: 5px 0;">Nama Lengkap</td><td>: <strong id="printNama"></strong></td></tr>
-                <tr><td style="padding: 5px 0;">Usia / Jenis Kelamin</td><td>: <span id="printUsia"></span> Tahun / <span id="printJk"></span></td></tr>
-                <tr><td style="padding: 5px 0;">Pekerjaan</td><td>: <span id="printKerja"></span></td></tr>
-                <tr><td style="padding: 5px 0;">Alamat</td><td>: <span id="printAlamat"></span></td></tr>
-            </table>
-            <p style="text-align: justify; margin-top: 15px;">Berdasarkan hasil pemeriksaan kesehatan yang bersangkutan, pasien di atas dalam keadaan sakit dan memerlukan istirahat selama <strong><span id="printHari"></span> (<span id="printHariTeks"></span>) hari</strong>, terhitung mulai tanggal <strong><span id="printMulai"></span></strong> s/d <strong><span id="printSelesai"></span></strong>.</p>
-            <p>Harap maklum dan menjadi periksa bagi pihak yang berkepentingan.</p>
-        </div>
-        <div class="sks-signature">
-            <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
-            <!-- Kontainer QR Code TTE -->
-            <div id="qrCanvasSks" style="display: flex; justify-content: right; margin: 10px 0;"></div>
-            <p><strong style="text-decoration: underline;" id="printDokterSks">( ______________________ )</strong><br><span id="printSipSks">SIP: .......................................</span></p>
-        </div>
-    </div>
+                    <!-- Rekapitulasi Akhir Tagihan -->
+                    <div style="background: rgba(255,255,255,0.7); padding: 20px; border-radius: 12px; margin-bottom: 25px; text-align: right; border: 2px dashed var(--primary);">
+                        <h3 style="margin-bottom: 5px; color: var(--text-dark);">GRAND TOTAL TAGIHAN</h3>
+                        <div style="font-size: 2rem; font-weight: 800; color: var(--danger);" id="labelGrandTotal">Rp 0</div>
+                        <input type="hidden" id="inputGrandTotalBiaya" name="grandTotalBiaya" value="0">
+                        <p style="font-size: 0.8rem; color: var(--text-light); margin-top:5px;">*Total ini akan direkam otomatis ke Laporan Keuangan Dasbor Admin.</p>
+                    </div>
 
-    <!-- AREA CETAK SURAT RUJUKAN (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
-    <div id="printAreaRujukan" class="print-section">
-        <div class="kop-surat">
-            <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
-            <h1 class="print-nama-klinik" style="font-size: 20pt; margin: 0; text-transform: uppercase;">KLINIK CARE MEDIKA</h1>
-            <p class="print-alamat-klinik" style="font-size: 11pt; margin: 0;">Jl. Kesehatan No. 123, Kota Anda, Telp: (021) 1234567</p>
-        </div>
-        
-        <div class="sks-title" style="margin-top: 10px; margin-bottom: 25px;">SURAT RUJUKAN EKSTERNAL</div>
-        
-        <div style="border: 2px solid #000; padding: 15px; margin-bottom: 20px;">
-            <table style="width: 100%; border: none; font-size: 12pt; line-height: 1.5;">
-                <tr><td style="width: 150px;">Kepada Yth,</td><td>: <strong id="printRujukanPoli"></strong></td></tr>
-                <tr><td>Di Tempat</td><td>: <strong id="printRujukanRs"></strong></td></tr>
-            </table>
-        </div>
+                    <!-- Tombol Submit Utama -->
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px; font-size: 1.1rem;" id="submitBtn">
+                        <span id="btnText"><i class="fa-solid fa-cloud-arrow-up"></i> Simpan Rekam Medis, Foto & Cetak Tagihan</span>
+                        <div class="spinner" id="btnSpinner" style="display:none;"></div>
+                    </button>
+                </form>
+            </div>
+        </section>
 
-        <div class="sks-body">
-            <p style="margin-bottom: 10px;">Mohon pemeriksaan dan penanganan lebih lanjut pasien di bawah ini:</p>
-            
-            <table style="width: 100%; margin: 10px 0; border: none; font-size: 12pt; line-height: 1.5;">
-                <tr><td style="width: 180px; padding: 3px 0;">Nama Lengkap</td><td>: <strong id="printRujukanNama"></strong></td></tr>
-                <tr><td style="padding: 3px 0;">Umur / Jenis Kelamin</td><td>: <span id="printRujukanUmur"></span> Tahun / <span id="printRujukanJk"></span></td></tr>
-                <tr><td style="padding: 3px 0;">No Rekam Medis</td><td>: <span id="printRujukanRm"></span></td></tr>
-                <tr><td style="padding: 3px 0; vertical-align:top;">Diagnosa Utama</td><td>: <strong id="printRujukanDiagnosa"></strong></td></tr>
-                <tr><td style="padding: 3px 0; vertical-align:top;">Telah Diberikan (Terapi)</td><td>: <span id="printRujukanTerapi"></span></td></tr>
-            </table>
+        <!-- ==============================================
+             3. ARSIP DATABASE (arsip)
+             ============================================== -->
+        <section id="arsip" class="section">
+            <div class="glass dashboard-container">
+                <div class="dash-header">
+                    <h2><i class="fa-solid fa-server"></i> Arsip Basis Data Pasien</h2>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchInput" placeholder="Cari Nama, No RM...">
+                    </div>
+                </div>
+                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Klik 2x (Double-Click) pada baris pasien untuk melihat seluruh histori kunjungan terperinci.</p>
 
-            <p style="text-align: justify; margin-top: 25px;">Demikian surat rujukan ini dibuat, atas bantuan dan kerjasamanya kami ucapkan banyak terima kasih.</p>
-        </div>
-        
-        <div class="sks-signature" style="text-align: right;">
-            <p>Salam Sejawat, <span id="printRujukanTgl"></span></p>
-            <!-- Kontainer QR Code TTE -->
-            <div id="qrCanvasRujuk" style="display: flex; justify-content: right; margin: 10px 0;"></div>
-            <p><strong style="text-decoration: underline;" id="printRujukanDokter">( ______________________ )</strong><br><span id="printRujukanSip">SIP: .......................................</span></p>
-        </div>
-    </div>
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Tgl / Aksi Dokumen</th>
+                                <th>No RM</th>
+                                <th>Identitas Pasien</th>
+                                <th>Fisik & SOAP (Kunjungan Terakhir)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <tr><td colspan="4" style="text-align: center; padding: 30px;">Mengambil data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-    <!-- AUDIO ELEMENT UNTUK SFX NOTIFIKASI -->
-    <audio id="notifAudio" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
-    <audio id="successAudio" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
+        <!-- ==============================================
+             4. MODUL FARMASI (farmasi)
+             ============================================== -->
+        <section id="farmasi" class="section">
+            <div class="glass dashboard-container">
+                <div class="dash-header">
+                    <h2><i class="fa-solid fa-pills"></i> Antrean Resep Farmasi</h2>
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="searchFarmasi" placeholder="Cari Pasien...">
+                    </div>
+                </div>
+                <p style="font-size:0.85rem; color:var(--text-light); margin-bottom:15px;"><i class="fa-solid fa-info-circle"></i> Daftar antrean khusus resep obat. Tindakan medis tidak ditampilkan di sini.</p>
 
-    <div id="toast"><span id="toastMsg">Sukses!</span></div>
+                <div class="table-responsive">
+                    <table class="dash-table">
+                        <thead>
+                            <tr>
+                                <th>Waktu Masuk</th>
+                                <th>Pasien & Dokter</th>
+                                <th>Rincian Obat & Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="farmasiBody">
+                            <tr><td colspan="3" style="text-align: center; padding: 30px;">Menarik data resep...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
 
-    <!-- ==================================================================
-         JAVASCRIPT LOGIC (Dipisahkan ke script.js)
-         ================================================================== -->
-    <script src="script.js"></script>
+        <!-- ==============================================
+             5. DASHBOARD ADMIN (dashboardadmin)
+             ============================================== -->
+        <section id="dashboardadmin" class="section">
+            
+            <!-- A. LOGIN BOX ADMIN -->
+            <div class="glass dashboard-container" id="adminLoginBox" style="max-width: 450px; margin: auto; margin-top: 10vh; text-align: center;">
+                <h2 style="color: var(--primary); margin-bottom: 25px;"><i class="fa-solid fa-lock"></i> Portal Admin Master</h2>
+                <form onsubmit="prosesLoginAdmin(event)">
+                    <div class="input-group" style="margin-bottom: 15px; text-align: left;">
+                        <label>Username</label>
+                        <input type="text" id="loginUser" placeholder="Silahkan masukkan username" required>
+                    </div>
+                    <div class="input-group" style="margin-bottom: 25px; text-align: left;">
+                        <label>Password</label>
+                        <input type="password" id="loginPass" placeholder="Silahkan masukkan password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 1rem;"><i class="fa-solid fa-right-to-bracket"></i> Masuk Dasbor</button>
+                </form>
+            </div>
 
-    <!-- SCRIPT TAMBAHAN UNTUK BYPASS AUTOPLAY POLICY BROWSER SAAT AKSES LINK LANGSUNG -->
-    <script>
-        // Sistem untuk mem-bypass pemblokiran Autoplay Audio oleh Chrome/Safari
-        function unlockSystemAudio() {
-            const notifAudio = document.getElementById('notifAudio');
-            if (notifAudio) {
-                notifAudio.play().then(() => {
-                    document.getElementById('audioUnlockOverlay').style.display = 'none';
-                }).catch(e => console.log("Unlock failed", e));
-            }
-        }
+            <!-- B. ISI DASHBOARD ADMIN (DISEMBUNYIKAN SEBELUM LOGIN) -->
+            <div class="glass dashboard-container" id="adminDashboard" style="display: none; padding: 25px;">
+                <div class="dash-header" style="border-bottom: 1px solid var(--glass-border); padding-bottom: 15px;">
+                    <h2 style="color: var(--primary); margin:0;"><i class="fa-solid fa-shield-halved"></i> Dasbor Administrator</h2>
+                    <button class="btn btn-danger" onclick="logoutAdmin()"><i class="fa-solid fa-power-off"></i> Keluar</button>
+                </div>
 
-        // Override playNotifSound bawaan script.js untuk menangkap error Autoplay
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                const originalPlay = window.playNotifSound;
-                if(typeof originalPlay === 'function') {
+                <!-- NAVIGASI TAB ADMIN -->
+                <div class="admin-tabs" style="margin-top: 20px;">
+                    <button class="admin-tab-btn active" onclick="switchAdminTab('tab-master')"><i class="fa-solid fa-database"></i> Master Data</button>
+                    <button class="admin-tab-btn" onclick="switchAdminTab('tab-keuangan')"><i class="fa-solid fa-chart-line"></i> Laporan Keuangan</button>
+                    <button class="admin-tab-btn" onclick="switchAdminTab('tab-pengaturan')"><i class="fa-solid fa-building"></i> Pengaturan Klinik</button>
+                </div>
+                
+                <!-- TAB 1: MASTER DATA -->
+                <div id="tab-master" class="admin-tab-content active">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px;">
+                        
+                        <!-- Form Operator (Ditingkatkan: Tambah SIP) -->
+                        <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formOp">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-user-plus"></i> <span id="titleOp">Tambah Tenaga Medis</span></h3>
+                            <form onsubmit="simpanMasterData(event, 'addOperator')">
+                                <div class="input-group" style="margin-bottom: 10px;">
+                                    <label>Peran (Role)</label>
+                                    <select id="adminOpRole" required>
+                                        <option value="Dokter">Dokter</option>
+                                        <option value="Perawat">Perawat / Bidan</option>
+                                    </select>
+                                </div>
+                                <div class="input-group" style="margin-bottom: 10px;">
+                                    <label>Nama Lengkap & Gelar</label>
+                                    <input type="text" id="adminOpNama" placeholder="Cth: drg. Budi Santoso" required>
+                                </div>
+                                <div class="input-group" style="margin-bottom: 15px;">
+                                    <label>Nomor SIP (Surat Izin Praktik)</label>
+                                    <input type="text" id="adminOpSip" placeholder="Opsional (Cth: HD0000...)">
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="btnSubmitOp" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Operator</button>
+                            </form>
+                        </div>
+
+                        <!-- Form Obat -->
+                        <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formObat">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-capsules"></i> <span id="titleObat">Tambah Master Obat</span></h3>
+                            <form onsubmit="simpanMasterData(event, 'addObat')">
+                                <div class="input-group" style="margin-bottom: 10px;">
+                                    <label>Nama Obat</label>
+                                    <input type="text" id="adminObatNama" placeholder="Cth: Amoxicillin 500mg" required>
+                                </div>
+                                <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                                    <div class="input-group" style="flex: 1;">
+                                        <label>Harga (Rp)</label>
+                                        <input type="number" id="adminObatHarga" placeholder="5000" required>
+                                    </div>
+                                    <div class="input-group" style="flex: 1;">
+                                        <label>Stok Awal</label>
+                                        <input type="number" id="adminObatStok" placeholder="100" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="btnSubmitObat" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Obat</button>
+                            </form>
+                        </div>
+
+                        <!-- Form Tindakan -->
+                        <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formTindakan">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-hand-holding-medical"></i> <span id="titleTindakan">Tambah Tindakan Klinik</span></h3>
+                            <form onsubmit="simpanMasterData(event, 'addTindakan')">
+                                <div class="input-group" style="margin-bottom: 10px;">
+                                    <label>Nama Tindakan</label>
+                                    <input type="text" id="adminTindakanNama" placeholder="Cth: Cabut Gigi Anterior" required>
+                                </div>
+                                <div class="input-group" style="margin-bottom: 15px;">
+                                    <label>Tarif Dasar (Rp)</label>
+                                    <input type="number" id="adminTindakanHarga" placeholder="150000" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="btnSubmitTindakan" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Tindakan</button>
+                            </form>
+                        </div>
+                        
+                        <!-- Form Manajemen Admin -->
+                        <div style="background: rgba(255,255,255,0.4); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);" id="formAdminData">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 15px;"><i class="fa-solid fa-user-shield"></i> <span id="titleAdminData">Tambah Akun Admin</span></h3>
+                            <form onsubmit="simpanMasterData(event, 'addAdmin')">
+                                <div class="input-group" style="margin-bottom: 10px;">
+                                    <label>Username Login</label>
+                                    <input type="text" id="adminDataUser" placeholder="Cth: admin_baru" required>
+                                </div>
+                                <div class="input-group" style="margin-bottom: 10px;">
+                                    <label>Password Login</label>
+                                    <input type="text" id="adminDataPass" placeholder="Cth: pass123" required>
+                                </div>
+                                <div class="input-group" style="margin-bottom: 15px;">
+                                    <label>Role Akun</label>
+                                    <select id="adminDataRole" required>
+                                        <option value="Super Admin">Super Admin</option>
+                                        <option value="Admin Master">Admin Master</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="btnSubmitAdmin" style="width: 100%;"><i class="fa-solid fa-save"></i> Simpan Admin</button>
+                            </form>
+                        </div>
+
+                    </div>
+
+                    <!-- TAMPILAN TABEL DAFTAR MASTER DATA REALTIME -->
+                    <div style="margin-top: 40px;">
+                        <h3 style="margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-list"></i> Daftar Lengkap Master Data</h3>
+                        <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">*Gunakan tombol Edit untuk memperbarui data, atau Hapus untuk menghilangkan dari database secara realtime.</p>
+                        
+                        <div class="table-responsive" style="margin-bottom: 25px;">
+                            <h4 style="margin: 10px 15px; color: var(--primary);">1. Operator & Tenaga Medis</h4>
+                            <table class="dash-table">
+                                <thead><tr><th>ID</th><th>Role</th><th>Nama Lengkap</th><th>Nomor SIP</th><th style="text-align:right;">Aksi</th></tr></thead>
+                                <tbody id="listMasterOp"><tr><td colspan="5">Memuat data...</td></tr></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-responsive" style="margin-bottom: 25px;">
+                            <h4 style="margin: 10px 15px; color: var(--success);">2. Obat-obatan (Farmasi)</h4>
+                            <table class="dash-table">
+                                <thead><tr><th>ID</th><th>Nama Obat</th><th>Harga (Rp)</th><th>Stok</th><th style="text-align:right;">Aksi</th></tr></thead>
+                                <tbody id="listMasterObat"><tr><td colspan="5">Memuat data...</td></tr></tbody>
+                            </table>
+                        </div>
+
+                        <div class="table-responsive" style="margin-bottom: 25px;">
+                            <h4 style="margin: 10px 15px; color: #6366f1;">3. Tindakan Klinik</h4>
+                            <table class="dash-table">
+                                <thead><tr><th>ID</th><th>Nama Tindakan</th><th>Tarif Dasar (Rp)</th><th style="text-align:right;">Aksi</th></tr></thead>
+                                <tbody id="listMasterTindakan"><tr><td colspan="4">Memuat data...</td></tr></tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <h4 style="margin: 10px 15px; color: #f59e0b;">4. Akun Administrator Sistem</h4>
+                            <table class="dash-table">
+                                <thead><tr><th>ID</th><th>Username</th><th>Password</th><th>Role</th><th style="text-align:right;">Aksi</th></tr></thead>
+                                <tbody id="listMasterAdmin"><tr><td colspan="5">Memuat data...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> <!-- END TAB MASTER -->
+
+                <!-- TAB 2: LAPORAN KEUANGAN -->
+                <div id="tab-keuangan" class="admin-tab-content">
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                        <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(16,185,129,0.3);">
+                            <h4 style="margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Total Pendapatan (Bulan Ini)</h4>
+                            <h2 style="font-size: 1.8rem; margin: 0;" id="kpiTotalBulan">Rp 0</h2>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(59,130,246,0.3);">
+                            <h4 style="margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Total Pendapatan Tindakan</h4>
+                            <h2 style="font-size: 1.5rem; margin: 0;" id="kpiTotalTindakan">Rp 0</h2>
+                        </div>
+                        <div style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 15px rgba(245,158,11,0.3);">
+                            <h4 style="margin-bottom: 5px; font-weight: 500; font-size: 0.9rem;">Total Pendapatan Obat</h4>
+                            <h2 style="font-size: 1.5rem; margin: 0;" id="kpiTotalObat">Rp 0</h2>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 25px; margin-bottom: 30px;">
+                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Tren Pendapatan Harian (30 Hari Terakhir)</h3>
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="chartHarian"></canvas>
+                            </div>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border);">
+                            <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Komparasi Pendapatan Bulanan</h3>
+                            <div style="position: relative; height: 300px; width: 100%;">
+                                <canvas id="chartBulanan"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.8); padding: 20px; border-radius: 12px; border: 1px solid var(--glass-border); max-width: 500px; margin: 0 auto;">
+                        <h3 style="font-size: 1.1rem; margin-bottom: 15px; color: var(--text-dark); text-align: center;">Distribusi Sumber Pendapatan Keseluruhan</h3>
+                        <div style="position: relative; height: 300px; width: 100%;">
+                            <canvas id="chartPie"></canvas>
+                        </div>
+                    </div>
+
+                </div> <!-- END TAB KEUANGAN -->
+
+                <!-- TAB 3: PENGATURAN KLINIK (BARU) -->
+                <div id="tab-pengaturan" class="admin-tab-content">
+                    <div style="background: rgba(255,255,255,0.8); padding: 30px; border-radius: 12px; border: 1px solid var(--glass-border); max-width: 600px; margin: 0 auto;">
+                        <h3 style="font-size: 1.3rem; margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-building-user"></i> Identitas Klinik</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 25px;">Pengaturan ini akan berdampak pada Kop Surat cetak Surat Keterangan Sakit & Surat Rujukan.</p>
+                        
+                        <form onsubmit="simpanPengaturan(event)">
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Nama Klinik Utama</label>
+                                <input type="text" id="setNamaKlinik" value="KLINIK CARE MEDIKA" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Alamat Lengkap</label>
+                                <textarea id="setAlamatKlinik" rows="2" required>Jl. Kesehatan No. 123, Kota Anda</textarea>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 15px;">
+                                <label>Nomor Telepon / WhatsApp</label>
+                                <input type="text" id="setNoTelp" value="(021) 1234567" required>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 25px;">
+                                <label>URL Logo Klinik (Link Gambar/Path)</label>
+                                <input type="text" id="setUrlLogo" value="axalogo.png" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="btnSubmitPengaturan" style="width: 100%; padding: 15px; font-size: 1.05rem;"><i class="fa-solid fa-save"></i> Terapkan Pengaturan Identitas</button>
+                        </form>
+                    </div>
+                </div> <!-- END TAB PENGATURAN -->
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Generate SKS -->
+    <div id="modalSks" class="modal">
+        <div class="modal-content" style="max-width:400px;">
+            <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalSks').classList.remove('active')"></i>
+            <h3 style="margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Terbitkan Surat Sakit</h3>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Lama Istirahat (Hari)</label>
+                <input type="number" id="sksHari" value="3" min="1">
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Dari Tanggal</label>
+                <div class="date-wrapper">
+                    <input type="date" id="sksMulai" style="width: 100%;">
+                </div>
+            </div>
+            <div class="input-group" style="margin-bottom: 25px;">
+                <label>Sampai Tanggal</label>
+                <div class="date-wrapper">
+                    <input type="date" id="sksSelesai" style="width: 100%;">
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="eksekusiCetakSKS()"><i class="fa-solid fa-print"></i> Cetak SKS</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Generate SURAT RUJUKAN -->
+    <div id="modalRujukan" class="modal">
+        <div class="modal-content" style="max-width:500px;">
+            <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalRujukan').classList.remove('active')"></i>
+            <h3 style="margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-file-export"></i> Terbitkan Surat Rujukan</h3>
+            <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 15px; border-bottom: 1px solid #ddd; padding-bottom: 10px;">Lengkapi data tujuan rujukan ke Fasilitas Kesehatan (RS/Klinik) tingkat lanjut.</p>
+            
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Rumah Sakit / Fasilitas Tujuan</label>
+                <input type="text" id="rujukRs" placeholder="Cth: BLUD RSU BAHTERAMAS">
+            </div>
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>TS dr. Poli (Teman Sejawat)</label>
+                <input type="text" id="rujukPoli" placeholder="Cth: GIGI ENDODONSI">
+            </div>
+            
+            <!-- Diagnosa Rujukan Terhubung dengan Datalist ICD-10 -->
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Diagnosa Sementara (ICD-10)</label>
+                <input type="text" id="rujukDiagnosa" list="listICD10" placeholder="Pilih atau ketik diagnosa..." autocomplete="off">
+            </div>
+            
+            <div class="input-group" style="margin-bottom: 15px;">
+                <label>Terapi / Tindakan yang Telah Diberikan</label>
+                <textarea id="rujukTerapi" rows="2"></textarea>
+            </div>
+            <button class="btn btn-primary" style="width: 100%; padding: 12px;" onclick="eksekusiCetakRujukan()"><i class="fa-solid fa-print"></i> Cetak Surat Rujukan</button>
+        </div>
+    </div>
+
+    <!-- Modal Riwayat Kunjungan Pasien LENGKAP -->
+    <div id="modalRiwayatPasien" class="modal">
+        <div class="modal-content">
+            <i class="fa-solid fa-times close-modal" onclick="document.getElementById('modalRiwayatPasien').classList.remove('active')"></i>
+            <h3 style="margin-bottom: 5px; color: var(--primary);"><i class="fa-solid fa-book-medical"></i> Rekam Jejak Medis Komprehensif</h3>
+            <p style="font-size:0.95rem; color:var(--text-light); margin-bottom: 20px; border-bottom: 2px solid var(--glass-border); padding-bottom: 10px;">
+                Nama: <strong id="histNama" style="color:var(--text-dark)">-</strong> | No RM: <strong id="histRm" style="color:var(--text-dark)">-</strong>
+            </p>
+            
+            <div class="timeline" id="historyTimeline">
+                <!-- Diisi via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Custom -->
+    <div id="customConfirm" class="modal">
+        <div class="modal-content" style="max-width:400px; text-align:center;">
+            <h3 style="margin-bottom: 15px; color: var(--text-dark);"><i class="fa-solid fa-circle-exclamation" style="color: #f59e0b;"></i> Konfirmasi</h3>
+            <p id="confirmMessage" style="margin-bottom: 25px; color: var(--text-light); line-height: 1.5;"></p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button id="btnConfirmCancel" class="btn btn-outline" style="flex:1;">Batal</button>
+                <button id="btnConfirmOk" class="btn btn-danger" style="flex:1;">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AREA CETAK SKS (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
+    <div id="printArea" class="print-section">
+        <div class="kop-surat">
+            <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
+            <h1 class="print-nama-klinik" style="font-size: 20pt; margin: 0; text-transform: uppercase;">KLINIK CARE MEDIKA</h1>
+            <p class="print-alamat-klinik" style="font-size: 11pt; margin: 0;">Jl. Kesehatan No. 123, Kota Anda, Telp: (021) 1234567</p>
+        </div>
+        <div class="sks-title">SURAT KETERANGAN SAKIT</div>
+        <div class="sks-body">
+            <p>Yang bertanda tangan di bawah ini menerangkan bahwa:</p>
+            <table style="width: 100%; margin: 15px 0; border: none; font-size: 12pt;">
+                <tr><td style="width: 150px; padding: 5px 0;">Nama Lengkap</td><td>: <strong id="printNama"></strong></td></tr>
+                <tr><td style="padding: 5px 0;">Usia / Jenis Kelamin</td><td>: <span id="printUsia"></span> Tahun / <span id="printJk"></span></td></tr>
+                <tr><td style="padding: 5px 0;">Pekerjaan</td><td>: <span id="printKerja"></span></td></tr>
+                <tr><td style="padding: 5px 0;">Alamat</td><td>: <span id="printAlamat"></span></td></tr>
+            </table>
+            <p style="text-align: justify; margin-top: 15px;">Berdasarkan hasil pemeriksaan kesehatan yang bersangkutan, pasien di atas dalam keadaan sakit dan memerlukan istirahat selama <strong><span id="printHari"></span> (<span id="printHariTeks"></span>) hari</strong>, terhitung mulai tanggal <strong><span id="printMulai"></span></strong> s/d <strong><span id="printSelesai"></span></strong>.</p>
+            <p>Harap maklum dan menjadi periksa bagi pihak yang berkepentingan.</p>
+        </div>
+        <div class="sks-signature">
+            <p><span id="printTglSurat"></span><br>Dokter Pemeriksa,</p>
+            <!-- Kontainer QR Code TTE -->
+            <div id="qrCanvasSks" style="display: flex; justify-content: right; margin: 10px 0;"></div>
+            <p><strong style="text-decoration: underline;" id="printDokterSks">( ______________________ )</strong><br><span id="printSipSks">SIP: .......................................</span></p>
+        </div>
+    </div>
+
+    <!-- AREA CETAK SURAT RUJUKAN (Disembunyikan, MUNCUL SAAT DI-PRINT) -->
+    <div id="printAreaRujukan" class="print-section">
+        <div class="kop-surat">
+            <img class="print-logo" src="axalogo.png" alt="Logo Klinik" onerror="this.style.display='none'">
+            <h1 class="print-nama-klinik" style="font-size: 20pt; margin: 0; text-transform: uppercase;">KLINIK CARE MEDIKA</h1>
+            <p class="print-alamat-klinik" style="font-size: 11pt; margin: 0;">Jl. Kesehatan No. 123, Kota Anda, Telp: (021) 1234567</p>
+        </div>
+        
+        <div class="sks-title" style="margin-top: 10px; margin-bottom: 25px;">SURAT RUJUKAN EKSTERNAL</div>
+        
+        <div style="border: 2px solid #000; padding: 15px; margin-bottom: 20px;">
+            <table style="width: 100%; border: none; font-size: 12pt; line-height: 1.5;">
+                <tr><td style="width: 150px;">Kepada Yth,</td><td>: <strong id="printRujukanPoli"></strong></td></tr>
+                <tr><td>Di Tempat</td><td>: <strong id="printRujukanRs"></strong></td></tr>
+            </table>
+        </div>
+
+        <div class="sks-body">
+            <p style="margin-bottom: 10px;">Mohon pemeriksaan dan penanganan lebih lanjut pasien di bawah ini:</p>
+            
+            <table style="width: 100%; margin: 10px 0; border: none; font-size: 12pt; line-height: 1.5;">
+                <tr><td style="width: 180px; padding: 3px 0;">Nama Lengkap</td><td>: <strong id="printRujukanNama"></strong></td></tr>
+                <tr><td style="padding: 3px 0;">Umur / Jenis Kelamin</td><td>: <span id="printRujukanUmur"></span> Tahun / <span id="printRujukanJk"></span></td></tr>
+                <tr><td style="padding: 3px 0;">No Rekam Medis</td><td>: <span id="printRujukanRm"></span></td></tr>
+                <tr><td style="padding: 3px 0; vertical-align:top;">Diagnosa Utama</td><td>: <strong id="printRujukanDiagnosa"></strong></td></tr>
+                <tr><td style="padding: 3px 0; vertical-align:top;">Telah Diberikan (Terapi)</td><td>: <span id="printRujukanTerapi"></span></td></tr>
+            </table>
+
+            <p style="text-align: justify; margin-top: 25px;">Demikian surat rujukan ini dibuat, atas bantuan dan kerjasamanya kami ucapkan banyak terima kasih.</p>
+        </div>
+        
+        <div class="sks-signature" style="text-align: right;">
+            <p>Salam Sejawat, <span id="printRujukanTgl"></span></p>
+            <!-- Kontainer QR Code TTE -->
+            <div id="qrCanvasRujuk" style="display: flex; justify-content: right; margin: 10px 0;"></div>
+            <p><strong style="text-decoration: underline;" id="printRujukanDokter">( ______________________ )</strong><br><span id="printRujukanSip">SIP: .......................................</span></p>
+        </div>
+    </div>
+
+    <!-- AUDIO ELEMENT UNTUK SFX NOTIFIKASI -->
+    <audio id="notifAudio" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" preload="auto"></audio>
+    <audio id="successAudio" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
+
+    <div id="toast"><span id="toastMsg">Sukses!</span></div>
+
+    <!-- ==================================================================
+         JAVASCRIPT LOGIC (Dipisahkan ke script.js)
+         ================================================================== -->
+    <script src="script.js"></script>
+
+    <!-- SCRIPT TAMBAHAN UNTUK BYPASS AUTOPLAY POLICY BROWSER SAAT AKSES LINK LANGSUNG -->
+    <script>
+        // Sistem untuk mem-bypass pemblokiran Autoplay Audio oleh Chrome/Safari
+        function unlockSystemAudio() {
+            const notifAudio = document.getElementById('notifAudio');
+            if (notifAudio) {
+                notifAudio.play().then(() => {
+                    document.getElementById('audioUnlockOverlay').style.display = 'none';
+                }).catch(e => console.log("Unlock failed", e));
+            }
+        }
+
+        // Override playNotifSound bawaan script.js untuk menangkap error Autoplay
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const originalPlay = window.playNotifSound;
+                if(typeof originalPlay === 'function') {
                     window.playNotifSound = function() {
                         const audio = document.getElementById('notifAudio');
                         if(audio) {
