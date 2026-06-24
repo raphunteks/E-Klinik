@@ -1,5 +1,5 @@
 // MASUKKAN URL DEPLOYMENT GAS VERSI 12 ANDA DISINI (Jika sudah deploy baru)
-const API_URL = "https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exe"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exec"; 
 
 let allPatientsData = [];
 let masterOperators = [];
@@ -18,7 +18,7 @@ let editModeAdmin = { active: false, sheetName: '', rowIndex: null };
 let lastRawDataRM = ""; 
 let autoRefreshInterval = null;
 
-// [UPGRADE] Array untuk menyimpan BANYAK foto sekaligus per rahang
+// [BIG UPGRADE] Array untuk menyimpan BANYAK foto sekaligus per rahang (UNLIMITED FOTO)
 let fotosRA = []; 
 let fotosRB = [];
 
@@ -40,7 +40,7 @@ function toggleAccordion(id) {
 }
 
 // ==========================================
-// [FITUR BARU] LOGIKA FOTO KLINIS MULTI-UPLOAD
+// [FITUR BARU] LOGIKA FOTO KLINIS MULTI-UPLOAD (UNLIMITED)
 // ==========================================
 function tambahFotoKlinis(inputObj, tipe) {
     if (inputObj.files && inputObj.files[0]) {
@@ -104,17 +104,18 @@ function renderPhotoGrid(tipe) {
     let emptyStateId = tipe === 'RA' ? 'emptyStateRA' : 'emptyStateRB';
 
     let gridContainer = document.getElementById(gridId);
-    
-    // BUG FIX: Hanya menghapus elemen foto (thumbnail), BUKAN emptyState!
-    let thumbnails = gridContainer.querySelectorAll('.photo-thumb-wrapper');
-    thumbnails.forEach(thumb => thumb.remove());
-
     let emptyState = document.getElementById(emptyStateId);
+    
+    // BUG FIX: Hanya menghapus thumbnail fotonya, TIDAK menghapus div Empty State!
+    if(gridContainer) {
+        let thumbnails = gridContainer.querySelectorAll('.photo-thumb-wrapper');
+        thumbnails.forEach(thumb => thumb.remove());
+    }
 
     if (arrayFotos.length === 0) {
-        if (emptyState) emptyState.style.display = "block";
+        if(emptyState) emptyState.style.display = "block";
     } else {
-        if (emptyState) emptyState.style.display = "none";
+        if(emptyState) emptyState.style.display = "none";
         
         // Render tiap foto dari Array
         arrayFotos.forEach((b64, index) => {
@@ -128,7 +129,7 @@ function renderPhotoGrid(tipe) {
             btnRemove.type = 'button';
             btnRemove.className = 'btn-remove-photo';
             btnRemove.innerHTML = '<i class="fa-solid fa-times"></i>';
-            // Hindari bubbling form
+            // Hindari bubbling
             btnRemove.onclick = (e) => {
                 e.preventDefault();
                 removePhoto(tipe, index);
@@ -136,12 +137,13 @@ function renderPhotoGrid(tipe) {
             
             thumbWrapper.appendChild(img);
             thumbWrapper.appendChild(btnRemove);
-            gridContainer.appendChild(thumbWrapper);
+            if(gridContainer) gridContainer.appendChild(thumbWrapper);
         });
     }
 
     // Update Hidden Input (Kirim JSON Array ke Backend)
-    document.getElementById(hiddenInputId).value = JSON.stringify(arrayFotos);
+    const hiddenInput = document.getElementById(hiddenInputId);
+    if(hiddenInput) hiddenInput.value = JSON.stringify(arrayFotos);
 }
 
 function removePhoto(tipe, index) {
@@ -1669,11 +1671,11 @@ if(ermForm) {
         dataObj.riwayatPenyakit = strPenyakit; 
         dataObj.riwayatAlergi = strAlergi; 
         
-        // Tangkap Base64 dari Hidden Input Foto
+        // Tangkap Base64 dari Hidden Input Foto (Sekarang Berisi JSON Array)
         const inputRA = document.getElementById('b64RahangAtas');
         const inputRB = document.getElementById('b64RahangBawah');
-        dataObj.fotoRahangAtas = inputRA ? inputRA.value : "";
-        dataObj.fotoRahangBawah = inputRB ? inputRB.value : "";
+        dataObj.fotoRahangAtas = inputRA ? inputRA.value : "[]";
+        dataObj.fotoRahangBawah = inputRB ? inputRB.value : "[]";
 
         dataObj.detailTindakan = JSON.stringify(tindakanArray);
         dataObj.resepObat = JSON.stringify(resepArray);
@@ -1729,7 +1731,7 @@ if(ermForm) {
                 if(alertFill) alertFill.style.display = 'none'; 
                 memoryPatientData = null;
                 
-                // Reset Array Foto
+                // Reset Array Foto & Clear Thumbnail Grid
                 fotosRA = [];
                 fotosRB = [];
                 renderPhotoGrid('RA');
@@ -1809,7 +1811,7 @@ function bukaRiwayatKunjungan(rmFilter, nama) {
                 `;
             }
 
-            // [FITUR BARU] Menampilkan Link Foto Klinis di Riwayat Pasien sebagai Gallery
+            // [FITUR BARU] Menampilkan Link Foto Klinis di Riwayat Pasien sebagai Gallery Thumbnail
             let fotoHTML = '';
             let urlRA = v['URL Foto Rahang Atas'];
             let urlRB = v['URL Foto Rahang Bawah'];
@@ -2275,12 +2277,10 @@ async function eksekusiCetakSKS() {
                 showToast("Dokumen SKS berhasil dienkripsi!", "success");
                 
                 // [BIG UPGRADE]: Otomatis mengarahkan aplikasi untuk mengunduh/membuka file PDF asli 
-                // Sehingga user bisa langsung menyimpannya ke folder File lokal iOS.
                 if(resData.fileUrl) {
                     window.location.href = resData.fileUrl;
                 }
             } else {
-                // Menampilkan error persis dari GAS agar user tahu kalau salah URL / Lupa Deploy
                 showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
             }
         } catch(e) {
@@ -2290,7 +2290,7 @@ async function eksekusiCetakSKS() {
             // TUTUP OVERLAY SETELAH PROSES SELESAI
             if(overlay) overlay.style.display = 'none';
 
-            // 4. LAKUKAN PRINT FISIK BROWSER (Aman dari block jaringan)
+            // TUTUP MODAL
             const modalSks = document.getElementById('modalSks');
             if(modalSks) modalSks.classList.remove('active');
         }
