@@ -1,5 +1,5 @@
 // MASUKKAN URL DEPLOYMENT GAS VERSI 12 ANDA DISINI (Jika sudah deploy baru)
-const API_URL = "[https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exec](https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exec)"; 
+const API_URL = "https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exe"; 
 
 let allPatientsData = [];
 let masterOperators = [];
