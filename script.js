@@ -1,5 +1,5 @@
 // MASUKKAN URL DEPLOYMENT GAS VERSI 12 ANDA DISINI (Jika sudah deploy baru)
-const API_URL = "https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exec"; 
+const API_URL = "[https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exec](https://script.google.com/macros/s/AKfycbxkg8J9lIGIaabn404_k-JbLfEBt_c1wt1JWl9hfYNaVCmPiHO26q931RB4D3RHDgOS/exec)"; 
 
 let allPatientsData = [];
 let masterOperators = [];
@@ -40,13 +40,12 @@ function toggleAccordion(id) {
 }
 
 // ==========================================
-// [FITUR BARU] LOGIKA FOTO KLINIS & KOMPRESI
+// [FITUR BARU] LOGIKA FOTO KLINIS MULTI-UPLOAD
 // ==========================================
 function tambahFotoKlinis(inputObj, tipe) {
     if (inputObj.files && inputObj.files[0]) {
         let file = inputObj.files[0];
         
-        // Cek jika yang diupload adalah gambar
         if (!file.type.startsWith('image/')) {
             showToast("Hanya file gambar/foto yang diizinkan!", "error");
             return;
@@ -58,11 +57,10 @@ function tambahFotoKlinis(inputObj, tipe) {
             img.src = e.target.result;
             
             img.onload = function() {
-                // KOMPRESI GAMBAR AGAR TIDAK TIME-OUT DI GOOGLE APPS SCRIPT
+                // Kompresi Canvas
                 let canvas = document.createElement('canvas');
                 let ctx = canvas.getContext('2d');
                 
-                // Set batas resolusi (Bagus tapi tetap ringan)
                 let MAX_WIDTH = 1080;
                 let MAX_HEIGHT = 1080;
                 let width = img.width;
@@ -78,7 +76,7 @@ function tambahFotoKlinis(inputObj, tipe) {
                 canvas.height = height;
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // Export ke Base64 (Kualitas 70% JPEG)
+                // Export ke Base64 
                 let dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                 
                 // Masukkan ke Array sesuai tipe
@@ -106,18 +104,19 @@ function renderPhotoGrid(tipe) {
     let emptyStateId = tipe === 'RA' ? 'emptyStateRA' : 'emptyStateRB';
 
     let gridContainer = document.getElementById(gridId);
-    let emptyState = document.getElementById(emptyStateId);
     
-    // Clear grid
-    gridContainer.innerHTML = "";
+    // BUG FIX: Hanya menghapus elemen foto (thumbnail), BUKAN emptyState!
+    let thumbnails = gridContainer.querySelectorAll('.photo-thumb-wrapper');
+    thumbnails.forEach(thumb => thumb.remove());
+
+    let emptyState = document.getElementById(emptyStateId);
 
     if (arrayFotos.length === 0) {
-        emptyState.style.display = "block";
-        gridContainer.appendChild(emptyState);
+        if (emptyState) emptyState.style.display = "block";
     } else {
-        emptyState.style.display = "none";
+        if (emptyState) emptyState.style.display = "none";
         
-        // Render tiap foto
+        // Render tiap foto dari Array
         arrayFotos.forEach((b64, index) => {
             let thumbWrapper = document.createElement('div');
             thumbWrapper.className = 'photo-thumb-wrapper';
@@ -129,7 +128,11 @@ function renderPhotoGrid(tipe) {
             btnRemove.type = 'button';
             btnRemove.className = 'btn-remove-photo';
             btnRemove.innerHTML = '<i class="fa-solid fa-times"></i>';
-            btnRemove.onclick = () => removePhoto(tipe, index);
+            // Hindari bubbling form
+            btnRemove.onclick = (e) => {
+                e.preventDefault();
+                removePhoto(tipe, index);
+            };
             
             thumbWrapper.appendChild(img);
             thumbWrapper.appendChild(btnRemove);
@@ -150,6 +153,7 @@ function removePhoto(tipe, index) {
         renderPhotoGrid('RB');
     }
 }
+
 
 // ==================================================================
 // FORMATTING: TANGGAL & RUPIAH
@@ -2413,7 +2417,7 @@ async function eksekusiCetakRujukan() {
             // TUTUP OVERLAY SETELAH PROSES SELESAI
             if(overlay) overlay.style.display = 'none';
 
-            // LAKUKAN PRINT FISIK SETELAH DATA AMAN
+            // TUTUP MODAL
             const modalRujukan = document.getElementById('modalRujukan');
             if(modalRujukan) modalRujukan.classList.remove('active');
         }
