@@ -634,66 +634,51 @@
                     </div>
 
                     <!-- ========================================== -->
-                    <!-- FITUR BARU: FOTO KLINIS (IO) KHUSUS MOBILE -->
+                    <!-- FITUR BARU: FOTO KLINIS (IO) MULTI UPLOAD  -->
                     <!-- ========================================== -->
                     <h3 class="module-title"><i class="fa-solid fa-camera"></i> Foto Klinis (IO)</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">*Ketuk tombol di bawah untuk membuka kamera HP secara otomatis. Jika salah ambil, bisa diulang/dihapus kapan saja.</p>
+                    <p style="font-size: 0.8rem; color: var(--text-light); margin-bottom: 15px;">*Ketuk tombol di bawah untuk memotret. Anda dapat mengambil banyak foto sekaligus tanpa batas.</p>
                     
                     <div class="form-grid" style="margin-bottom: 25px;">
-                        <!-- RAHANG ATAS -->
+                        
+                        <!-- RAHANG ATAS MULTI -->
                         <div class="photo-card">
                             <h4 style="color: var(--primary); margin-bottom: 10px;">Rahang Atas</h4>
-                            <div class="photo-preview-container">
-                                <i class="fa-solid fa-image placeholder-icon" id="iconRA"></i>
-                                <img id="previewRA" alt="Preview Rahang Atas">
+                            
+                            <div id="gridRA" class="multi-photo-grid">
+                                <div class="empty-photo-state" id="emptyStateRA">
+                                    <i class="fa-solid fa-images"></i>
+                                    <p style="font-size: 0.75rem;">Belum ada foto</p>
+                                </div>
                             </div>
                             
-                            <!-- BUBBLING FIX: Tombol Murni tanpa LABEL Wrapper -->
-                            <div id="btnGroupAmbilRA">
-                                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('inputFotoRA').click()">
-                                    <i class="fa-solid fa-camera"></i> Ambil Foto RA
-                                </button>
-                                <input type="file" id="inputFotoRA" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')">
-                            </div>
+                            <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="document.getElementById('inputFotoRA').click()">
+                                <i class="fa-solid fa-camera"></i> Ambil Foto RA
+                            </button>
+                            <input type="file" id="inputFotoRA" accept="image/*" capture="environment" style="display: none;" onchange="tambahFotoKlinis(this, 'RA')">
                             
-                            <div id="btnGroupEditRA" style="display: none; gap: 10px;">
-                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('inputFotoRAUlang').click()">
-                                    <i class="fa-solid fa-rotate"></i> Ulang
-                                </button>
-                                <input type="file" id="inputFotoRAUlang" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')">
-                                
-                                <button type="button" class="btn btn-danger" style="flex: 1;" onclick="hapusFoto('previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')"><i class="fa-solid fa-trash"></i> Hapus</button>
-                            </div>
-                            
-                            <input type="hidden" name="fotoRahangAtas" id="b64RahangAtas">
+                            <!-- Hidden input untuk menyimpan JSON Array -->
+                            <input type="hidden" name="fotoRahangAtas" id="b64RahangAtas" value="[]">
                         </div>
 
-                        <!-- RAHANG BAWAH -->
+                        <!-- RAHANG BAWAH MULTI -->
                         <div class="photo-card">
                             <h4 style="color: var(--primary); margin-bottom: 10px;">Rahang Bawah</h4>
-                            <div class="photo-preview-container">
-                                <i class="fa-solid fa-image placeholder-icon" id="iconRB"></i>
-                                <img id="previewRB" alt="Preview Rahang Bawah">
+                            
+                            <div id="gridRB" class="multi-photo-grid">
+                                <div class="empty-photo-state" id="emptyStateRB">
+                                    <i class="fa-solid fa-images"></i>
+                                    <p style="font-size: 0.75rem;">Belum ada foto</p>
+                                </div>
                             </div>
                             
-                            <!-- BUBBLING FIX: Tombol Murni tanpa LABEL Wrapper -->
-                            <div id="btnGroupAmbilRB">
-                                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('inputFotoRB').click()">
-                                    <i class="fa-solid fa-camera"></i> Ambil Foto RB
-                                </button>
-                                <input type="file" id="inputFotoRB" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')">
-                            </div>
+                            <button type="button" class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="document.getElementById('inputFotoRB').click()">
+                                <i class="fa-solid fa-camera"></i> Ambil Foto RB
+                            </button>
+                            <input type="file" id="inputFotoRB" accept="image/*" capture="environment" style="display: none;" onchange="tambahFotoKlinis(this, 'RB')">
                             
-                            <div id="btnGroupEditRB" style="display: none; gap: 10px;">
-                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('inputFotoRBUlang').click()">
-                                    <i class="fa-solid fa-rotate"></i> Ulang
-                                </button>
-                                <input type="file" id="inputFotoRBUlang" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')">
-                                
-                                <button type="button" class="btn btn-danger" style="flex: 1;" onclick="hapusFoto('previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')"><i class="fa-solid fa-trash"></i> Hapus</button>
-                            </div>
-                            
-                            <input type="hidden" name="fotoRahangBawah" id="b64RahangBawah">
+                            <!-- Hidden input untuk menyimpan JSON Array -->
+                            <input type="hidden" name="fotoRahangBawah" id="b64RahangBawah" value="[]">
                         </div>
                     </div>
                     <!-- ========================================== -->
