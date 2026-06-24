@@ -20,9 +20,22 @@
     <!-- LINK KE FILE CSS EKSTERNAL -->
     <link rel="stylesheet" href="styles.css">
 
-    <!-- CSS ISOLASI KHUSUS CETAK SKS & RUJUKAN -->
+    <!-- CSS ISOLASI KHUSUS CETAK SKS, RUJUKAN & MULTI-FOTO KLINIS -->
     <style>
         .print-section { display: none; }
+        
+        /* [FITUR BARU] Style Khusus Multi-Photo Grid Klinis */
+        .photo-card { background: rgba(255,255,255,0.6); border: 2px dashed #94a3b8; border-radius: 12px; padding: 20px; text-align: center; transition: all 0.3s; }
+        .photo-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.9); }
+        
+        .multi-photo-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 15px; margin-bottom: 15px; justify-content: center; align-items: center; min-height: 100px; }
+        .photo-thumb-wrapper { position: relative; width: 100px; height: 100px; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); border: 2px solid var(--glass-border); background: #e2e8f0; animation: fadeIn 0.3s ease; flex-shrink: 0;}
+        .photo-thumb-wrapper img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .btn-remove-photo { position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 50%; width: 24px; height: 24px; font-size: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: transform 0.2s;}
+        .btn-remove-photo:hover { transform: scale(1.1); background: #dc2626; }
+        
+        .empty-photo-state { color: #94a3b8; width: 100%; text-align: center; }
+        .empty-photo-state i { font-size: 2.5rem; margin-bottom: 10px; display: block;}
     </style>
     <style media="print">
         /* [BIG UPGRADE] FIX BLANK PAGE PADA MOBILE PRINTER / PDF */
