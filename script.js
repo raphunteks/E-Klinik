@@ -90,7 +90,7 @@ function tambahFotoKlinis(inputObj, tipe) {
                 
                 // Reset value input agar bisa memotret gambar yang sama jika perlu
                 inputObj.value = "";
-                showToast("Foto ditambahkan!", "success");
+                showToast("Foto berhasil direkam!", "success");
             }
         };
         reader.readAsDataURL(file);
@@ -1822,10 +1822,18 @@ function bukaRiwayatKunjungan(rmFilter, nama) {
                 // Parse Rahang Atas
                 if (urlRA && urlRA !== '-' && urlRA !== '[]') {
                     fotoHTML += `<div style="font-size: 0.8rem; color: var(--primary); margin-top: 8px; font-weight: 600;">Rahang Atas</div><div class="history-photo-gallery">`;
-                    let linksRA = urlRA.split(' | ');
+                    
+                    let linksRA = [];
+                    try {
+                        linksRA = JSON.parse(urlRA);
+                        if (!Array.isArray(linksRA)) linksRA = urlRA.split(' | ');
+                    } catch(e) {
+                        linksRA = urlRA.split(' | ');
+                    }
+
                     linksRA.forEach(link => {
                         if(link.trim() !== '') {
-                            fotoHTML += `<a href="${link.trim()}" target="_blank" class="history-photo-item"><img src="${link.trim()}" alt="Foto RA"></a>`;
+                            fotoHTML += `<a href="${link.trim()}" target="_blank" class="history-photo-item"><img src="${link.trim()}" alt="Foto RA" style="width: 100%; height: 100%; object-fit: cover;"></a>`;
                         }
                     });
                     fotoHTML += `</div>`;
@@ -1834,10 +1842,18 @@ function bukaRiwayatKunjungan(rmFilter, nama) {
                 // Parse Rahang Bawah
                 if (urlRB && urlRB !== '-' && urlRB !== '[]') {
                     fotoHTML += `<div style="font-size: 0.8rem; color: var(--primary); margin-top: 12px; font-weight: 600;">Rahang Bawah</div><div class="history-photo-gallery">`;
-                    let linksRB = urlRB.split(' | ');
+                    
+                    let linksRB = [];
+                    try {
+                        linksRB = JSON.parse(urlRB);
+                        if (!Array.isArray(linksRB)) linksRB = urlRB.split(' | ');
+                    } catch(e) {
+                        linksRB = urlRB.split(' | ');
+                    }
+
                     linksRB.forEach(link => {
                         if(link.trim() !== '') {
-                            fotoHTML += `<a href="${link.trim()}" target="_blank" class="history-photo-item"><img src="${link.trim()}" alt="Foto RB"></a>`;
+                            fotoHTML += `<a href="${link.trim()}" target="_blank" class="history-photo-item"><img src="${link.trim()}" alt="Foto RB" style="width: 100%; height: 100%; object-fit: cover;"></a>`;
                         }
                     });
                     fotoHTML += `</div>`;
@@ -2290,7 +2306,7 @@ async function eksekusiCetakSKS() {
             // TUTUP OVERLAY SETELAH PROSES SELESAI
             if(overlay) overlay.style.display = 'none';
 
-            // TUTUP MODAL
+            // 4. LAKUKAN PRINT FISIK BROWSER (Aman dari block jaringan)
             const modalSks = document.getElementById('modalSks');
             if(modalSks) modalSks.classList.remove('active');
         }
