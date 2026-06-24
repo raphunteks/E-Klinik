@@ -2,7 +2,6 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <!-- [UPGRADE VIEWPORT]: Mencegah UI berantakan/auto-zoom di WebView Apple & Memenuhi Layar -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Sistem E-RM | Klinik Pribadi</title>
 
@@ -21,16 +20,9 @@
     <!-- LINK KE FILE CSS EKSTERNAL -->
     <link rel="stylesheet" href="styles.css">
 
-    <!-- CSS ISOLASI KHUSUS CETAK SKS & RUJUKAN + FOTO KLINIS -->
+    <!-- CSS ISOLASI KHUSUS CETAK SKS & RUJUKAN -->
     <style>
         .print-section { display: none; }
-        
-        /* Style Khusus Fitur Foto Klinis */
-        .photo-card { background: rgba(255,255,255,0.6); border: 2px dashed #94a3b8; border-radius: 12px; padding: 20px; text-align: center; transition: all 0.3s; }
-        .photo-card:hover { border-color: var(--primary); background: rgba(255,255,255,0.9); }
-        .photo-preview-container { width: 100%; height: 200px; background: #e2e8f0; border-radius: 8px; margin-bottom: 15px; overflow: hidden; display: flex; align-items: center; justify-content: center; position: relative; }
-        .photo-preview-container img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .photo-preview-container i.placeholder-icon { font-size: 3rem; color: #94a3b8; }
     </style>
     <style media="print">
         /* [BIG UPGRADE] FIX BLANK PAGE PADA MOBILE PRINTER / PDF */
@@ -92,7 +84,7 @@
     <div id="pdfLoadingOverlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:9999; justify-content:center; align-items:center; flex-direction:column;">
         <i class="fa-solid fa-circle-notch fa-spin" style="font-size: 3rem; color: var(--primary); margin-bottom: 15px;"></i>
         <h3 style="color: var(--text-dark);">Memproses Data...</h3>
-        <p style="color: var(--text-light);">Mohon tunggu sebentar, dokumen sedang dienkripsi ke Server.</p>
+        <p style="color: var(--text-light);">Mohon tunggu sebentar, dokumen/foto sedang dienkripsi ke Server.</p>
     </div>
 
     <div class="blob blob-1"></div>
@@ -656,18 +648,20 @@
                                 <img id="previewRA" alt="Preview Rahang Atas">
                             </div>
                             
+                            <!-- BUBBLING FIX: Tombol Murni tanpa LABEL Wrapper -->
                             <div id="btnGroupAmbilRA">
-                                <label class="btn btn-primary" style="cursor: pointer; display: inline-block; width: 100%;">
+                                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('inputFotoRA').click()">
                                     <i class="fa-solid fa-camera"></i> Ambil Foto RA
-                                    <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')">
-                                </label>
+                                </button>
+                                <input type="file" id="inputFotoRA" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')">
                             </div>
                             
                             <div id="btnGroupEditRA" style="display: none; gap: 10px;">
-                                <label class="btn btn-outline" style="cursor: pointer; flex: 1;">
+                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('inputFotoRAUlang').click()">
                                     <i class="fa-solid fa-rotate"></i> Ulang
-                                    <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')">
-                                </label>
+                                </button>
+                                <input type="file" id="inputFotoRAUlang" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')">
+                                
                                 <button type="button" class="btn btn-danger" style="flex: 1;" onclick="hapusFoto('previewRA', 'iconRA', 'b64RahangAtas', 'btnGroupAmbilRA', 'btnGroupEditRA')"><i class="fa-solid fa-trash"></i> Hapus</button>
                             </div>
                             
@@ -682,18 +676,20 @@
                                 <img id="previewRB" alt="Preview Rahang Bawah">
                             </div>
                             
+                            <!-- BUBBLING FIX: Tombol Murni tanpa LABEL Wrapper -->
                             <div id="btnGroupAmbilRB">
-                                <label class="btn btn-primary" style="cursor: pointer; display: inline-block; width: 100%;">
+                                <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('inputFotoRB').click()">
                                     <i class="fa-solid fa-camera"></i> Ambil Foto RB
-                                    <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')">
-                                </label>
+                                </button>
+                                <input type="file" id="inputFotoRB" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')">
                             </div>
                             
                             <div id="btnGroupEditRB" style="display: none; gap: 10px;">
-                                <label class="btn btn-outline" style="cursor: pointer; flex: 1;">
+                                <button type="button" class="btn btn-outline" style="flex: 1;" onclick="document.getElementById('inputFotoRBUlang').click()">
                                     <i class="fa-solid fa-rotate"></i> Ulang
-                                    <input type="file" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')">
-                                </label>
+                                </button>
+                                <input type="file" id="inputFotoRBUlang" accept="image/*" capture="environment" style="display: none;" onchange="handlePhotoUpload(this, 'previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')">
+                                
                                 <button type="button" class="btn btn-danger" style="flex: 1;" onclick="hapusFoto('previewRB', 'iconRB', 'b64RahangBawah', 'btnGroupAmbilRB', 'btnGroupEditRB')"><i class="fa-solid fa-trash"></i> Hapus</button>
                             </div>
                             
