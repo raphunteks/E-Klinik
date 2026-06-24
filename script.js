@@ -18,6 +18,10 @@ let editModeAdmin = { active: false, sheetName: '', rowIndex: null };
 let lastRawDataRM = ""; 
 let autoRefreshInterval = null;
 
+// [UPGRADE] Array untuk menyimpan BANYAK foto sekaligus per rahang
+let fotosRA = []; 
+let fotosRB = [];
+
 // Instance Chart.js
 let chartLineInst = null;
 let chartBarInst = null;
@@ -38,7 +42,7 @@ function toggleAccordion(id) {
 // ==========================================
 // [FITUR BARU] LOGIKA FOTO KLINIS & KOMPRESI
 // ==========================================
-function handlePhotoUpload(inputObj, imgPreviewId, iconId, hiddenInputId, btnGroupAmbilId, btnGroupEditId) {
+function tambahFotoKlinis(inputObj, tipe) {
     if (inputObj.files && inputObj.files[0]) {
         let file = inputObj.files[0];
         
@@ -77,45 +81,74 @@ function handlePhotoUpload(inputObj, imgPreviewId, iconId, hiddenInputId, btnGro
                 // Export ke Base64 (Kualitas 70% JPEG)
                 let dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                 
-                // Tampilkan Preview ke UI
-                document.getElementById(iconId).style.display = 'none';
-                let previewImg = document.getElementById(imgPreviewId);
-                previewImg.src = dataUrl;
-                previewImg.style.display = 'block';
-
-                // Masukkan Base64 ke Hidden Input agar terkirim ke form
-                document.getElementById(hiddenInputId).value = dataUrl;
-
-                // Ganti tombol Ambil menjadi Edit/Ulang/Hapus
-                document.getElementById(btnGroupAmbilId).style.display = 'none';
-                document.getElementById(btnGroupEditId).style.display = 'flex';
+                // Masukkan ke Array sesuai tipe
+                if (tipe === 'RA') {
+                    fotosRA.push(dataUrl);
+                    renderPhotoGrid('RA');
+                } else {
+                    fotosRB.push(dataUrl);
+                    renderPhotoGrid('RB');
+                }
                 
-                showToast("Foto berhasil direkam & siap diunggah!", "success");
+                // Reset value input agar bisa memotret gambar yang sama jika perlu
+                inputObj.value = "";
+                showToast("Foto ditambahkan!", "success");
             }
         };
         reader.readAsDataURL(file);
     }
 }
 
-function hapusFoto(imgPreviewId, iconId, hiddenInputId, btnGroupAmbilId, btnGroupEditId) {
-    showCustomConfirm("Yakin ingin menghapus foto klinis ini?", (confirmed) => {
-        if (!confirmed) return;
-        
-        // Reset Preview UI
-        let previewImg = document.getElementById(imgPreviewId);
-        previewImg.src = '';
-        previewImg.style.display = 'none';
-        document.getElementById(iconId).style.display = 'block';
+function renderPhotoGrid(tipe) {
+    let arrayFotos = tipe === 'RA' ? fotosRA : fotosRB;
+    let gridId = tipe === 'RA' ? 'gridRA' : 'gridRB';
+    let hiddenInputId = tipe === 'RA' ? 'b64RahangAtas' : 'b64RahangBawah';
+    let emptyStateId = tipe === 'RA' ? 'emptyStateRA' : 'emptyStateRB';
 
-        // Kosongkan Hidden Input
-        document.getElementById(hiddenInputId).value = "";
+    let gridContainer = document.getElementById(gridId);
+    let emptyState = document.getElementById(emptyStateId);
+    
+    // Clear grid
+    gridContainer.innerHTML = "";
 
-        // Kembalikan Tombol seperti semula
-        document.getElementById(btnGroupAmbilId).style.display = 'block';
-        document.getElementById(btnGroupEditId).style.display = 'none';
+    if (arrayFotos.length === 0) {
+        emptyState.style.display = "block";
+        gridContainer.appendChild(emptyState);
+    } else {
+        emptyState.style.display = "none";
         
-        showToast("Foto dibatalkan/dihapus.", "info");
-    });
+        // Render tiap foto
+        arrayFotos.forEach((b64, index) => {
+            let thumbWrapper = document.createElement('div');
+            thumbWrapper.className = 'photo-thumb-wrapper';
+            
+            let img = document.createElement('img');
+            img.src = b64;
+            
+            let btnRemove = document.createElement('button');
+            btnRemove.type = 'button';
+            btnRemove.className = 'btn-remove-photo';
+            btnRemove.innerHTML = '<i class="fa-solid fa-times"></i>';
+            btnRemove.onclick = () => removePhoto(tipe, index);
+            
+            thumbWrapper.appendChild(img);
+            thumbWrapper.appendChild(btnRemove);
+            gridContainer.appendChild(thumbWrapper);
+        });
+    }
+
+    // Update Hidden Input (Kirim JSON Array ke Backend)
+    document.getElementById(hiddenInputId).value = JSON.stringify(arrayFotos);
+}
+
+function removePhoto(tipe, index) {
+    if (tipe === 'RA') {
+        fotosRA.splice(index, 1);
+        renderPhotoGrid('RA');
+    } else {
+        fotosRB.splice(index, 1);
+        renderPhotoGrid('RB');
+    }
 }
 
 // ==================================================================
@@ -177,8 +210,6 @@ function showCustomConfirm(msg, callback, isDanger = true) {
 
 function playNotifSound() {
     const audio = document.getElementById('notifAudio');
-    // Note: Browser secara bawaan memblokir Autoplay Audio sampai user interaksi (klik). 
-    // .catch digunakan agar console tidak error jika web baru pertama kali dibuka via link.
     if(audio) audio.play().catch(e => console.log("Audio autoplay diblokir oleh browser.", e));
 }
 
@@ -224,7 +255,6 @@ document.getElementById('inputTtl').addEventListener('input', function(e) {
 // DOM CONTENT LOADED - MASTER INIT
 // ==================================================================
 document.addEventListener('DOMContentLoaded', () => {
-    // Cek Jika Parameter adalah halaman Verifikasi TTE
     const urlParams = new URLSearchParams(window.location.search);
     const verifyId = urlParams.get('verify');
     
@@ -284,7 +314,6 @@ function navTo(sectionId, pushState = true) {
         if(targetId === 'farmasi' && allPatientsData.length > 0) {
             renderTableFarmasi(allPatientsData);
             
-            // Pengecekan Obat Menunggu Proses Saat Navigasi Buka Tab Farmasi
             const pendingFarmasi = allPatientsData.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
             if(pendingFarmasi.length > 0) {
                 playNotifSound();
@@ -426,8 +455,6 @@ async function loadDashboardData(silent = false) {
         
         if(result.status === 'success') {
             const currentRawRM = JSON.stringify(result.dataRM);
-            
-            // [UPGRADE BARU] Detektor Initial Load (Baru pertama web dibuka)
             let isInitialLoad = (lastRawDataRM === "");
             
             if (currentRawRM !== lastRawDataRM) {
@@ -465,14 +492,13 @@ async function loadDashboardData(silent = false) {
             if(document.getElementById('farmasi') && document.getElementById('farmasi').classList.contains('active')) {
                 renderTableFarmasi(allPatientsData);
                 
-                // [UPGRADE BARU] Notifikasi saat akses link langsung ke /farmasi
                 if(isInitialLoad) {
                     const pendingFarmasi = allPatientsData.filter(i => i['Resep Obat'] && i['Resep Obat'] !== '-' && i['Resep Obat'] !== '[]' && i['Status Farmasi'] !== 'Selesai Diberikan');
                     if(pendingFarmasi.length > 0) {
                         setTimeout(() => {
                             playNotifSound();
                             showToast(`Peringatan: Ada ${pendingFarmasi.length} resep yang belum diselesaikan!`, "info");
-                        }, 500); // 500ms delay agar UX smooth setelah render tabel
+                        }, 500); 
                     }
                 }
             }
@@ -1699,26 +1725,11 @@ if(ermForm) {
                 if(alertFill) alertFill.style.display = 'none'; 
                 memoryPatientData = null;
                 
-                // Reset Gambar & UI Foto
-                const previewRA = document.getElementById('previewRA');
-                if (previewRA) { previewRA.src = ''; previewRA.style.display = 'none'; }
-                const iconRA = document.getElementById('iconRA');
-                if (iconRA) iconRA.style.display = 'block';
-                if (inputRA) inputRA.value = '';
-                const btnAmbilRA = document.getElementById('btnGroupAmbilRA');
-                if (btnAmbilRA) btnAmbilRA.style.display = 'block';
-                const btnEditRA = document.getElementById('btnGroupEditRA');
-                if (btnEditRA) btnEditRA.style.display = 'none';
-
-                const previewRB = document.getElementById('previewRB');
-                if (previewRB) { previewRB.src = ''; previewRB.style.display = 'none'; }
-                const iconRB = document.getElementById('iconRB');
-                if (iconRB) iconRB.style.display = 'block';
-                if (inputRB) inputRB.value = '';
-                const btnAmbilRB = document.getElementById('btnGroupAmbilRB');
-                if (btnAmbilRB) btnAmbilRB.style.display = 'block';
-                const btnEditRB = document.getElementById('btnGroupEditRB');
-                if (btnEditRB) btnEditRB.style.display = 'none';
+                // Reset Array Foto
+                fotosRA = [];
+                fotosRB = [];
+                renderPhotoGrid('RA');
+                renderPhotoGrid('RB');
                 
                 // Tarik data real-time seketika setelah RM berhasil disimpan ke Server (Agar Arsip/Farmasi Langsung Update)
                 await loadDashboardData(true);
@@ -1794,14 +1805,38 @@ function bukaRiwayatKunjungan(rmFilter, nama) {
                 `;
             }
 
-            // [FITUR BARU] Menampilkan Link Foto Klinis di Riwayat Pasien
+            // [FITUR BARU] Menampilkan Link Foto Klinis di Riwayat Pasien sebagai Gallery
             let fotoHTML = '';
             let urlRA = v['URL Foto Rahang Atas'];
             let urlRB = v['URL Foto Rahang Bawah'];
-            if ((urlRA && urlRA !== '-') || (urlRB && urlRB !== '-')) {
+            
+            if ((urlRA && urlRA !== '-' && urlRA !== '[]') || (urlRB && urlRB !== '-' && urlRB !== '[]')) {
                 fotoHTML = '<div style="margin-top:15px; border-top: 1px dashed #cbd5e1; padding-top: 10px;"><strong><i class="fa-solid fa-image"></i> Arsip Foto Klinis (IO):</strong><br>';
-                if(urlRA && urlRA !== '-') fotoHTML += `<a href="${urlRA}" target="_blank" class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; display:inline-block; margin-right:5px; margin-top:5px; background: white;"><i class="fa-solid fa-eye"></i> Rahang Atas</a>`;
-                if(urlRB && urlRB !== '-') fotoHTML += `<a href="${urlRB}" target="_blank" class="btn btn-outline" style="padding:4px 8px; font-size:0.75rem; display:inline-block; margin-top:5px; background: white;"><i class="fa-solid fa-eye"></i> Rahang Bawah</a>`;
+                
+                // Parse Rahang Atas
+                if (urlRA && urlRA !== '-' && urlRA !== '[]') {
+                    fotoHTML += `<div style="font-size: 0.8rem; color: var(--primary); margin-top: 8px; font-weight: 600;">Rahang Atas</div><div class="history-photo-gallery">`;
+                    let linksRA = urlRA.split(' | ');
+                    linksRA.forEach(link => {
+                        if(link.trim() !== '') {
+                            fotoHTML += `<a href="${link.trim()}" target="_blank" class="history-photo-item"><img src="${link.trim()}" alt="Foto RA"></a>`;
+                        }
+                    });
+                    fotoHTML += `</div>`;
+                }
+
+                // Parse Rahang Bawah
+                if (urlRB && urlRB !== '-' && urlRB !== '[]') {
+                    fotoHTML += `<div style="font-size: 0.8rem; color: var(--primary); margin-top: 12px; font-weight: 600;">Rahang Bawah</div><div class="history-photo-gallery">`;
+                    let linksRB = urlRB.split(' | ');
+                    linksRB.forEach(link => {
+                        if(link.trim() !== '') {
+                            fotoHTML += `<a href="${link.trim()}" target="_blank" class="history-photo-item"><img src="${link.trim()}" alt="Foto RB"></a>`;
+                        }
+                    });
+                    fotoHTML += `</div>`;
+                }
+                
                 fotoHTML += '</div>';
             }
 
@@ -2233,7 +2268,13 @@ async function eksekusiCetakSKS() {
             const resData = await response.json();
             
             if(resData.status === 'success') {
-                showToast("Dokumen SKS berhasil dienkripsi ke Server!", "success");
+                showToast("Dokumen SKS berhasil dienkripsi!", "success");
+                
+                // [BIG UPGRADE]: Otomatis mengarahkan aplikasi untuk mengunduh/membuka file PDF asli 
+                // Sehingga user bisa langsung menyimpannya ke folder File lokal iOS.
+                if(resData.fileUrl) {
+                    window.location.href = resData.fileUrl;
+                }
             } else {
                 // Menampilkan error persis dari GAS agar user tahu kalau salah URL / Lupa Deploy
                 showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
@@ -2248,12 +2289,6 @@ async function eksekusiCetakSKS() {
             // 4. LAKUKAN PRINT FISIK BROWSER (Aman dari block jaringan)
             const modalSks = document.getElementById('modalSks');
             if(modalSks) modalSks.classList.remove('active');
-            
-            document.body.classList.add('print-sks');
-            setTimeout(() => { 
-                window.print(); 
-                document.body.classList.remove('print-sks');
-            }, 300);
         }
     }, 100);
 }
@@ -2362,7 +2397,12 @@ async function eksekusiCetakRujukan() {
             const resData = await response.json();
             
             if(resData.status === 'success') {
-                showToast("Rujukan berhasil dienkripsi ke Server!", "success");
+                showToast("Rujukan berhasil dienkripsi!", "success");
+                
+                // [BIG UPGRADE]: Mengarahkan WebView langsung ke URL PDF Google Drive murni
+                if(resData.fileUrl) {
+                    window.location.href = resData.fileUrl;
+                }
             } else {
                 showToast("Sistem Gagal: " + (resData.message || "Cek Deployment Web App Anda"), "error");
             }
@@ -2376,12 +2416,6 @@ async function eksekusiCetakRujukan() {
             // LAKUKAN PRINT FISIK SETELAH DATA AMAN
             const modalRujukan = document.getElementById('modalRujukan');
             if(modalRujukan) modalRujukan.classList.remove('active');
-            
-            document.body.classList.add('print-rujukan');
-            setTimeout(() => { 
-                window.print(); 
-                document.body.classList.remove('print-rujukan'); 
-            }, 300);
         }
     }, 100);
 }
